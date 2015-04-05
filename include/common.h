@@ -22,5 +22,11 @@ typename ::std::decay<T>::type decay_type(T&& arg)
     return ::std::forward<T>(arg);
 }
 
+template<class Fn> inline
+auto function_wapper_void(Fn&& fn) -> ::std::function<decltype(fn())()>
+{
+    return ::std::function<decltype(fn())()>(::std::move(fn));
+};
+
 
 #endif // #ifndef __COMMON_H__

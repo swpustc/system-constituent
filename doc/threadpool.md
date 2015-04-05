@@ -17,12 +17,13 @@ public:
     template<size_t _ThreadNum> CThreadPool(CThreadPool<_ThreadNum>&& _Other);
     template<size_t _ThreadNum> CThreadPool& operator=(CThreadPool<_ThreadNum>&& _Other);
 
-    template<class Fn, class... Args> bool Attach(Fn&& fn, Args&&... args);
-    template<class Fn, class... Args> bool AttachMulti(size_t Count, Fn&& fn, Args&&... args);
     bool Start();
     bool Pause();
     void Stop();
     bool StopOnComplete();
+
+    template<class Fn, class... Args> bool Attach(Fn&& fn, Args&&... args);
+    template<class Fn, class... Args> bool AttachMulti(size_t Count, Fn&& fn, Args&&... args);
 
     bool Detach();
     bool Detach(size_t threadNumNew);
@@ -53,20 +54,6 @@ public:
 - ##### `template<size_t _ThreadNum> CThreadPool& CThreadPool::operator=(CThreadPool<_ThreadNum>&& _Other)`
     移动赋值语句，用于对象的交换和堆、栈对象的分离机制。
 
-- ##### `template<class Fn, class... Args> bool CThreadPool::Attach(Fn&& fn, Args&&... args)`
-    添加单个任务，fn为函数，args为参数列表。函数可以为函数对象、函数指针、C++98/03/11兼容的仿函数对象、lambda表达式。
-    args通过完美转发转发参数，参数可以是任何类型，数量不限。
-
-    传入函数的参数列表的类型和数量必须与传入的参数类型和数量一致，否则会产生编译时错误。
-    传入函数的返回值类型必须是void。
-
-    如果线程池已进入退出流程，返回false，否则返回true。
-
-- ##### `template<class Fn, class... Args> bool CThreadPool::AttachMulti(size_t Count, Fn&& fn, Args&&... args)`
-    添加重复的任务，Count为重复的次数。如果Count为0，亦返回true。
-
-    如果线程池已进入退出流程，返回false，否则返回true。
-
 - ##### `bool CThreadPool::Start()`
     如果线程池已暂停，则启动线程池。
 
@@ -85,6 +72,19 @@ public:
     可以调用**CThreadPool::Stop()**以立即停止线程池。
 
     如果已经调用过**CThreadPool::Stop()**，返回false，否则返回true。
+
+- ##### `template<class Fn, class... Args> bool CThreadPool::Attach(Fn&& fn, Args&&... args)`
+    添加单个任务，fn为函数，args为参数列表。函数可以为函数对象、函数指针、C++98/03/11兼容的仿函数对象、lambda表达式。
+    args通过完美转发转发参数，参数可以是任何类型，数量不限。
+
+    传入函数的参数列表的类型和数量必须与传入的参数类型和数量一致，否则会产生编译时错误。
+
+    如果线程池已进入退出流程，返回false，否则返回true。
+
+- ##### `template<class Fn, class... Args> bool CThreadPool::AttachMulti(size_t Count, Fn&& fn, Args&&... args)`
+    添加重复的任务，Count为重复的次数。如果Count为0，亦返回true。
+
+    如果线程池已进入退出流程，返回false，否则返回true。
 
 - ##### `bool CThreadPool::Detach()`
     分离线程池对象，分离的线程池对象线程数不变。

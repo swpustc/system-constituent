@@ -250,40 +250,6 @@ public:
         return *this;
     }
 
-    // 添加一个任务 VS2013+
-    template<class Fn, class... Args> bool Attach(Fn&& fn, Args&&... args)
-    {
-        // 退出流程中禁止添加新任务
-        if (m_exit_event != exit_event_t::NORMAL)
-            return false;
-        // 任务队列读写锁
-        ::std::lock_guard<::std::mutex> lck(m_mutex);
-        // 绑定函数 -> 生成任务（仿函数）
-        m_mission.push_back(
-            ::std::bind<void>(decay_type(::std::forward<Fn>(fn)), decay_type(::std::forward<Args>(args))...)
-            );
-        notify<1>();
-        return true;
-    }
-    // 添加多个任务 VS2013+
-    template<class Fn, class... Args> bool AttachMulti(size_t Count, Fn&& fn, Args&&... args)
-    {
-        assert(Count >= 0 && Count < USHRT_MAX);
-        // 退出流程中禁止添加新任务
-        if (m_exit_event != exit_event_t::NORMAL)
-            return false;
-        if (Count)
-        {
-            // 任务队列读写锁
-            ::std::lock_guard<::std::mutex> lck(m_mutex);
-            m_mission.insert(m_mission.end(), Count,
-                ::std::bind<void>(decay_type(::std::forward<Fn>(fn)), decay_type(::std::forward<Args>(args))...)
-                );
-            notify(Count);
-        }
-        return true;
-    }
-
     // 启动暂停Pause()的线程
     bool Start()
     {
@@ -319,6 +285,38 @@ public:
         m_exit_event = exit_event_t::WAIT_MISSION_COMPLETE;
         SetEvent(m_continue); // 如果线程已暂停，则启动
         SetEvent(m_stop);
+        return true;
+    }
+
+    // 添加一个任务 VS2013+
+    template<class Fn, class... Args> bool Attach(Fn&& fn, Args&&... args)
+    {
+        // 退出流程中禁止添加新任务
+        if (m_exit_event != exit_event_t::NORMAL)
+            return false;
+        // 任务队列读写锁
+        ::std::lock_guard<::std::mutex> lck(m_mutex);
+        // 绑定函数 -> 生成任务（仿函数）
+        auto original = function_wapper_void(::std::bind(decay_type(::std::forward<Fn>(fn)), decay_type(::std::forward<Args>(args))...));
+        m_mission.push_back(::std::bind([](decltype(original)& fn){fn(); }, ::std::move(original)));
+        notify<1>();
+        return true;
+    }
+    // 添加多个任务 VS2013+
+    template<class Fn, class... Args> bool AttachMulti(size_t Count, Fn&& fn, Args&&... args)
+    {
+        assert(Count >= 0 && Count < USHRT_MAX);
+        // 退出流程中禁止添加新任务
+        if (m_exit_event != exit_event_t::NORMAL)
+            return false;
+        if (Count)
+        {
+            // 任务队列读写锁
+            ::std::lock_guard<::std::mutex> lck(m_mutex);
+            auto original = function_wapper_void(::std::bind(decay_type(::std::forward<Fn>(fn)), decay_type(::std::forward<Args>(args))...));
+            m_mission.insert(m_mission.end(), Count, ::std::bind([](decltype(original)& fn){fn(); }, ::std::move(original)));
+            notify(Count);
+        }
         return true;
     }
 
