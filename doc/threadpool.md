@@ -5,6 +5,8 @@
 
 ## 类申明
 
+源文件：[include/threadpool.h](../include/threadpool.h "查看 threadpool.h")
+
 ```cpp
 template<size_t ThreadNum = 2> class CThreadPool
 {
