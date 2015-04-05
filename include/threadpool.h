@@ -29,7 +29,7 @@ private:
     // 线程句柄数组
     ::std::vector<SAFE_HANDLE_OBJECT> m_hThread;
     // 任务队列 (VS2010+)
-    ::std::deque<::std::function<size_t()>> m_mission;
+    ::std::deque<::std::function<void()>> m_mission;
     // 任务队列读写锁 (VS2012+)
     ::std::mutex m_mutex;
     // 通知事件
@@ -145,9 +145,9 @@ private:
     }
 
     // 获取任务队列中的任务，返回当前任务和未执行任务总数
-    ::std::pair<::std::function<size_t()>, size_t> getMission()
+    ::std::pair<::std::function<void()>, size_t> getMission()
     {
-        ::std::function<size_t()> mission;
+        ::std::function<void()> mission;
         // 任务队列读写锁
         ::std::lock_guard<::std::mutex> lck(m_mutex);
         size_t mission_num = m_mission.size();
@@ -172,7 +172,7 @@ public:
         m_notify_all = CreateEvent(NULL, TRUE, FALSE, nullptr);  // 手动复位，无信号
 
         uint32_t threadID; // 线程ID值，这里不记录
-        for (auto&& handle_obj : m_hThread) // VS2013+
+        for (auto& handle_obj : m_hThread) // VS2013+
         {
             HANDLE handle = (HANDLE)_beginthreadex(NULL, 0, (uint32_t(WINAPI*)(void*))ThreadProc, this, NORMAL_PRIORITY_CLASS, &threadID);
             handle_obj = handle;
@@ -187,7 +187,7 @@ public:
         ::std::vector<HANDLE> hThreadOpen;
         DWORD threadOpenNum = 0;
         hThreadOpen.reserve(m_threadNum);
-        for (auto&& handle_obj : m_hThread) // VS2013+
+        for (auto& handle_obj : m_hThread) // VS2013+
         {
             HANDLE handle = handle_obj;
             if(handle && handle != INVALID_HANDLE_VALUE)
@@ -205,7 +205,7 @@ public:
     template<size_t _ThreadNum> CThreadPool(CThreadPool<_ThreadNum>&& _Other) = delete; // 移动构造函数
     template<size_t _ThreadNum> CThreadPool& operator=(CThreadPool<_ThreadNum>&& _Other) = delete; // 移动赋值语句
 
-    // 添加一个任务
+    // 添加一个任务 VS2013+
     template<class Fn, class... Args> bool Attach(Fn&& fn, Args&&... args)
     {
         // 退出流程中禁止添加新任务
@@ -215,39 +215,27 @@ public:
         ::std::lock_guard<::std::mutex> lck(m_mutex);
         // 绑定函数 -> 生成任务（仿函数）
         m_mission.push_back(
-            ::std::bind<size_t>(decay_type(::std::forward<Fn>(fn)), decay_type(::std::forward<Args>(args))...)
+            ::std::bind<void>(decay_type(::std::forward<Fn>(fn)), decay_type(::std::forward<Args>(args))...)
             );
         notify<1>();
         return true;
     }
-    // 添加多个任务
-    template<size_t Count, class Fn, class... Args> bool Attach(Fn&& fn, Args&&... args)
-    {
-        static_assert(Count >= 0 && Count < USHRT_MAX, "Count must in set [0, 65535)");
-        // 退出流程中禁止添加新任务
-        if (m_exit_event != exit_event_t::NORMAL)
-            return false;
-        // 任务队列读写锁
-        ::std::lock_guard<::std::mutex> lck(m_mutex);
-        m_mission.insert(m_mission.end(), Count,
-            ::std::bind<size_t>(decay_type(::std::forward<Fn>(fn)), decay_type(::std::forward<Args>(args))...)
-            );
-        notify<Count>();
-        return true;
-    }
-    // 添加多个任务
+    // 添加多个任务 VS2013+
     template<class Fn, class... Args> bool AttachMulti(size_t Count, Fn&& fn, Args&&... args)
     {
         assert(Count >= 0 && Count < USHRT_MAX);
         // 退出流程中禁止添加新任务
         if (m_exit_event != exit_event_t::NORMAL)
             return false;
-        // 任务队列读写锁
-        ::std::lock_guard<::std::mutex> lck(m_mutex);
-        m_mission.insert(m_mission.end(), Count,
-            ::std::bind<size_t>(decay_type(::std::forward<Fn>(fn)), decay_type(::std::forward<Args>(args))...)
-            );
-        notify(Count);
+        if (Count)
+        {
+            // 任务队列读写锁
+            ::std::lock_guard<::std::mutex> lck(m_mutex);
+            m_mission.insert(m_mission.end(), Count,
+                ::std::bind<void>(decay_type(::std::forward<Fn>(fn)), decay_type(::std::forward<Args>(args))...)
+                );
+            notify(Count);
+        }
         return true;
     }
 
@@ -295,7 +283,7 @@ public:
         return m_threadNum;
     }
     // 增加新的处理线程，如果线程池进入中止流程则无动作
-    void AddThreadNum(size_t thread_num_add)
+    bool AddThreadNum(size_t thread_num_add)
     {
         // 线程退出
         if (thread_num_add && m_exit_event == exit_event_t::NORMAL)
@@ -307,7 +295,10 @@ public:
                 m_hThread.push_back(handle);
             }
             m_threadNum += thread_num_add;
+            return true;
         }
+        else
+            return false;
     }
 };
 
