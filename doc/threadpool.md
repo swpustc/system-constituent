@@ -3,39 +3,19 @@
 线程池的创建、调度和销毁。
 
 
-## 类申明
+## 公共接口
 
 源文件：[include/threadpool.h](../include/threadpool.h "查看 threadpool.h")
 
 ```cpp
 template<size_t ThreadNum = 2> class CThreadPool
 {
-private:
-    size_t m_threadNum;
-    ::std::vector<SAFE_HANDLE_OBJECT> m_hThread;
-    ::std::deque<::std::function<size_t()>> m_mission;
-    ::std::mutex m_mutex;
-    SAFE_HANDLE_OBJECT m_stop;
-    SAFE_HANDLE_OBJECT m_continue;
-    SAFE_HANDLE_OBJECT m_notify_one;
-    SAFE_HANDLE_OBJECT m_notify_all;
-    enum class exit_event_t m_exit_event;
-
-    static size_t WINAPI ThreadProc(CThreadPool* pThis);
-    size_t Run();
-
-    void notify();
-    void notify(size_t attachCount);
-    template<size_t attachCount> void notify();
-    ::std::pair<::std::function<size_t()>, size_t> getMission();
-
 public:
     CThreadPool();
+    CThreadPool(size_t threadNum);
     ~CThreadPool();
-    CThreadPool(const CThreadPool&) = delete;
-    CThreadPool& operator=(const CThreadPool&) = delete;
-    template<size_t _ThreadNum> CThreadPool(CThreadPool<_ThreadNum>&& _Other) = delete;
-    template<size_t _ThreadNum> CThreadPool& operator=(CThreadPool<_ThreadNum>&& _Other) = delete;
+    template<size_t _ThreadNum> CThreadPool(CThreadPool<_ThreadNum>&& _Other);
+    template<size_t _ThreadNum> CThreadPool& operator=(CThreadPool<_ThreadNum>&& _Other);
 
     template<class Fn, class... Args> bool Attach(Fn&& fn, Args&&... args);
     template<class Fn, class... Args> bool AttachMulti(size_t Count, Fn&& fn, Args&&... args);
@@ -43,6 +23,9 @@ public:
     bool Pause();
     void Stop();
     bool StopOnComplete();
+
+    bool Detach();
+    bool Detach(size_t threadNumNew);
 
     size_t GetThreadNum();
     bool AddThreadNum(size_t thread_num_add);
@@ -53,22 +36,22 @@ public:
 ## 成员函数
 
 - ##### `CThreadPool::CThreadPool()`
-    构造函数。
+    默认构造函数。
+
+- ##### `CThreadPool::CThreadPool(size_t threadNum)`
+    指定线程数的构造函数。
 
 - ##### `CThreadPool::~CThreadPool()`
-    析构函数，退出时会等待所有任务执行完毕。
+    默认析构函数，退出时会等待所有任务执行完毕。
 
-- ##### `CThreadPool::CThreadPool(const CThreadPool&) = delete`
-    不允许通过复制构造对象。
+- ##### `template<size_t _ThreadNum> CThreadPool::CThreadPool(CThreadPool<_ThreadNum>&& _Other)`
+    移动构造函数。
 
-- ##### `CThreadPool::CThreadPool& operator=(const CThreadPool&) = delete`
-    不允许复制另一个CThreadPool对象。
+    **注意：**虽然实现了安全的移动构造函数，但是将对象应用在STL容器中，会遇到严重的性能问题。
+    应避免大量使用移动构造函数的情况。
 
-- ##### `CThreadPool::CThreadPool(CThreadPool&& _Other) = delete`
-    不允许通过移动构造对象。
-
-- ##### `CThreadPool::CThreadPool& operator=(CThreadPool&& _Other) = delete`
-    不允许移动另一个CThreadPool对象。
+- ##### `template<size_t _ThreadNum> CThreadPool& CThreadPool::operator=(CThreadPool<_ThreadNum>&& _Other)`
+    移动赋值语句，用于对象的交换和堆、栈对象的分离机制。
 
 - ##### `template<class Fn, class... Args> bool CThreadPool::Attach(Fn&& fn, Args&&... args)`
     添加单个任务，fn为函数，args为参数列表。函数可以为函数对象、函数指针、C++98/03/11兼容的仿函数对象、lambda表达式。
@@ -103,6 +86,16 @@ public:
 
     如果已经调用过**CThreadPool::Stop()**，返回false，否则返回true。
 
+- ##### `bool CThreadPool::Detach()`
+    分离线程池对象，分离的线程池对象线程数不变。
+
+    如果线程池已停止，分离操作将失败；如果当前线程池线程数量为0，未完成的任务不会被执行而是立即销毁。
+
+- ##### `bool CThreadPool::Detach(size_t threadNumNew)`
+    分离线程池对象，设置分离的线程池对象线程数为`ThreadNumNew`。
+
+    如果线程池已停止，分离操作将失败；如果`ThreadNumNew==0`，未完成的任务不会被执行而是立即销毁。
+
 - ##### `size_t CThreadPool::GetThreadNum()`
     获取当前线程中工作线程的数量。
 
@@ -116,7 +109,11 @@ public:
 
 此线程池未使用虚函数，异常安全。默认的线程数为2，实际运用时的线程数应少于CPU核心数。
 
+线程退出代码基址为`success_code=0x00001000`，正常退出时，返回值大于等于`success_code`；
+非正常退出时，返回值小于`success_code`。
+
 使用C++11模板类编写，无需链接库文件和单独编译。
+`class CThreadPool`不允许通过复制构造对象，不允许复制另一个CThreadPool对象。
 
 
 ## 示例代码

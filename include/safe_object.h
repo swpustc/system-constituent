@@ -30,8 +30,7 @@ private:
 
 public:
     // 默认构造函数
-    SAFE_HANDLE_OBJECT()
-        : m_handle(INVALID_HANDLE_VALUE)
+    SAFE_HANDLE_OBJECT() : m_handle(INVALID_HANDLE_VALUE)
     {
     }
     // 默认析构函数
@@ -46,8 +45,7 @@ public:
     SAFE_HANDLE_OBJECT& operator=(const SAFE_HANDLE_OBJECT&) = delete;
 
     // 移动构造函数
-    SAFE_HANDLE_OBJECT(SAFE_HANDLE_OBJECT&& _Other)
-        : m_handle(_Other.m_handle)
+    SAFE_HANDLE_OBJECT(SAFE_HANDLE_OBJECT&& _Other) : m_handle(_Other.m_handle)
     {
         _Other.m_handle = INVALID_HANDLE_VALUE;
     }
@@ -58,8 +56,7 @@ public:
         return *this;
     }
 
-    SAFE_HANDLE_OBJECT(HANDLE handle)
-        : m_handle(handle)
+    SAFE_HANDLE_OBJECT(HANDLE handle) : m_handle(handle)
     {
     }
 

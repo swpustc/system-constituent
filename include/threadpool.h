@@ -15,6 +15,7 @@
 #include <vector>
 #include <deque>
 #include <mutex>
+#include <thread>
 #include <cassert>
 #include <functional>
 #include <process.h>
@@ -47,12 +48,12 @@ private:
     // 静态线程入口函数
     static size_t WINAPI ThreadProc(CThreadPool* pThis)
     {
-        return pThis->Run();
+        return pThis->run();
     }
     /* 线程任务调度函数
-     * 返回值 >= 0 表示正常退出，< 0 为非正常退出
+     * 返回值 >= success_code 表示正常退出，< success_code 为非正常退出
      */
-    size_t Run()
+    size_t run()
     {
         // 线程控制事件
         HANDLE handle_control[] = { m_stop, m_continue };
@@ -69,8 +70,9 @@ private:
                 switch (m_exit_event)
                 {
                 case exit_event_t::NORMAL:                // 未设置退出事件
+                    return success_code + 0;
                 case exit_event_t::STOP_IMMEDIATELY:      // 立即退出
-                    return 0;
+                    return success_code + 1;
                 case exit_event_t::WAIT_MISSION_COMPLETE: // 等待任务队列清空
                 default:
                     break;
@@ -78,8 +80,9 @@ private:
             case WAIT_OBJECT_0 + 1: // 继续运行
                 break;
             case WAIT_FAILED:       // 错误
+                return  success_code - 1;
             default:
-                return -1;
+                return success_code - 2;
             }
             // 监听线程通知事件
             switch (WaitForMultipleObjects(sizeof(handle_notify) / sizeof(HANDLE), handle_notify, FALSE, INFINITE))
@@ -88,8 +91,9 @@ private:
                 switch (m_exit_event)
                 {
                 case exit_event_t::NORMAL:                // 未设置退出事件
+                    return success_code + 2;
                 case exit_event_t::STOP_IMMEDIATELY:      // 立即退出
-                    return 1;
+                    return success_code + 3;
                 case exit_event_t::WAIT_MISSION_COMPLETE: // 等待任务队列清空
                 default:
                     break;
@@ -107,14 +111,15 @@ private:
                 {
                     mission_val.first();
                     if (m_exit_event == exit_event_t::WAIT_MISSION_COMPLETE)
-                        return 2;
+                        return success_code + 4;
                 } // 任务队列中没有任务
                 else if (m_exit_event == exit_event_t::WAIT_MISSION_COMPLETE)
-                    return 3;
+                    return success_code + 5;
                 break;
             case WAIT_FAILED:       // 错误
+                return success_code - 3;
             default:
-                return -2;
+                return success_code - 4;
             }
         }
     }
@@ -162,8 +167,15 @@ private:
     }
 
 public:
-    CThreadPool()
-        : m_threadNum(ThreadNum), m_hThread(ThreadNum), m_exit_event(exit_event_t::NORMAL)
+    // 标准线程结束代码
+    static const size_t success_code = 0x00001000;
+
+    CThreadPool() :
+        CThreadPool(ThreadNum)
+    {
+    }
+    CThreadPool(size_t threadNum) :
+        m_threadNum(threadNum), m_hThread(threadNum), m_exit_event(exit_event_t::NORMAL)
     {
         static_assert(ThreadNum < 255, "Thread must less than 255");
         m_stop = CreateEvent(NULL, TRUE, FALSE, nullptr);        // 手动复位，无信号
@@ -190,7 +202,7 @@ public:
         for (auto& handle_obj : m_hThread) // VS2013+
         {
             HANDLE handle = handle_obj;
-            if(handle && handle != INVALID_HANDLE_VALUE)
+            if (handle && handle != INVALID_HANDLE_VALUE)
             {
                 hThreadOpen.push_back(handle);
                 threadOpenNum++;
@@ -200,10 +212,43 @@ public:
         if (threadOpenNum)
             WaitForMultipleObjects(threadOpenNum, hThreadOpen.data(), TRUE, INFINITE);
     }
-    CThreadPool(const CThreadPool&) = delete; // 复制构造函数
-    CThreadPool& operator=(const CThreadPool&) = delete; // 复制赋值语句
-    template<size_t _ThreadNum> CThreadPool(CThreadPool<_ThreadNum>&& _Other) = delete; // 移动构造函数
-    template<size_t _ThreadNum> CThreadPool& operator=(CThreadPool<_ThreadNum>&& _Other) = delete; // 移动赋值语句
+    // 复制构造函数
+    CThreadPool(const CThreadPool&) = delete;
+    template<size_t _ThreadNum> CThreadPool(const CThreadPool<_ThreadNum>&) = delete;
+    // 复制赋值语句
+    CThreadPool& operator=(const CThreadPool&) = delete;
+    template<size_t _ThreadNum> CThreadPool& operator=(const CThreadPool<_ThreadNum>&) = delete;
+    // 移动构造函数
+    template<size_t _ThreadNum> CThreadPool(CThreadPool<_ThreadNum>&& _Other) :
+        CThreadPool(_Other.m_threadNum)
+    {
+        *this = ::std::move(_Other);
+    }
+    // 移动赋值语句
+    template<size_t _ThreadNum> CThreadPool& operator=(CThreadPool<_ThreadNum>&& _Other)
+    {
+        switch (_Other.m_exit_event)
+        {
+        case exit_event_t::NORMAL:
+            // 为了锁的正确释放，需要放在花括号中
+            if (true)
+            {
+                // 任务队列读写锁
+                ::std::lock_guard<::std::mutex> lck(m_mutex);
+                ::std::lock_guard<::std::mutex> lck_other(_Other.m_mutex);
+                // 交换任务队列
+                ::std::swap(m_mission, _Other.m_mission);
+            }
+            break;
+        case exit_event_t::STOP_IMMEDIATELY:
+            Stop();
+            break;
+        case exit_event_t::WAIT_MISSION_COMPLETE:
+            StopOnComplete();
+            break;
+        }
+        return *this;
+    }
 
     // 添加一个任务 VS2013+
     template<class Fn, class... Args> bool Attach(Fn&& fn, Args&&... args)
@@ -274,6 +319,32 @@ public:
         m_exit_event = exit_event_t::WAIT_MISSION_COMPLETE;
         SetEvent(m_continue); // 如果线程已暂停，则启动
         SetEvent(m_stop);
+        return true;
+    }
+
+    // 分离线程池对象，分离的线程池对象线程数不变
+    bool Detach()
+    {
+        // 已经停止的线程池分离操作将失败
+        if (m_exit_event != exit_event_t::NORMAL)
+            return false;
+        assert(m_threadNum); // 如果线程数为0，则分离的线程池中未处理的任务将丢弃
+        auto pThreadPool = new CThreadPool(::std::move(*this));
+        ::std::thread delete_thread([](decltype(pThreadPool) pClass){delete pClass; }, pThreadPool);
+        delete_thread.detach();
+        return true;
+    }
+    // 分离线程池对象，设置分离的线程池对象线程数为ThreadNumNew
+    bool Detach(size_t threadNumNew)
+    {
+        // 已经停止的线程池分离操作将失败
+        if (m_exit_event != exit_event_t::NORMAL)
+            return false;
+        assert(threadNumNew); // 如果线程数为0，则分离的线程池中未处理的任务将丢弃
+        auto pThreadPool = new CThreadPool(threadNumNew);
+        *pThreadPool = ::std::move(*this);
+        ::std::thread delete_thread([](decltype(pThreadPool) pClass){delete pClass; }, pThreadPool);
+        delete_thread.detach();
         return true;
     }
 
