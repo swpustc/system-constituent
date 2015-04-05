@@ -10,6 +10,7 @@
 #define __COMMON_H__
 #pragma once
 
+#include <cstdint>
 #include <type_traits>
 
 #define EXTERN_C  extern "C"
