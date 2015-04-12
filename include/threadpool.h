@@ -69,8 +69,9 @@ private:
             iter->first = ::std::thread(&threadpool::thread_entry, this, iter);
             thread_iter->first.detach();
             m_thread_object.erase(thread_iter);
-            debug_output("Thread Result: ", success_code - 0xff, "(0x", (void*)result, ')');
-            return success_code - 0xff;
+            size_t result = success_code - 0xff;
+            debug_output("Thread Result: ", result, "(0x", (void*)result, ')');
+            return result;
         }
     }
     /* 线程任务调度函数
