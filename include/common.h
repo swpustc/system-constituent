@@ -128,7 +128,7 @@ struct function_wapper
 };
 
 
-template<class T, class Arg> inline void debug_puts(::std::basic_ostream<char, T>& os, Arg&& arg)
+template<class T, class Arg> inline void debug_put(::std::basic_ostream<char, T>& os, Arg&& arg)
 {
     ::std::stringstream ss;
     ss << ::std::forward<Arg>(arg);
@@ -139,7 +139,7 @@ template<class T, class Arg> inline void debug_puts(::std::basic_ostream<char, T
 #endif
 }
 
-template<class T, class Arg> inline void debug_puts(::std::basic_ostream<wchar_t, T>& os, Arg&& arg)
+template<class T, class Arg> inline void debug_put(::std::basic_ostream<wchar_t, T>& os, Arg&& arg)
 {
     ::std::wstringstream ss;
     ss << ::std::forward<Arg>(arg);
@@ -153,74 +153,76 @@ template<class T, class Arg> inline void debug_puts(::std::basic_ostream<wchar_t
 inline void _debug_output()
 {
     auto now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-    debug_puts(::std::wclog, L" [");
+    debug_put(::std::wclog, L" [");
+    debug_put(::std::wclog,
 #if defined(_WIN32) || defined(WIN32)
-    debug_puts(::std::wclog, GetCurrentThreadId());
+        GetCurrentThreadId()
 #else // Linux
-    debug_puts(::std::wclog, gettid());
+        gettid()
 #endif // #if defined(_WIN32) || defined(WIN32)
-    debug_puts(::std::wclog, L"] ");
+        );
+    debug_put(::std::wclog, L"] ");
 #ifdef _MSC_VER
 #pragma warning( push )
 #pragma warning( disable : 4996 )
-    debug_puts(::std::clog, ::std::ctime(&now));
+    debug_put(::std::clog, ::std::ctime(&now));
 #pragma warning( pop )
 #else // _MSC_VER
-    debug_puts(::std::clog, ::std::ctime(&now));
+    debug_put(::std::clog, ::std::ctime(&now));
 #endif // #ifdef _MSC_VER
 }
 
 template<class T, class... Args> inline void _debug_output(T&& arg, Args&&... args)
 {
-    debug_puts(::std::wclog, arg);
+    debug_put(::std::wclog, arg);
     _debug_output(::std::forward<Args>(args)...);
 }
 
 template<class... Args> inline void _debug_output(const char* debug_string, Args&&... args)
 {
-    debug_puts(::std::wclog, debug_string);
+    debug_put(::std::wclog, debug_string);
     _debug_output(::std::forward<Args>(args)...);
 }
 
 template<class... Args> inline void _debug_output(volatile char* debug_string, Args&&... args)
 {
-    debug_puts(::std::wclog, debug_string);
+    debug_put(::std::wclog, debug_string);
     _debug_output(::std::forward<Args>(args)...);
 }
 
 template<class... Args> inline void _debug_output(const volatile char* debug_string, Args&&... args)
 {
-    debug_puts(::std::wclog, debug_string);
+    debug_put(::std::wclog, debug_string);
     _debug_output(::std::forward<Args>(args)...);
 }
 
 template<class T, class A, class... Args> inline void _debug_output(const basic_string<char, T, A>& debug_string, Args&&... args)
 {
-    debug_puts(::std::wclog, debug_string);
+    debug_put(::std::wclog, debug_string);
     _debug_output(::std::forward<Args>(args)...);
 }
 
 template<class... Args> inline void _debug_output(const wchar_t* debug_string, Args&&... args)
 {
-    debug_puts(::std::wclog, debug_string);
+    debug_put(::std::wclog, debug_string);
     _debug_output(::std::forward<Args>(args)...);
 }
 
 template<class... Args> inline void _debug_output(volatile wchar_t* debug_string, Args&&... args)
 {
-    debug_puts(::std::wclog, debug_string);
+    debug_put(::std::wclog, debug_string);
     _debug_output(::std::forward<Args>(args)...);
 }
 
 template<class... Args> inline void _debug_output(const volatile wchar_t* debug_string, Args&&... args)
 {
-    debug_puts(::std::wclog, debug_string);
+    debug_put(::std::wclog, debug_string);
     _debug_output(::std::forward<Args>(args)...);
 }
 
 template<class T, class A, class... Args> inline void _debug_output(const basic_string<wchar_t, T, A>& debug_string, Args&&... args)
 {
-    debug_puts(::std::wclog, debug_string);
+    debug_put(::std::wclog, debug_string);
     _debug_output(::std::forward<Args>(args)...);
 }
 
@@ -257,17 +259,20 @@ void set_log_location(::std::basic_string<Elem, T, A> file_name)
 // 设置std::clog和std::wclog的rdbuf
 template<class Elem> inline void set_log_location(const Elem* file_name)
 {
-    g_ofstream.open(file_name, ::std::ios::app | ::std::ios::out);
-    g_wofstream.open(file_name, ::std::ios::app | ::std::ios::out);
+    g_ofstream.open(file_name, ::std::ios::app);
+    g_wofstream.open(file_name, ::std::ios::app);
     auto rdbuf = g_ofstream.rdbuf();
     if (rdbuf)
         ::std::clog.rdbuf(rdbuf);
     auto wrdbuf = g_wofstream.rdbuf();
     if (wrdbuf)
         ::std::wclog.rdbuf(wrdbuf);
+    debug_output<true>("\n\nProcess Start: [",
 #if defined(_WIN32) || defined(WIN32)
-    debug_output("\n\nProcess Start: [", GetCurrentProcessId(), ']');
+        GetCurrentProcessId()
 #else // Linux
-    debug_output("\n\nProcess Start: [", getpid(), ']');
+        getpid()
 #endif // #if defined(_WIN32) || defined(WIN32)
+        , ']');
+
 }
