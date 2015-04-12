@@ -6,8 +6,6 @@
  * 最后修改：2015-04-12 （宋万鹏）
  **********************************************************/
 
-#ifndef __THREADPOOL_H__
-#define __THREADPOOL_H__
 #pragma once
 
 #include "common.h"
@@ -21,6 +19,7 @@
 #include <cassert>
 #include <functional>
 #include <process.h>
+#include <Windows.h>
 
 
 // 线程池类 thread_number初始化线程数量
@@ -56,15 +55,19 @@ private:
     {
         try
         {
-            return run(thread_iter->second.get_safe_handle());
+            size_t result = run(thread_iter->second);
+            debug_output("Thread Result: ", result, "(0x", (void*)result, ')');
+            return result;
         }
-        catch (...)
+        catch (::std::function<void()>& function_object)
         {
+            debug_output<true>(__FILE__, '(', __LINE__, "): ", function_object.target_type().name());
             // 线程创建、销毁事件锁
             ::std::lock_guard<::std::mutex> lck(m_thread_lock);
             auto iter = m_thread_object.insert(m_thread_object.end(), ::std::make_pair(
                 ::std::thread(), CreateEvent(nullptr, FALSE, FALSE, nullptr))); // 自动复位，无信号
             iter->first = ::std::thread(&threadpool::thread_entry, this, iter);
+            thread_iter->first.detach();
             m_thread_object.erase(thread_iter);
             return success_code - 0xff;
         }
@@ -128,7 +131,15 @@ private:
                 if (task_val.second > 1)
                 {
                     notify<1>();
-                    task_val.first();
+                    try
+                    {
+                        task_val.first();
+                    }
+                    catch (...)
+                    {
+                        throw ::std::move(task_val.first);
+                        return success_code - 0xff;
+                    }
                     m_task_completed++;
                 } // 这是当前任务队列中最后一项任务
                 else if (task_val.second)
@@ -167,7 +178,7 @@ private:
     { // 和上一个通知函数一致，通过模板以优化确定添加数量时的性能
         if (attach_count)
         {
-            if (attach_count > auto_max((size_t)m_thread_started.load() / 2, 1))
+            if (attach_count > auto_max((size_t)m_thread_started.load() / 2, (size_t)1))
                 PulseEvent(m_notify_all);
             SetEvent(m_notify_one);
         }
@@ -199,7 +210,7 @@ public:
     }
     threadpool(int _thread_number)
     {
-        assert(_thread_number >= 0 && _thread_number < 255);
+        assert(_thread_number >= 0 && _thread_number < 255); // "Thread number must greater than or equal 0 and less than 255"
         m_stop = CreateEvent(nullptr, TRUE, FALSE, nullptr);        // 手动复位，无信号
         m_continue = CreateEvent(nullptr, TRUE, TRUE, nullptr);     // 手动复位，有信号
         m_notify_one = CreateEvent(nullptr, FALSE, FALSE, nullptr); // 自动复位，无信号
@@ -207,7 +218,7 @@ public:
 
         // 线程创建、销毁事件锁
         ::std::lock_guard<::std::mutex> lck(m_thread_lock);
-        for (int i = 0; i < _thread_number; i++) // 线程对象
+        for (register int i = 0; i < _thread_number; i++) // 线程对象
         {
             auto iter = m_thread_object.insert(m_thread_object.end(), ::std::make_pair(
                 ::std::thread(), CreateEvent(nullptr, FALSE, FALSE, nullptr))); // 自动复位，无信号
@@ -353,17 +364,33 @@ public:
     // 增加新的处理线程，如果线程池进入中止流程则无动作
     bool set_new_thread_number(int thread_num_set)
     {
-        static_assert(thread_num_set >= 0 && thread_num_set < 255, "Thread number must greater than or equal 0 and less than 255");
-        // 线程退出
-        if (thread_num_set && m_exit_event == exit_event_t::NORMAL)
+        assert(thread_num_set >= 0 && thread_num_set < 255); // "Thread number must greater than or equal 0 and less than 255"
+        if (m_exit_event == exit_event_t::NORMAL) // 线程池退出则失败
         {
-            // 线程创建、销毁事件锁
-            ::std::lock_guard<::std::mutex> lck(m_thread_lock);
-            for (register size_t i = 0; i < thread_num_set; i++)
+            if (m_thread_started.load() < thread_num_set)
             {
-                HANDLE handle = (HANDLE)_beginthreadex(NULL, 0, (uint32_t(WINAPI*)(void*))ThreadProc, this, NORMAL_PRIORITY_CLASS, &threadID);
-                m_thread_object.push_back(handle);
-                m_thread_started++;
+                // 线程创建、销毁事件锁
+                ::std::lock_guard<::std::mutex> lck(m_thread_lock);
+                for (register int i = m_thread_started.load(); i < thread_num_set; i++)
+                {
+                    auto iter = m_thread_object.insert(m_thread_object.end(), ::std::make_pair(
+                        ::std::thread(), CreateEvent(nullptr, FALSE, FALSE, nullptr))); // 自动复位，无信号
+                    iter->first = ::std::thread(&threadpool::thread_entry, this, ::std::move(iter));
+                    m_thread_started++;
+                }
+            }
+            else if (m_thread_started.load() > thread_num_set)
+            {
+                // 线程创建、销毁事件锁
+                ::std::lock_guard<::std::mutex> lck(m_thread_lock);
+                for (register int i = m_thread_started.load(); i > thread_num_set; i--)
+                {
+                    auto iter = m_thread_object.begin();
+                    SetEvent(iter->second);
+                    iter->first.detach();
+                    m_thread_object.erase(iter);
+                    m_thread_started--;
+                }
             }
             return true;
         }
@@ -371,6 +398,3 @@ public:
             return false;
     }
 };
-
-
-#endif // #ifndef __THREADPOOL_H__

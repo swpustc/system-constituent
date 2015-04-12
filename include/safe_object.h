@@ -6,8 +6,6 @@
  * 最后修改：2015-04-12 （宋万鹏）
  **********************************************************/
 
-#ifndef __SAFE_OBJECT_H__
-#define __SAFE_OBJECT_H__
 #pragma once
 
 #include <utility>
@@ -90,6 +88,3 @@ public:
         return this ? (m_handle ? m_handle : INVALID_HANDLE_VALUE) : INVALID_HANDLE_VALUE;
     }
 };
-
-
-#endif // #ifndef __SAFE_OBJECT_H__
