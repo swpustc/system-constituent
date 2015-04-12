@@ -14,8 +14,14 @@ public:
     CThreadPool();
     CThreadPool(size_t threadNum);
     ~CThreadPool();
-    template<size_t _ThreadNum> CThreadPool(CThreadPool<_ThreadNum>&& _Other);
-    template<size_t _ThreadNum> CThreadPool& operator=(CThreadPool<_ThreadNum>&& _Other);
+    CThreadPool(const CThreadPool&) = delete;
+    template<size_t _ThreadNum> CThreadPool(const CThreadPool<_ThreadNum>&) = delete;
+    CThreadPool& operator=(const CThreadPool&) = delete;
+    template<size_t _ThreadNum> CThreadPool& operator=(const CThreadPool<_ThreadNum>&) = delete;
+    CThreadPool(CThreadPool&&) = delete;
+    template<size_t _ThreadNum> CThreadPool(CThreadPool<_ThreadNum>&&) = delete;
+    CThreadPool& operator=(CThreadPool&&) = delete;
+    template<size_t _ThreadNum> CThreadPool& operator=(CThreadPool<_ThreadNum>&&) = delete;
 
     bool Start();
     bool Pause();
@@ -45,14 +51,8 @@ public:
 - ##### `CThreadPool::~CThreadPool()`
     默认析构函数，退出时会等待所有任务执行完毕。
 
-- ##### `template<size_t _ThreadNum> CThreadPool::CThreadPool(CThreadPool<_ThreadNum>&& _Other)`
-    移动构造函数。
-
-    **注意：**虽然实现了安全的移动构造函数，但是将对象应用在STL容器中，会遇到严重的性能问题。
-    应避免大量使用移动构造函数的情况。
-
-- ##### `template<size_t _ThreadNum> CThreadPool& CThreadPool::operator=(CThreadPool<_ThreadNum>&& _Other)`
-    移动赋值语句，用于对象的交换和堆、栈对象的分离机制。
+- ##### `CThreadPool(const CThreadPool&) = delete`
+    复制构造函数、复制赋值语句、移动构造函数、移动赋值语句均已删除。
 
 - ##### `bool CThreadPool::Start()`
     如果线程池已暂停，则启动线程池。

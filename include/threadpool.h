@@ -219,36 +219,11 @@ public:
     CThreadPool& operator=(const CThreadPool&) = delete;
     template<size_t _ThreadNum> CThreadPool& operator=(const CThreadPool<_ThreadNum>&) = delete;
     // 移动构造函数
-    template<size_t _ThreadNum> CThreadPool(CThreadPool<_ThreadNum>&& _Other) :
-        CThreadPool(_Other.m_threadNum)
-    {
-        *this = ::std::move(_Other);
-    }
+    CThreadPool(CThreadPool&&) = delete;
+    template<size_t _ThreadNum> CThreadPool(CThreadPool<_ThreadNum>&&) = delete;
     // 移动赋值语句
-    template<size_t _ThreadNum> CThreadPool& operator=(CThreadPool<_ThreadNum>&& _Other)
-    {
-        switch (_Other.m_exit_event)
-        {
-        case exit_event_t::NORMAL:
-            // 为了锁的正确释放，需要放在花括号中
-            if (true)
-            {
-                // 任务队列读写锁
-                ::std::lock_guard<::std::mutex> lck(m_mutex);
-                ::std::lock_guard<::std::mutex> lck_other(_Other.m_mutex);
-                // 交换任务队列
-                ::std::swap(m_mission, _Other.m_mission);
-            }
-            break;
-        case exit_event_t::STOP_IMMEDIATELY:
-            Stop();
-            break;
-        case exit_event_t::WAIT_MISSION_COMPLETE:
-            StopOnComplete();
-            break;
-        }
-        return *this;
-    }
+    CThreadPool& operator=(CThreadPool&&) = delete;
+    template<size_t _ThreadNum> CThreadPool& operator=(CThreadPool<_ThreadNum>&&) = delete;
 
     // 启动暂停Pause()的线程
     bool Start()
