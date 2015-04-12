@@ -12,8 +12,8 @@
 
 #include "common.h"
 #include "safe_object.h"
+#include <list>
 #include <queue>
-#include <deque>
 #include <mutex>
 #include <atomic>
 #include <future>
@@ -30,13 +30,15 @@ private:
     // 线程数
     ::std::atomic<int> m_thread_started{ 0 };
     // 线程句柄队列
-    ::std::deque<::std::pair<::std::thread, SAFE_HANDLE_OBJECT>> m_thread_object;
+    ::std::list<::std::pair<::std::thread, SAFE_HANDLE_OBJECT>> m_thread_object;
     // 任务队列 (VS2010+)
     ::std::queue<::std::function<void()>> m_tasks;
     ::std::atomic<size_t> m_task_completed{ 0 };
     ::std::atomic<size_t> m_task_all{ 0 };
     // 任务队列读写锁 (VS2012+)
-    ::std::mutex m_mutex;
+    ::std::mutex m_task_lock;
+    // 线程创建、销毁事件锁
+    ::std::mutex m_thread_lock;
     // 通知事件
     SAFE_HANDLE_OBJECT m_stop;       // 退出事件，关闭所有线程
     SAFE_HANDLE_OBJECT m_continue;   // 暂停事件，控制线程挂起
@@ -50,25 +52,20 @@ private:
     } m_exit_event{ exit_event_t::NORMAL };
 
     // 线程入口函数
-    size_t thread_entry(HANDLE exit_event)
+    size_t thread_entry(::std::list<::std::pair<::std::thread, SAFE_HANDLE_OBJECT>>::iterator thread_iter)
     {
-        struct thread_count_t
-        {
-            thread_count()
-            {
-                m_thread_started++;
-            }
-            ~thread_count()
-            {
-                m_thread_started--;
-            }
-        } thread_count_obj; // 线程计数
         try
         {
-            return run(exit_event);
+            return run(thread_iter->second.get_safe_handle());
         }
         catch (...)
         {
+            // 线程创建、销毁事件锁
+            ::std::lock_guard<::std::mutex> lck(m_thread_lock);
+            auto iter = m_thread_object.insert(m_thread_object.end(), ::std::make_pair(
+                ::std::thread(), CreateEvent(nullptr, FALSE, FALSE, nullptr))); // 自动复位，无信号
+            iter->first = ::std::thread(&threadpool::thread_entry, this, iter);
+            m_thread_object.erase(thread_iter);
             return success_code - 0xff;
         }
     }
@@ -180,7 +177,7 @@ private:
     ::std::pair<::std::function<void()>, size_t> get_task()
     {
         ::std::function<void()> task;
-        ::std::lock_guard<::std::mutex> lck(m_mutex); // 任务队列读写锁
+        ::std::lock_guard<::std::mutex> lck(m_task_lock); // 任务队列读写锁
         size_t task_num = m_tasks.size();
         if (task_num)
         {
@@ -198,67 +195,47 @@ public:
 
     threadpool() : threadpool(thread_number)
     {
-        static_assert(thread_number < 255, "Thread number must less than 255");
+        static_assert(thread_number >= 0 && thread_number < 255, "Thread number must greater than or equal 0 and less than 255");
     }
     threadpool(int _thread_number)
     {
-        assert(_thread_number < 255, "Thread number must less than 255");
-        m_thread_object.reserve(auto_max(_thread_number * 2, 255));
-        m_stop = CreateEvent(NULL, TRUE, FALSE, nullptr);        // 手动复位，无信号
-        m_continue = CreateEvent(NULL, TRUE, TRUE, nullptr);     // 手动复位，有信号
-        m_notify_one = CreateEvent(NULL, FALSE, FALSE, nullptr); // 自动复位，无信号
-        m_notify_all = CreateEvent(NULL, TRUE, FALSE, nullptr);  // 手动复位，无信号
+        assert(_thread_number >= 0 && _thread_number < 255);
+        m_stop = CreateEvent(nullptr, TRUE, FALSE, nullptr);        // 手动复位，无信号
+        m_continue = CreateEvent(nullptr, TRUE, TRUE, nullptr);     // 手动复位，有信号
+        m_notify_one = CreateEvent(nullptr, FALSE, FALSE, nullptr); // 自动复位，无信号
+        m_notify_all = CreateEvent(nullptr, TRUE, FALSE, nullptr);  // 手动复位，无信号
 
-        // 线程对象
-        uint32_t threadID; // 线程ID值，这里不记录
-        for (auto& handle_obj : m_thread_object) // VS2013+
+        // 线程创建、销毁事件锁
+        ::std::lock_guard<::std::mutex> lck(m_thread_lock);
+        for (int i = 0; i < _thread_number; i++) // 线程对象
         {
-            m_thread_object.push_back(::std::make_pair(
-                ::std::thread(&threadpool::thread_entry, this, )
-                ));
-
-            HANDLE handle = (HANDLE)_beginthreadex(NULL, 0, (uint32_t(WINAPI*)(void*))ThreadProc, this, NORMAL_PRIORITY_CLASS, &threadID);
-            handle_obj = handle;
+            auto iter = m_thread_object.insert(m_thread_object.end(), ::std::make_pair(
+                ::std::thread(), CreateEvent(nullptr, FALSE, FALSE, nullptr))); // 自动复位，无信号
+            iter->first = ::std::thread(&threadpool::thread_entry, this, ::std::move(iter));
+            m_thread_started++;
         }
     }
     ~threadpool()
     {
-        // 退出时等待任务清空
         if (m_exit_event == exit_event_t::NORMAL)
-            stop_on_completed();
-        // 已打开的线程数组
-        ::std::vector<HANDLE> hThreadOpen;
-        hThreadOpen.reserve(m_thread_started);
-        DWORD threadOpenNum = 0;
+            stop_on_completed(); // 退出时等待任务清空
         for (auto& handle_obj : m_thread_object) // VS2013+
-        {
-            HANDLE handle = handle_obj;
-            if (handle && handle != INVALID_HANDLE_VALUE)
-            {
-                hThreadOpen.push_back(handle);
-                threadOpenNum++;
-            }
-        }
-        // 等待所有打开的线程退出
-        if (threadOpenNum)
-            WaitForMultipleObjects(threadOpenNum, hThreadOpen.data(), TRUE, INFINITE);
+            handle_obj.first.join(); // 等待所有打开的线程退出
     }
     // 复制构造函数
     threadpool(const threadpool&) = delete;
     template<size_t _thread_number> threadpool(const threadpool<_thread_number>&) = delete;
     // 复制赋值语句
     threadpool& operator=(const threadpool&) = delete;
-    threadpool& operator=(const threadpool&) volatile = delete;
     template<size_t _thread_number> threadpool& operator=(const threadpool<_thread_number>&) = delete;
     // 移动构造函数
     threadpool(threadpool&&) = delete;
     template<size_t _thread_number> threadpool(threadpool<_thread_number>&&) = delete;
     // 移动赋值语句
     threadpool& operator=(threadpool&&) = delete;
-    threadpool& operator=(threadpool&&) volatile = delete;
     template<size_t _thread_number> threadpool& operator=(threadpool<_thread_number>&&) = delete;
 
-    // 启动暂停pause()的线程
+    // 启动暂停pause的线程
     bool start()
     {
         // 退出流程中禁止操作线程控制事件
@@ -267,7 +244,7 @@ public:
         SetEvent(m_continue);
         return true;
     }
-    // 暂停线程执行，直到退出stop()或者启动start()
+    // 暂停线程执行，直到退出stop或者启动start
     bool pause()
     {
         // 退出流程中禁止操作线程控制事件
@@ -304,7 +281,7 @@ public:
             return false;
         else
         {
-            ::std::lock_guard<::std::mutex> lck(m_mutex); // 任务队列读写锁
+            ::std::lock_guard<::std::mutex> lck(m_task_lock); // 任务队列读写锁
             m_tasks.push(::std::bind(function_wapper(), // 绑定函数 -> 生成任务（仿函数）
                 decay_type(::std::forward<Fn>(fn)), decay_type(::std::forward<Args>(args))...));
             m_task_all++;
@@ -324,7 +301,7 @@ public:
             size_t _count = count;
             if (_count)
             {
-                ::std::lock_guard<::std::mutex> lck(m_mutex); // 任务队列读写锁
+                ::std::lock_guard<::std::mutex> lck(m_task_lock); // 任务队列读写锁
                 ::std::function<void()> bind_function = ::std::bind(function_wapper(), // 绑定函数 -> 生成任务（仿函数）
                     decay_type(::std::forward<Fn>(fn)), decay_type(::std::forward<Args>(args))...);
                 while (--_count)
@@ -342,15 +319,15 @@ public:
     {
         return detach(m_thread_started);
     }
-    // 分离线程池对象，设置分离的线程池对象线程数为thread_numberNew
-    bool detach(size_t thread_numberNew)
+    // 分离所有任务，设置分离的线程池对象线程数为thread_number_new
+    bool detach(int thread_number_new)
     {
-        ::std::lock_guard<::std::mutex> lck(m_mutex); // 当前线程池任务队列读写锁
+        ::std::lock_guard<::std::mutex> lck(m_task_lock); // 当前线程池任务队列读写锁
         if (!m_tasks.size())
             return false;
-        assert(thread_numberNew); // 如果线程数为0，则分离的线程池中未处理的任务将丢弃
-        auto pThreadPool = new threadpool(thread_numberNew);
-        ::std::lock_guard<::std::mutex> lck_new(pThreadPool->m_mutex); // 新线程池任务队列读写锁
+        assert(thread_number_new); // 如果线程数为0，则分离的线程池中未处理的任务将丢弃
+        auto pThreadPool = new threadpool(thread_number_new);
+        ::std::lock_guard<::std::mutex> lck_new(pThreadPool->m_task_lock); // 新线程池任务队列读写锁
         ::std::swap(m_tasks, pThreadPool->m_tasks); // 交换任务队列
         ::std::async([](decltype(pThreadPool) pClass){delete pClass; return success_code + 0xff; }, pThreadPool);
         return true;
@@ -364,7 +341,7 @@ public:
     // 获取任务队列数量
     size_t get_tasks_number()
     {
-        ::std::lock_guard<::std::mutex> lck(m_mutex); // 任务队列读写锁
+        ::std::lock_guard<::std::mutex> lck(m_task_lock); // 任务队列读写锁
         return m_tasks.size();
     }
     // 获取已完成任务数
@@ -374,18 +351,20 @@ public:
     }
 
     // 增加新的处理线程，如果线程池进入中止流程则无动作
-    bool set_new_thread_number(size_t thread_num_set)
+    bool set_new_thread_number(int thread_num_set)
     {
+        static_assert(thread_num_set >= 0 && thread_num_set < 255, "Thread number must greater than or equal 0 and less than 255");
         // 线程退出
         if (thread_num_set && m_exit_event == exit_event_t::NORMAL)
         {
-            uint32_t threadID;
+            // 线程创建、销毁事件锁
+            ::std::lock_guard<::std::mutex> lck(m_thread_lock);
             for (register size_t i = 0; i < thread_num_set; i++)
             {
                 HANDLE handle = (HANDLE)_beginthreadex(NULL, 0, (uint32_t(WINAPI*)(void*))ThreadProc, this, NORMAL_PRIORITY_CLASS, &threadID);
                 m_thread_object.push_back(handle);
+                m_thread_started++;
             }
-            m_thread_started += thread_num_set;
             return true;
         }
         else

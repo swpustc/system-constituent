@@ -28,12 +28,12 @@ public:
     template<class Fn, class... Args> bool push_multi(size_t Count, Fn&& fn, Args&&... args);
 
     bool detach();
-    bool detach(size_t thread_numberNew);
+    bool detach(int thread_number_new);
 
     size_t get_thread_number();
     size_t get_tasks_number();
     size_t get_tasks_completed_number();
-    bool set_new_thread_number(size_t thread_num_set);
+    bool set_new_thread_number(int thread_num_set);
 };
 ```
 
@@ -89,10 +89,10 @@ public:
 
     如果任务队列为空，返回`false`，否则返回`true`。如果当前线程池线程数量为0，未完成的任务不会被执行而是立即销毁。
 
-- ##### `bool detach(size_t thread_numberNew)`
-    分离线程池对象，设置分离的线程池对象线程数为`thread_numberNew`。
+- ##### `bool detach(int thread_number_new)`
+    分离所有任务，设置分离的线程池对象线程数为`thread_number_new`。
 
-    如果任务队列为空，返回`false`，否则返回`true`。如果`thread_numberNew==0`，未完成的任务不会被执行而是立即销毁。
+    如果任务队列为空，返回`false`，否则返回`true`。如果`thread_number_new==0`，未完成的任务不会被执行而是立即销毁。
 
 - ##### `size_t get_thread_number()`
     获取当前线程中工作线程的数量。
@@ -103,7 +103,7 @@ public:
 - ##### `size_t get_tasks_completed_number()`
     获取已完成任务数。
 
-- ##### `bool set_new_thread_number(size_t thread_num_set)`
+- ##### `bool set_new_thread_number(int thread_num_set)`
     增加线程池中工作线程的数量。
 
     如果线程池已进入退出流程，或者添加的线程数`thread_num_set==0`，返回false，否则返回true。
@@ -116,6 +116,8 @@ public:
 线程退出代码基址为`success_code=0x00001000`，正常退出时，返回值大于等于`success_code`；
 非正常退出时，返回值小于`success_code`。
 如果线程抛出异常，`thread_entry [private]`将捕获异常并重启工作线程，返回值为`success_code-0xff`。
+
+分离`detach`的线程池控制函数返回值为`success_code+0xff`。
 
 使用C++11模板类编写，无需链接额外的库文件。
 `class threadpool`不允许通过复制构造对象，不允许复制另一个threadpool对象。
