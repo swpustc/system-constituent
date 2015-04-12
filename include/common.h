@@ -153,7 +153,13 @@ template<class T, class Arg> inline void debug_puts(::std::basic_ostream<wchar_t
 inline void _debug_output()
 {
     auto now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-    debug_puts(::std::wclog, L" | ");
+    debug_puts(::std::wclog, L" [");
+#if defined(_WIN32) || defined(WIN32)
+    debug_puts(::std::wclog, GetCurrentThreadId());
+#else // Linux
+    debug_puts(::std::wclog, gettid());
+#endif // #if defined(_WIN32) || defined(WIN32)
+    debug_puts(::std::wclog, L"] ");
 #ifdef _MSC_VER
 #pragma warning( push )
 #pragma warning( disable : 4996 )
