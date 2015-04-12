@@ -16,6 +16,7 @@
 #include <deque>
 #include <mutex>
 #include <atomic>
+#include <future>
 #include <thread>
 #include <cassert>
 #include <functional>
@@ -351,8 +352,7 @@ public:
         auto pThreadPool = new threadpool(thread_numberNew);
         ::std::lock_guard<::std::mutex> lck_new(pThreadPool->m_mutex); // 新线程池任务队列读写锁
         ::std::swap(m_tasks, pThreadPool->m_tasks); // 交换任务队列
-        ::std::thread delete_thread([](decltype(pThreadPool) pClass){delete pClass; }, pThreadPool);
-        delete_thread.detach();
+        ::std::async([](decltype(pThreadPool) pClass){delete pClass; return success_code + 0xff; }, pThreadPool);
         return true;
     }
 
