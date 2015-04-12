@@ -25,6 +25,7 @@ public:
     bool stop_on_completed();
 
     template<class Fn, class... Args> bool push(Fn&& fn, Args&&... args);
+    template<class Fn, class... Args> auto push_future(Fn&& fn, Args&&... args) -> ::std::pair<::std::future<fn(args...)>, bool>
     template<class Fn, class... Args> bool push_multi(size_t Count, Fn&& fn, Args&&... args);
 
     bool detach();
@@ -78,6 +79,10 @@ public:
     传入函数的参数列表的类型和数量必须与传入的参数类型和数量一致，否则会产生编译时错误。
 
     如果线程池已进入退出流程，返回false，否则返回true。
+
+- ##### `auto push_future(Fn&& fn, Args&&... args) -> ::std::pair<::std::future<fn(args...)>, bool>`
+    返回类型为`pair<future, bool>`，可以通过`futurn::get`获取任务函数的返回值。
+    其余和`push`函数相同。
 
 - ##### `bool push_multi(size_t Count, Fn&& fn, Args&&... args)`
     添加重复的任务，Count为重复的次数。如果Count为0，亦返回true。

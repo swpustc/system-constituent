@@ -13,6 +13,7 @@
 #include <list>
 #include <queue>
 #include <mutex>
+#include <memory>
 #include <atomic>
 #include <future>
 #include <thread>
@@ -301,6 +302,28 @@ public:
         }
         notify<1>();
         return true;
+    }
+    // 添加一个任务并返回返回值对象pair<future,bool>，使用future::get获取返回值（若未完成会等待完成）
+    template<class Fn, class... Args> auto push_future(Fn&& fn, Args&&... args)
+        -> ::std::pair<::std::future<decltype(decay_type(::std::forward<Fn>(fn))(decay_type(::std::forward<Args>(args))...))>, bool>
+    {
+        typedef decltype(decay_type(::std::forward<Fn>(fn))(decay_type(::std::forward<Args>(args))...)) result_type;
+        typedef ::std::packaged_task<result_type()> task_type;
+        ::std::future<result_type> future_obj;
+        // 退出流程中禁止添加新任务
+        if (m_exit_event != exit_event_t::NORMAL)
+            return ::std::make_pair(::std::move(future_obj), false);
+        else
+        {
+            ::std::lock_guard<::std::mutex> lck(m_task_lock); // 任务队列读写锁
+            auto task_obj = ::std::make_shared<task_type>(::std::bind( // 绑定函数 -> 生成任务（仿函数）
+                decay_type(::std::forward<Fn>(fn)), decay_type(::std::forward<Args>(args))...));
+            future_obj = task_obj->get_future();
+            m_tasks.push(::std::bind(function_wapper(), ::std::move(task_obj)));
+            m_task_all++;
+        }
+        notify<1>();
+        return ::std::make_pair(::std::move(future_obj), true);
     }
     // 添加多个任务 VS2013+
     template<class Fn, class... Args> bool push_multi(size_t count, Fn&& fn, Args&&... args)

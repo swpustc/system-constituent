@@ -11,6 +11,7 @@
 #include <ctime>
 #include <chrono>
 #include <cstdio>
+#include <memory>
 #include <cstdint>
 #include <sstream>
 #include <iostream>
@@ -120,10 +121,17 @@ typename ::std::decay<T>::type decay_type(T&& arg)
 
 struct function_wapper
 {
-    template<class Fn, class... Args> inline
-    void operator()(Fn&& fn, Args&&... args)
+    template<class Fn, class... Args> inline void operator()(Fn&& fn, Args&&... args)
     {
         ::std::forward<Fn>(fn)(::std::forward<Args>(args)...);
+    }
+    template<class Fn, class... Args> inline void operator()(::std::shared_ptr<Fn>& fn, Args&&... args)
+    {
+        (*fn.get())(::std::forward<Args>(args)...);
+    }
+    template<class Fn, class... Args> inline void operator()(::std::unique_ptr<Fn>& fn, Args&&... args)
+    {
+        (*fn.get())(::std::forward<Args>(args)...);
     }
 };
 
@@ -153,7 +161,7 @@ template<class T, class Arg> inline void debug_put(::std::basic_ostream<wchar_t,
 inline void _debug_output()
 {
     auto now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-    debug_put(::std::wclog, L" [");
+    debug_put(::std::wclog, L" [TID:");
     debug_put(::std::wclog,
 #if defined(_WIN32) || defined(WIN32)
         GetCurrentThreadId()
@@ -267,7 +275,7 @@ template<class Elem> inline void set_log_location(const Elem* file_name)
     auto wrdbuf = g_wofstream.rdbuf();
     if (wrdbuf)
         ::std::wclog.rdbuf(wrdbuf);
-    debug_output<true>("\n\nProcess Start: [",
+    debug_output<true>("\n\nProcess Start: [PID:",
 #if defined(_WIN32) || defined(WIN32)
         GetCurrentProcessId()
 #else // Linux
