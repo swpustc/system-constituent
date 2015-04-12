@@ -1,9 +1,9 @@
 ﻿/**********************************************************
  * STL公共算法部分
  * 支持平台：Windows; Linux
- * 编译环境：VS2010+; g++ -std=c++11
+ * 编译环境：VS2013+; g++ -std=c++11
  * 创建时间：2015-04-05 （宋万鹏）
- * 最后修改：2015-04-05 （宋万鹏）
+ * 最后修改：2015-04-12 （宋万鹏）
  **********************************************************/
 
 #ifndef __COMMON_H__
@@ -22,10 +22,13 @@ typename ::std::decay<T>::type decay_type(T&& arg)
     return ::std::forward<T>(arg);
 }
 
-template<class Fn> inline
-auto function_wapper_void(Fn&& fn) -> ::std::function<decltype(fn())()>
+struct function_wapper
 {
-    return ::std::function<decltype(fn())()>(::std::move(fn));
+    template<class Fn, class... Args> inline
+    void operator()(Fn&& fn, Args&&... args)
+    {
+        fn(::std::forward<Args>(args)...);
+    }
 };
 
 

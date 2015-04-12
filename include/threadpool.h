@@ -3,7 +3,7 @@
  * 支持平台：Windows
  * 编译环境：VS2013+
  * 创建时间：2015-04-05 （宋万鹏）
- * 最后修改：2015-04-05 （宋万鹏）
+ * 最后修改：2015-04-12 （宋万鹏）
  **********************************************************/
 
 #ifndef __THREADPOOL_H__
@@ -294,11 +294,9 @@ public:
         // 退出流程中禁止添加新任务
         if (m_exit_event != exit_event_t::NORMAL)
             return false;
-        // 任务队列读写锁
-        ::std::lock_guard<::std::mutex> lck(m_mutex);
-        // 绑定函数 -> 生成任务（仿函数）
-        auto original = function_wapper_void(::std::bind(decay_type(::std::forward<Fn>(fn)), decay_type(::std::forward<Args>(args))...));
-        m_mission.push_back(::std::bind([](decltype(original)& fn){fn(); }, ::std::move(original)));
+        ::std::lock_guard<::std::mutex> lck(m_mutex); // 任务队列读写锁
+        m_mission.push_back(::std::bind(function_wapper(), // 绑定函数 -> 生成任务（仿函数）
+            decay_type(::std::forward<Fn>(fn)), decay_type(::std::forward<Args>(args))...));
         notify<1>();
         return true;
     }
@@ -311,36 +309,29 @@ public:
             return false;
         if (Count)
         {
-            // 任务队列读写锁
-            ::std::lock_guard<::std::mutex> lck(m_mutex);
-            auto original = function_wapper_void(::std::bind(decay_type(::std::forward<Fn>(fn)), decay_type(::std::forward<Args>(args))...));
-            m_mission.insert(m_mission.end(), Count, ::std::bind([](decltype(original)& fn){fn(); }, ::std::move(original)));
+            ::std::lock_guard<::std::mutex> lck(m_mutex); // 任务队列读写锁
+            m_mission.insert(m_mission.end(), Count, ::std::bind(function_wapper(), // 绑定函数 -> 生成任务（仿函数）
+                decay_type(::std::forward<Fn>(fn)), decay_type(::std::forward<Args>(args))...));
             notify(Count);
         }
         return true;
     }
 
-    // 分离线程池对象，分离的线程池对象线程数不变
+    // 分离所有任务，分离的线程池对象线程数不变
     bool Detach()
     {
-        // 已经停止的线程池分离操作将失败
-        if (m_exit_event != exit_event_t::NORMAL)
-            return false;
-        assert(m_threadNum); // 如果线程数为0，则分离的线程池中未处理的任务将丢弃
-        auto pThreadPool = new CThreadPool(::std::move(*this));
-        ::std::thread delete_thread([](decltype(pThreadPool) pClass){delete pClass; }, pThreadPool);
-        delete_thread.detach();
-        return true;
+        return Detach(m_threadNum);
     }
     // 分离线程池对象，设置分离的线程池对象线程数为ThreadNumNew
     bool Detach(size_t threadNumNew)
     {
-        // 已经停止的线程池分离操作将失败
-        if (m_exit_event != exit_event_t::NORMAL)
+        ::std::lock_guard<::std::mutex> lck(m_mutex); // 当前线程池任务队列读写锁
+        if (!m_mission.size())
             return false;
         assert(threadNumNew); // 如果线程数为0，则分离的线程池中未处理的任务将丢弃
         auto pThreadPool = new CThreadPool(threadNumNew);
-        *pThreadPool = ::std::move(*this);
+        ::std::lock_guard<::std::mutex> lck_new(pThreadPool->m_mutex); // 新线程池任务队列读写锁
+        ::std::swap(m_mission, pThreadPool->m_mission); // 交换任务队列
         ::std::thread delete_thread([](decltype(pThreadPool) pClass){delete pClass; }, pThreadPool);
         delete_thread.detach();
         return true;
