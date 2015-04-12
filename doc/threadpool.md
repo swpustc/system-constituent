@@ -1,81 +1,77 @@
-# CThreadPool class
+# threadpool class
 
 线程池的创建、调度和销毁。
 
 
 ## 公共接口
 
-源文件：[include/threadpool.h](../include/threadpool.h "查看 threadpool.h")
+源文件：[include/threadpool.h](../include/threadpool.h)
 
 ```cpp
-template<size_t ThreadNum = 2> class CThreadPool
+template<int thread_number = 2> class threadpool
 {
 public:
-    CThreadPool();
-    CThreadPool(size_t threadNum);
-    ~CThreadPool();
-    CThreadPool(const CThreadPool&) = delete;
-    template<size_t _ThreadNum> CThreadPool(const CThreadPool<_ThreadNum>&) = delete;
-    CThreadPool& operator=(const CThreadPool&) = delete;
-    template<size_t _ThreadNum> CThreadPool& operator=(const CThreadPool<_ThreadNum>&) = delete;
-    CThreadPool(CThreadPool&&) = delete;
-    template<size_t _ThreadNum> CThreadPool(CThreadPool<_ThreadNum>&&) = delete;
-    CThreadPool& operator=(CThreadPool&&) = delete;
-    template<size_t _ThreadNum> CThreadPool& operator=(CThreadPool<_ThreadNum>&&) = delete;
+    threadpool();
+    threadpool(int _thread_number);
+    ~threadpool();
+    threadpool(const threadpool&) = delete;
+    threadpool& operator=(const threadpool&) = delete;
+    threadpool(threadpool&&) = delete;
+    threadpool& operator=(threadpool&&) = delete;
 
-    bool Start();
-    bool Pause();
-    void Stop();
-    bool StopOnComplete();
+    bool start();
+    bool pause();
+    void stop();
+    bool stop_on_completed();
 
-    template<class Fn, class... Args> bool Attach(Fn&& fn, Args&&... args);
-    template<class Fn, class... Args> bool AttachMulti(size_t Count, Fn&& fn, Args&&... args);
+    template<class Fn, class... Args> bool push(Fn&& fn, Args&&... args);
+    template<class Fn, class... Args> bool push_multi(size_t Count, Fn&& fn, Args&&... args);
 
-    bool Detach();
-    bool Detach(size_t threadNumNew);
+    bool detach();
+    bool detach(size_t thread_numberNew);
 
-    size_t GetThreadNum();
-    size_t GetMissionNum();
-    size_t GetMissionCompletedNum();
-    bool AddThreadNum(size_t thread_num_add);
+    size_t get_thread_number();
+    size_t get_tasks_number();
+    size_t get_tasks_completed_number();
+    bool set_new_thread_number(size_t thread_num_set);
 };
 ```
 
 
 ## 成员函数
 
-- ##### `CThreadPool::CThreadPool()`
+- ##### `threadpool()`
     默认构造函数。
 
-- ##### `CThreadPool::CThreadPool(size_t threadNum)`
+- ##### `threadpool(size_t thread_number)`
     指定线程数的构造函数。
 
-- ##### `CThreadPool::~CThreadPool()`
+- ##### `~threadpool()`
     默认析构函数，退出时会等待所有任务执行完毕。
 
-- ##### `CThreadPool(const CThreadPool&) = delete`
+- ##### `threadpool(const threadpool&) = delete`
     复制构造函数、复制赋值语句、移动构造函数、移动赋值语句均已删除。
 
-- ##### `bool CThreadPool::Start()`
+- ##### `bool start()`
     如果线程池已暂停，则启动线程池。
 
     如果线程池已进入退出流程，返回false，否则返回true。
 
-- ##### `bool CThreadPool::Pause()`
+- ##### `bool pause()`
     暂停线程池中的所有线程。
 
     如果线程池已进入退出流程，返回false，否则返回true。
 
-- ##### `void CThreadPool::Stop()`
+- ##### `void stop()`
     立即停止线程池，未完成的任务将丢弃。
 
-- ##### `bool CThreadPool::StopOnComplete()`
+- ##### `bool stop_on_completed()`
     停止线程池，不再允许添加新的任务；在所有任务完成后，退出工作线程。
-    可以调用**CThreadPool::Stop()**以立即停止线程池。
+    可以调用**stop()**以立即停止线程池。
 
-    如果已经调用过**CThreadPool::Stop()**，返回false，否则返回true。
+    如果已经调用过**stop()**，返回false，否则返回true。
 
-- ##### `template<class Fn, class... Args> bool CThreadPool::Attach(Fn&& fn, Args&&... args)`
+- ##### `bool push(Fn&& fn, Args&&... args)`
     添加单个任务，fn为函数，args为参数列表。函数可以为函数对象、函数指针、C++98/03/11兼容的仿函数对象、lambda表达式。
     args通过完美转发转发参数，参数可以是任何类型，数量不限。
 
@@ -83,34 +79,34 @@ public:
 
     如果线程池已进入退出流程，返回false，否则返回true。
 
-- ##### `template<class Fn, class... Args> bool CThreadPool::AttachMulti(size_t Count, Fn&& fn, Args&&... args)`
+- ##### `bool push_multi(size_t Count, Fn&& fn, Args&&... args)`
     添加重复的任务，Count为重复的次数。如果Count为0，亦返回true。
 
     如果线程池已进入退出流程，返回false，否则返回true。
 
-- ##### `bool CThreadPool::Detach()`
+- ##### `bool detach()`
     分离所有任务，分离的线程池对象线程数和当前线程池正在运行的线程数相同。
 
     如果任务队列为空，返回`false`，否则返回`true`。如果当前线程池线程数量为0，未完成的任务不会被执行而是立即销毁。
 
-- ##### `bool CThreadPool::Detach(size_t threadNumNew)`
-    分离线程池对象，设置分离的线程池对象线程数为`threadNumNew`。
+- ##### `bool detach(size_t thread_numberNew)`
+    分离线程池对象，设置分离的线程池对象线程数为`thread_numberNew`。
 
-    如果任务队列为空，返回`false`，否则返回`true`。如果`ThreadNumNew==0`，未完成的任务不会被执行而是立即销毁。
+    如果任务队列为空，返回`false`，否则返回`true`。如果`thread_numberNew==0`，未完成的任务不会被执行而是立即销毁。
 
-- ##### `size_t CThreadPool::GetThreadNum()`
+- ##### `size_t get_thread_number()`
     获取当前线程中工作线程的数量。
 
-- ##### `size_t CThreadPool::GetMissionNum()`
+- ##### `size_t get_tasks_number()`
     获取当前任务队列中未处理的任务数。
 
-- ##### `size_t CThreadPool::GetMissionCompletedNum()`
+- ##### `size_t get_tasks_completed_number()`
     获取已完成任务数。
 
-- ##### `bool CThreadPool::AddThreadNum(size_t thread_num_add)`
+- ##### `bool set_new_thread_number(size_t thread_num_set)`
     增加线程池中工作线程的数量。
 
-    如果线程池已进入退出流程，或者添加的线程数`thread_num_add==0`，返回false，否则返回true。
+    如果线程池已进入退出流程，或者添加的线程数`thread_num_set==0`，返回false，否则返回true。
 
 
 ## 备注
@@ -119,14 +115,15 @@ public:
 
 线程退出代码基址为`success_code=0x00001000`，正常退出时，返回值大于等于`success_code`；
 非正常退出时，返回值小于`success_code`。
+如果线程抛出异常，`thread_entry [private]`将捕获异常并重启工作线程，返回值为`success_code-0xff`。
 
-使用C++11模板类编写，无需链接库文件和单独编译。
-`class CThreadPool`不允许通过复制构造对象，不允许复制另一个CThreadPool对象。
+使用C++11模板类编写，无需链接额外的库文件。
+`class threadpool`不允许通过复制构造对象，不允许复制另一个threadpool对象。
 
 
 ## 示例代码
 
-在测试代码中，可以查看**CThreadPool**的[示例代码](../test/threadpool.cpp)。
+在测试代码中，可以查看**threadpool**的[示例代码](../test/threadpool.cpp)。
 
 
 ## 要求
