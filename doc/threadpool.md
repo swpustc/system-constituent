@@ -35,6 +35,8 @@ public:
     bool Detach(size_t threadNumNew);
 
     size_t GetThreadNum();
+    size_t GetMissionNum();
+    size_t GetMissionCompletedNum();
     bool AddThreadNum(size_t thread_num_add);
 };
 ```
@@ -98,6 +100,12 @@ public:
 
 - ##### `size_t CThreadPool::GetThreadNum()`
     获取当前线程中工作线程的数量。
+
+- ##### `size_t CThreadPool::GetMissionNum()`
+    获取当前任务队列中未处理的任务数。
+
+- ##### `size_t CThreadPool::GetMissionCompletedNum()`
+    获取已完成任务数。
 
 - ##### `bool CThreadPool::AddThreadNum(size_t thread_num_add)`
     增加线程池中工作线程的数量。

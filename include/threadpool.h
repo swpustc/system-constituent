@@ -31,6 +31,7 @@ private:
     ::std::vector<SAFE_HANDLE_OBJECT> m_hThread;
     // 任务队列 (VS2010+)
     ::std::deque<::std::function<void()>> m_mission;
+    size_t m_mission_completed;
     // 任务队列读写锁 (VS2012+)
     ::std::mutex m_mutex;
     // 通知事件
@@ -38,7 +39,7 @@ private:
     SAFE_HANDLE_OBJECT m_continue;   // 暂停事件，控制线程挂起
     SAFE_HANDLE_OBJECT m_notify_one; // 通知一条线程有新任务
     SAFE_HANDLE_OBJECT m_notify_all; // 通知所有线程有新任务
-    // 退出任务类型 (VS2013+)
+    // 退出任务事件 (VS2013+)
     enum class exit_event_t {
         NORMAL,
         STOP_IMMEDIATELY,
@@ -153,13 +154,13 @@ private:
     ::std::pair<::std::function<void()>, size_t> getMission()
     {
         ::std::function<void()> mission;
-        // 任务队列读写锁
-        ::std::lock_guard<::std::mutex> lck(m_mutex);
+        ::std::lock_guard<::std::mutex> lck(m_mutex); // 任务队列读写锁
         size_t mission_num = m_mission.size();
         if (mission_num)
         {
             ::std::swap(mission, m_mission.front());
             m_mission.pop_front();
+            m_mission_completed++;
             return ::std::make_pair(::std::move(mission), mission_num);
         }
         else
@@ -175,9 +176,9 @@ public:
     {
     }
     CThreadPool(size_t threadNum) :
-        m_threadNum(threadNum), m_hThread(threadNum), m_exit_event(exit_event_t::NORMAL)
+        m_threadNum(threadNum), m_hThread(threadNum), m_mission_completed(0), m_exit_event(exit_event_t::NORMAL)
     {
-        static_assert(ThreadNum < 255, "Thread must less than 255");
+        static_assert(ThreadNum < 255, "Thread number must less than 255");
         m_stop = CreateEvent(NULL, TRUE, FALSE, nullptr);        // 手动复位，无信号
         m_continue = CreateEvent(NULL, TRUE, TRUE, nullptr);     // 手动复位，有信号
         m_notify_one = CreateEvent(NULL, FALSE, FALSE, nullptr); // 自动复位，无信号
@@ -317,6 +318,18 @@ public:
     {
         return m_threadNum;
     }
+    // 获取任务队列数量
+    size_t GetMissionNum()
+    {
+        ::std::lock_guard<::std::mutex> lck(m_mutex); // 任务队列读写锁
+        return m_mission.size();
+    }
+    // 获取已完成任务数
+    size_t GetMissionCompletedNum()
+    {
+        return m_mission_completed;
+    }
+
     // 增加新的处理线程，如果线程池进入中止流程则无动作
     bool AddThreadNum(size_t thread_num_add)
     {
