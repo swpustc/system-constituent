@@ -16,20 +16,32 @@
 #define EXTERN_C  extern "C"
 
 
-#ifndef auto_max            // 这里将宏替换a的计算结果先保存至_a中
-#define auto_max(a,b)       ({              \
-                            auto _a = (a);  \
-                            auto _b = (b);  \
-                            (_a > _b) ? _a : _b; })
-#endif
+template<class T> inline auto auto_max(T&& t) -> decltype(::std::forward<T>(t))
+{
+    return ::std::forward<T>(t);
+}
+
+template<class T1, class T2, class... Args> inline
+auto auto_max(T1&& t1, T2&& t2, Args&&... args)
+    -> decltype(::std::forward<T1>(t1) > ::std::forward<T2>(t2) ? ::std::forward<T1>(t1) : ::std::forward<T2>(t2))
+{
+    return auto_max(::std::forward<T1>(t1) > ::std::forward<T2>(t2) ?
+        ::std::forward<T1>(t1) : ::std::forward<T2>(t2), ::std::forward<Args>(args)...);
+}
 
 
-#ifndef auto_min
-#define auto_min(a,b)       ({              \
-                            auto _a = (a);  \
-                            auto _b = (b);  \
-                            (_a < _b) ? _a : _b; })
-#endif
+template<class T> inline auto auto_min(T&& t) -> decltype(::std::forward<T>(t))
+{
+    return ::std::forward<T>(t);
+}
+
+template<class T1, class T2, class... Args> inline
+auto auto_min(T1&& t1, T2&& t2, Args&&... args)
+-> decltype(::std::forward<T1>(t1) < ::std::forward<T2>(t2) ? ::std::forward<T1>(t1) : ::std::forward<T2>(t2))
+{
+    return auto_min(::std::forward<T1>(t1) < ::std::forward<T2>(t2) ?
+        ::std::forward<T1>(t1) : ::std::forward<T2>(t2), ::std::forward<Args>(args)...);
+}
 
 
 template<class T> inline
