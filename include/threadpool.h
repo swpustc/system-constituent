@@ -11,7 +11,7 @@
 #include "common.h"
 #include "safe_object.h"
 #include <list>
-#include <queue>
+#include <deque>
 #include <mutex>
 #include <memory>
 #include <atomic>
@@ -35,7 +35,7 @@ private:
     // 已销毁分离的线程对象
     ::std::vector<::std::pair<::std::thread, SAFE_HANDLE_OBJECT>> m_thread_destroy;
     // 任务队列 (VS2010+)
-    ::std::queue<::std::function<void()>> m_tasks;
+    ::std::deque<::std::function<void()>> m_tasks;
     ::std::atomic<size_t> m_task_completed{ 0 };
     ::std::atomic<size_t> m_task_all{ 0 };
     // 任务队列读写锁 (VS2012+)
@@ -199,7 +199,7 @@ private:
         if (task_num)
         {
             ::std::swap(task, m_tasks.front());
-            m_tasks.pop();
+            m_tasks.pop_front();
             return ::std::make_pair(::std::move(task), task_num);
         }
         else
@@ -300,11 +300,14 @@ public:
             return false;
         else
         {
-            ::std::lock_guard<::std::mutex> lck(m_task_lock); // 任务队列读写锁
-            m_tasks.push(::std::bind(function_wapper(), // 绑定函数 -> 生成任务（仿函数）
+            // 绑定函数 -> 生成任务（仿函数）
+            ::std::function<void()> = bind_function(::std::bind(function_wapper(),
                 decay_type(::std::forward<Fn>(fn)), decay_type(::std::forward<Args>(args))...));
-            m_task_all++;
+            // 任务队列读写锁
+            ::std::lock_guard<::std::mutex> lck(m_task_lock);
+            m_tasks.push_back(::std::move(bind_function));
         }
+        m_task_all++;
         notify<1>();
         return true;
     }
@@ -320,13 +323,17 @@ public:
             return ::std::make_pair(::std::move(future_obj), false);
         else
         {
-            ::std::lock_guard<::std::mutex> lck(m_task_lock); // 任务队列读写锁
-            auto task_obj = ::std::make_shared<task_type>(::std::bind( // 绑定函数 -> 生成任务（仿函数）
+            // 绑定函数
+            auto task_obj = ::std::make_shared<task_type>(::std::bind(
                 decay_type(::std::forward<Fn>(fn)), decay_type(::std::forward<Args>(args))...));
             future_obj = task_obj->get_future();
-            m_tasks.push(::std::bind(function_wapper(), ::std::move(task_obj)));
-            m_task_all++;
+            // 生成任务（仿函数）
+            ::std::function<void()> = bind_function(::std::bind(function_wapper(), ::std::move(task_obj)));
+            // 任务队列读写锁
+            ::std::lock_guard<::std::mutex> lck(m_task_lock);
+            m_tasks.push_back(::std::move(bind_function));
         }
+        m_task_all++;
         notify<1>();
         return ::std::make_pair(::std::move(future_obj), true);
     }
@@ -339,17 +346,16 @@ public:
             return false;
         else if (count)
         {
-            size_t _count = count;
-            if (_count)
+            if (true)
             {
-                ::std::lock_guard<::std::mutex> lck(m_task_lock); // 任务队列读写锁
-                ::std::function<void()> bind_function = ::std::bind(function_wapper(), // 绑定函数 -> 生成任务（仿函数）
+                // 绑定函数 -> 生成任务（仿函数）
+                ::std::function<void()> bind_function = ::std::bind(function_wapper(),
                     decay_type(::std::forward<Fn>(fn)), decay_type(::std::forward<Args>(args))...);
-                while (--_count)
-                    m_tasks.push(bind_function);
-                m_tasks.push(::std::move(bind_function));
-                m_task_all += count;
+                // 任务队列读写锁
+                ::std::lock_guard<::std::mutex> lck(m_task_lock);
+                m_tasks.insert(m_tasks.end(), count, ::std::move(bind_function));
             }
+            m_task_all += count;
             notify(count);
         }
         return true;
