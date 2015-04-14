@@ -17,6 +17,7 @@
 #include <atomic>
 #include <future>
 #include <thread>
+#include <vector>
 #include <cassert>
 #include <functional>
 #include <process.h>
@@ -29,8 +30,10 @@ template<int thread_number = 2> class threadpool
 private:
     // 线程数
     ::std::atomic<int> m_thread_started{ 0 };
-    // 线程句柄队列
+    // 线程队列
     ::std::list<::std::pair<::std::thread, SAFE_HANDLE_OBJECT>> m_thread_object;
+    // 已销毁分离的线程对象
+    ::std::vector<::std::pair<::std::thread, SAFE_HANDLE_OBJECT>> m_thread_destroy;
     // 任务队列 (VS2010+)
     ::std::queue<::std::function<void()>> m_tasks;
     ::std::atomic<size_t> m_task_completed{ 0 };
@@ -172,7 +175,7 @@ private:
     { // 如果添加任务数超过线程数的一半，则通知所有线程，否则只通知一条线程
         if (attach_count)
         {
-            if (attach_count > auto_max((size_t)m_thread_started.load() / 2, 1))
+            if (attach_count > auto_max((size_t)m_thread_started.load() / 2, (size_t)1))
                 PulseEvent(m_notify_all);
             SetEvent(m_notify_one);
         }
@@ -235,6 +238,8 @@ public:
             stop_on_completed(); // 退出时等待任务清空
         for (auto& handle_obj : m_thread_object) // VS2013+
             handle_obj.first.join(); // 等待所有打开的线程退出
+        for (auto& handle_obj : m_thread_destroy) // VS2013+
+            handle_obj.first.join(); // 等待所有已销毁分离的线程退出
     }
     // 复制构造函数
     threadpool(const threadpool&) = delete;
@@ -365,7 +370,12 @@ public:
         auto pThreadPool = new threadpool(thread_number_new);
         ::std::lock_guard<::std::mutex> lck_new(pThreadPool->m_task_lock); // 新线程池任务队列读写锁
         ::std::swap(m_tasks, pThreadPool->m_tasks); // 交换任务队列
-        ::std::async([](decltype(pThreadPool) pClass){delete pClass; return success_code + 0xff; }, pThreadPool);
+        ::std::async([](decltype(pThreadPool) pClass){
+            delete pClass;
+            size_t result = success_code + 0xff;
+            debug_output("Thread Result: ", result, "(0x", (void*)result, ')');
+            return result;
+        }, pThreadPool);
         return true;
     }
 
@@ -412,7 +422,7 @@ public:
                 {
                     auto iter = m_thread_object.begin();
                     SetEvent(iter->second);
-                    iter->first.detach();
+                    m_thread_destroy.push_back(::std::move(*iter));
                     m_thread_object.erase(iter);
                     m_thread_started--;
                 }

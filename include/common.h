@@ -160,7 +160,7 @@ template<class T, class Arg> inline void debug_put(::std::basic_ostream<wchar_t,
 
 inline void _debug_output()
 {
-    auto now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+    auto now = ::std::chrono::system_clock::to_time_t(::std::chrono::system_clock::now());
     debug_put(::std::wclog, L" [TID:");
     debug_put(::std::wclog,
 #if defined(_WIN32) || defined(WIN32)
