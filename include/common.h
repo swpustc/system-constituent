@@ -3,7 +3,7 @@
  * 支持平台：Windows; Linux
  * 编译环境：VS2013+; g++ -std=c++11
  * 创建时间：2015-04-05 （宋万鹏）
- * 最后修改：2015-04-12 （宋万鹏）
+ * 最后修改：2015-04-15 （宋万鹏）
  **********************************************************/
 
 #pragma once
@@ -162,13 +162,7 @@ inline void _debug_output()
 {
     auto now = ::std::chrono::system_clock::to_time_t(::std::chrono::system_clock::now());
     debug_put(::std::wclog, L" [TID:");
-    debug_put(::std::wclog,
-#if defined(_WIN32) || defined(WIN32)
-        GetCurrentThreadId()
-#else // Linux
-        gettid()
-#endif // #if defined(_WIN32) || defined(WIN32)
-        );
+    debug_put(::std::wclog, ::std::this_thread::get_id());
     debug_put(::std::wclog, L"] ");
 #ifdef _MSC_VER
 #pragma warning( push )
