@@ -132,14 +132,6 @@ private:
                 default:
                     break;
                 }
-            case WAIT_OBJECT_0 + 2: // 切换线程数
-                if (true)
-                {
-                    // 线程创建、销毁事件锁
-                    ::std::lock_guard<::std::mutex> lck(m_thread_lock);
-                    handle_notify[3] = m_notify_task;
-                }
-                break;
             case WAIT_OBJECT_0 + 3: // 当前线程激活
                 task_val = get_task();
                 // 任务队列中仍然有溢出处理线程数的任务未处理，发送线程启动通知
@@ -187,6 +179,14 @@ private:
                 } // 任务队列中没有任务
                 else if (m_exit_event == exit_event_t::WAIT_TASK_COMPLETE)
                     return success_code + 7;
+                break;
+            case WAIT_OBJECT_0 + 2: // 切换线程数
+                if (true)
+                {
+                    // 线程创建、销毁事件锁
+                    ::std::lock_guard<::std::mutex> lck(m_thread_lock);
+                    handle_notify[3] = m_notify_task;
+                }
                 break;
             case WAIT_FAILED:       // 错误
                 return success_code - 3;
@@ -463,6 +463,7 @@ public:
                 }
                 m_thread_started = thread_num_set;
                 m_notify_task = SAFE_HANDLE_OBJECT(CreateSemaphore(nullptr, thread_num_set, thread_num_set, nullptr)); // 计数信号
+                ResetEvent(m_switch_notify);
             }
             return true;
         }
