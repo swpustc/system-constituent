@@ -3,7 +3,7 @@
  * 支持平台：Windows
  * 编译环境：VS2013+
  * 创建时间：2015-04-05 （宋万鹏）
- * 最后修改：2015-04-12 （宋万鹏）
+ * 最后修改：2015-04-15 （宋万鹏）
  **********************************************************/
 
 #pragma once
@@ -25,7 +25,7 @@
 
 
 // 线程池类 thread_number初始化线程数量
-template<int thread_number = 2> class threadpool
+template<int thread_number = 2, bool handle_exception = true> class threadpool
 {
 private:
     // 线程数
@@ -55,25 +55,27 @@ private:
     } m_exit_event{ exit_event_t::NORMAL };
 
     // 线程入口函数
-    size_t thread_entry(::std::list<::std::pair<::std::thread, SAFE_HANDLE_OBJECT>>::iterator thread_iter)
+    size_t thread_entry(HANDLE exit_event)
     {
-        try
+        if (handle_exception)
         {
-            size_t result = run(thread_iter->second);
-            debug_output("Thread Result: ", result, "(0x", (void*)result, ')');
-            return result;
+            while (true)
+            {
+                try
+                {
+                    size_t result = run(exit_event);
+                    debug_output("Thread Result: ", result, "(0x", (void*)result, ')');
+                    return result;
+                }
+                catch (::std::function<void()>& function_object)
+                {
+                    debug_output<true>(__FILE__, '(', __LINE__, "): ", function_object.target_type().name());
+                }
+            }
         }
-        catch (::std::function<void()>& function_object)
+        else
         {
-            debug_output<true>(__FILE__, '(', __LINE__, "): ", function_object.target_type().name());
-            // 线程创建、销毁事件锁
-            ::std::lock_guard<::std::mutex> lck(m_thread_lock);
-            auto iter = m_thread_object.insert(m_thread_object.end(), ::std::make_pair(
-                ::std::thread(), CreateEvent(nullptr, FALSE, FALSE, nullptr))); // 自动复位，无信号
-            iter->first = ::std::thread(&threadpool::thread_entry, this, iter);
-            thread_iter->first.detach();
-            m_thread_object.erase(thread_iter);
-            size_t result = success_code - 0xff;
+            size_t result = run(exit_event);
             debug_output("Thread Result: ", result, "(0x", (void*)result, ')');
             return result;
         }
@@ -133,24 +135,46 @@ private:
             case WAIT_OBJECT_0 + 2: // 当前激活了所有线程
             case WAIT_OBJECT_0 + 3: // 当前激活了单个线程
                 task_val = get_task();
-                // 任务队列中仍然有任务未处理，发送线程启动通知
-                if (task_val.second > 1)
+                // 任务队列中仍然有溢出处理线程数的任务未处理，发送线程启动通知
+                if (task_val.second > get_thread_number())
                 {
                     notify<1>();
-                    try
+                    if (handle_exception)
+                    {
+                        try
+                        {
+                            task_val.first();
+                        }
+                        catch (...)
+                        {
+                            throw ::std::move(task_val.first);
+                            return success_code - 0xff;
+                        }
+                    }
+                    else
                     {
                         task_val.first();
                     }
-                    catch (...)
-                    {
-                        throw ::std::move(task_val.first);
-                        return success_code - 0xff;
-                    }
                     m_task_completed++;
-                } // 这是当前任务队列中最后一项任务
+                } // 这是当前任务队列中最后的线程任务
                 else if (task_val.second)
                 {
-                    task_val.first();
+                    if (handle_exception)
+                    {
+                        try
+                        {
+                            task_val.first();
+                        }
+                        catch (...)
+                        {
+                            throw ::std::move(task_val.first);
+                            return success_code - 0xff;
+                        }
+                    }
+                    else
+                    {
+                        task_val.first();
+                    }
                     if (m_exit_event == exit_event_t::WAIT_TASK_COMPLETE)
                         return success_code + 6;
                 } // 任务队列中没有任务
@@ -226,9 +250,9 @@ public:
         ::std::lock_guard<::std::mutex> lck(m_thread_lock);
         for (register int i = 0; i < _thread_number; i++) // 线程对象
         {
+            HANDLE thread_exit_event = CreateEvent(nullptr, FALSE, FALSE, nullptr); // 自动复位，无信号
             auto iter = m_thread_object.insert(m_thread_object.end(), ::std::make_pair(
-                ::std::thread(), CreateEvent(nullptr, FALSE, FALSE, nullptr))); // 自动复位，无信号
-            iter->first = ::std::thread(&threadpool::thread_entry, this, ::std::move(iter));
+                ::std::thread(&threadpool::thread_entry, this, thread_exit_event), SAFE_HANDLE_OBJECT(thread_exit_event)));
             m_thread_started++;
         }
     }
@@ -414,9 +438,9 @@ public:
                 ::std::lock_guard<::std::mutex> lck(m_thread_lock);
                 for (register int i = m_thread_started.load(); i < thread_num_set; i++)
                 {
+                    HANDLE thread_exit_event = CreateEvent(nullptr, FALSE, FALSE, nullptr); // 自动复位，无信号
                     auto iter = m_thread_object.insert(m_thread_object.end(), ::std::make_pair(
-                        ::std::thread(), CreateEvent(nullptr, FALSE, FALSE, nullptr))); // 自动复位，无信号
-                    iter->first = ::std::thread(&threadpool::thread_entry, this, ::std::move(iter));
+                        ::std::thread(&threadpool::thread_entry, this, thread_exit_event), SAFE_HANDLE_OBJECT(thread_exit_event)));
                     m_thread_started++;
                 }
             }
