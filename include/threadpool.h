@@ -47,7 +47,6 @@ private:
     // 通知事件
     SAFE_HANDLE_OBJECT m_stop_thread;   // 退出事件，关闭所有线程
     SAFE_HANDLE_OBJECT m_notify_task;   // 通知线程有新任务
-    SAFE_HANDLE_OBJECT m_switch_notify; // 切换通知队列
 
     enum class exit_event_t {           // 退出任务事件
         NORMAL,
@@ -396,7 +395,7 @@ public:
     bool detach(int thread_number_new)
     {
         ::std::lock_guard<::std::mutex> lck(m_task_lock); // 当前线程池任务队列读写锁
-        if (!m_tasks.size())
+        if (!m_push_tasks->size())
             return false;
         assert(thread_number_new); // 如果线程数为0，则分离的线程池中未处理的任务将丢弃
         auto detach_threadpool = new threadpool(thread_number_new);
