@@ -162,7 +162,7 @@ inline void _debug_output()
 {
     auto now = ::std::chrono::system_clock::to_time_t(::std::chrono::system_clock::now());
     debug_put(::std::wclog, L" [TID:");
-    debug_put(::std::wclog, ::std::this_thread::get_id());
+    debug_put(::std::wclog, ::std::this_thread::get_id().hash());
     debug_put(::std::wclog, L"] ");
 #ifdef _MSC_VER
 #pragma warning( push )
