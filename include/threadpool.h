@@ -36,6 +36,8 @@ private:
     ::std::vector<::std::pair<::std::thread, SAFE_HANDLE_OBJECT>> m_thread_destroy;
     // 任务队列 (VS2010+)
     ::std::deque<::std::function<void()>> m_tasks;
+    decltype(m_tasks) m_pause_tasks;
+    decltype(m_tasks)* m_push_tasks{ &m_tasks };
     ::std::atomic<size_t> m_task_completed{ 0 };
     ::std::atomic<size_t> m_task_all{ 0 };
     // 任务队列读写锁 (VS2012+)
@@ -44,12 +46,12 @@ private:
     ::std::mutex m_thread_lock;
     // 通知事件
     SAFE_HANDLE_OBJECT m_stop;          // 退出事件，关闭所有线程
-    SAFE_HANDLE_OBJECT m_continue;      // 暂停事件，控制线程挂起
     SAFE_HANDLE_OBJECT m_notify_task;   // 通知线程有新任务
     SAFE_HANDLE_OBJECT m_switch_notify; // 切换通知队列
 
     enum class exit_event_t {           // 退出任务事件
         NORMAL,
+        PAUSE,
         STOP_IMMEDIATELY,
         WAIT_TASK_COMPLETE,
     } m_exit_event{ exit_event_t::NORMAL };
@@ -85,16 +87,14 @@ private:
      */
     size_t run(HANDLE exit_event)
     {
-        // 线程控制事件
-        HANDLE handle_control[] = { exit_event, m_stop, m_continue };
         // 线程通知事件
         HANDLE handle_notify[] = { exit_event, m_stop, m_switch_notify, m_notify_task };
         // 任务内容
         decltype(get_task()) task_val;
         while (true)
         {
-            // 监听线程控制事件
-            switch (WaitForMultipleObjects(sizeof(handle_control) / sizeof(HANDLE), handle_control, FALSE, INFINITE))
+            // 监听线程通知事件
+            switch (WaitForMultipleObjects(sizeof(handle_notify) / sizeof(HANDLE), handle_notify, FALSE, INFINITE))
             {
             case WAIT_OBJECT_0:     // 退出当前线程
                 return success_code + 0;
@@ -105,29 +105,6 @@ private:
                     return success_code + 1;
                 case exit_event_t::STOP_IMMEDIATELY:    // 立即退出
                     return success_code + 2;
-                case exit_event_t::WAIT_TASK_COMPLETE:  // 等待任务队列清空
-                default:
-                    break;
-                }
-            case WAIT_OBJECT_0 + 2: // 继续运行
-                break;
-            case WAIT_FAILED:       // 错误
-                return  success_code - 1;
-            default:
-                return success_code - 2;
-            }
-            // 监听线程通知事件
-            switch (WaitForMultipleObjects(sizeof(handle_notify) / sizeof(HANDLE), handle_notify, FALSE, INFINITE))
-            {
-            case WAIT_OBJECT_0:     // 退出当前线程
-                return success_code + 3;
-            case WAIT_OBJECT_0 + 1: // 正常退出事件
-                switch (m_exit_event)
-                {
-                case exit_event_t::NORMAL:              // 未设置退出事件
-                    return success_code + 4;
-                case exit_event_t::STOP_IMMEDIATELY:    // 立即退出
-                    return success_code + 5;
                 case exit_event_t::WAIT_TASK_COMPLETE:  // 等待任务队列清空
                 default:
                     break;
@@ -161,7 +138,7 @@ private:
                     m_task_completed++;
                 } // 任务队列中没有任务
                 else if (m_exit_event == exit_event_t::WAIT_TASK_COMPLETE)
-                    return success_code + 6;
+                    return success_code + 3;
                 break;
             case WAIT_OBJECT_0 + 2: // 切换线程数
                 if (true)
@@ -231,7 +208,6 @@ public:
     {
         assert(_thread_number >= 0 && _thread_number < 255); // "Thread number must greater than or equal 0 and less than 255"
         m_stop = CreateEvent(nullptr, TRUE, FALSE, nullptr);    // 手动复位，无信号
-        m_continue = CreateEvent(nullptr, TRUE, TRUE, nullptr); // 手动复位，有信号
         m_notify_task = CreateSemaphore(nullptr, 0, _thread_number, nullptr); // 计数信号
         m_switch_notify = CreateEvent(nullptr, TRUE, FALSE, nullptr); // 手动复位，无信号
 
@@ -247,8 +223,7 @@ public:
     }
     ~threadpool()
     {
-        if (m_exit_event == exit_event_t::NORMAL)
-            stop_on_completed(); // 退出时等待任务清空
+        stop_on_completed(); // 退出时等待任务清空
         for (auto& handle_obj : m_thread_object) // VS2013+
             handle_obj.first.join(); // 等待所有打开的线程退出
         for (auto& handle_obj : m_thread_destroy) // VS2013+
@@ -270,21 +245,42 @@ public:
     // 启动暂停pause的线程
     bool start()
     {
-        // 退出流程中禁止操作线程控制事件
-        if (m_exit_event != exit_event_t::NORMAL)
+        // 任务队列读写锁
+        ::std::unique_lock<::std::mutex> lck(m_task_lock);
+        switch (m_exit_event)
+        {
+        case exit_event_t::PAUSE:
+            m_exit_event = exit_event_t::NORMAL;
+            ::std::swap(m_tasks, m_pause_tasks);
+            m_push_tasks = &m_tasks;
+            lck.unlock();
+            notify(m_tasks.size());
+            assert(m_pause_tasks.size() == 0);
+        case exit_event_t::NORMAL:
+            return true;
+            // 退出流程中禁止操作线程控制事件
+        default:
             return false;
-        SetEvent(m_continue);
-        return true;
+        }
     }
     // 暂停线程执行，直到退出stop或者启动start
     bool pause()
     {
-        // 退出流程中禁止操作线程控制事件
-        if (m_exit_event != exit_event_t::NORMAL)
+        // 任务队列读写锁
+        ::std::unique_lock<::std::mutex> lck(m_task_lock);
+        switch (m_exit_event)
+        {
+        case exit_event_t::NORMAL:
+            m_exit_event = exit_event_t::PAUSE;
+            ::std::swap(m_tasks, m_pause_tasks);
+            m_push_tasks = &m_pause_tasks;
+            lck.unlock();
+            assert(m_tasks.size() == 0);
+        case exit_event_t::PAUSE:
+            return true;
+        default: // 退出流程中禁止操作线程控制事件
             return false;
-        ResetEvent(m_continue);
-        notify();
-        return true;
+        }
     }
     // 立即结束任务，未处理的任务将丢弃
     void stop()
@@ -295,30 +291,39 @@ public:
     // 当任务队列执行完毕后退出线程，如果线程池正在退出则失败
     bool stop_on_completed()
     {
-        if (m_exit_event == exit_event_t::WAIT_TASK_COMPLETE)
+        switch (m_exit_event)
+        {
+        case exit_event_t::PAUSE:
+            start();
+        case exit_event_t::NORMAL:
+            m_exit_event = exit_event_t::WAIT_TASK_COMPLETE;
+            SetEvent(m_stop);
+        case exit_event_t::WAIT_TASK_COMPLETE:
             return true;
-        else if (m_exit_event != exit_event_t::NORMAL)
+        default:
             return false;
-        m_exit_event = exit_event_t::WAIT_TASK_COMPLETE;
-        SetEvent(m_continue); // 如果线程已暂停，则启动
-        SetEvent(m_stop);
-        return true;
+        }
     }
 
     // 添加一个任务 VS2013+
     template<class Fn, class... Args> bool push(Fn&& fn, Args&&... args)
     {
-        // 退出流程中禁止添加新任务
-        if (m_exit_event != exit_event_t::NORMAL)
-            return false;
-        else
+        switch (m_exit_event)
         {
-            // 绑定函数 -> 生成任务（仿函数）
-            ::std::function<void()> = bind_function(::std::bind(function_wapper(),
-                decay_type(::std::forward<Fn>(fn)), decay_type(::std::forward<Args>(args))...));
+        case exit_event_t::NORMAL:
+        case exit_event_t::PAUSE:
+            break;
+        default: // 退出流程中禁止操作线程控制事件
+            return false;
+        }
+        // 绑定函数 -> 生成任务（仿函数）
+        ::std::function<void()> bind_function = ::std::bind(function_wapper(),
+            decay_type(::std::forward<Fn>(fn)), decay_type(::std::forward<Args>(args))...);
+        if (true)
+        {
             // 任务队列读写锁
             ::std::lock_guard<::std::mutex> lck(m_task_lock);
-            m_tasks.push_back(::std::move(bind_function));
+            m_push_tasks->push_back(::std::move(bind_function));
         }
         m_task_all++;
         notify<1>();
@@ -331,20 +336,25 @@ public:
         typedef decltype(decay_type(::std::forward<Fn>(fn))(decay_type(::std::forward<Args>(args))...)) result_type;
         typedef ::std::packaged_task<result_type()> task_type;
         ::std::future<result_type> future_obj;
-        // 退出流程中禁止添加新任务
-        if (m_exit_event != exit_event_t::NORMAL)
-            return ::std::make_pair(::std::move(future_obj), false);
-        else
+        switch (m_exit_event)
         {
-            // 绑定函数
-            auto task_obj = ::std::make_shared<task_type>(::std::bind(
-                decay_type(::std::forward<Fn>(fn)), decay_type(::std::forward<Args>(args))...));
-            future_obj = task_obj->get_future();
-            // 生成任务（仿函数）
-            ::std::function<void()> = bind_function(::std::bind(function_wapper(), ::std::move(task_obj)));
+        case exit_event_t::NORMAL:
+        case exit_event_t::PAUSE:
+            break;
+        default: // 退出流程中禁止操作线程控制事件
+            return ::std::make_pair(::std::move(future_obj), false);
+        }
+        // 绑定函数
+        auto task_obj = ::std::make_shared<task_type>(::std::bind(
+            decay_type(::std::forward<Fn>(fn)), decay_type(::std::forward<Args>(args))...));
+        future_obj = task_obj->get_future();
+        // 生成任务（仿函数）
+        ::std::function<void()> bind_function = ::std::bind(function_wapper(), ::std::move(task_obj));
+        if (true)
+        {
             // 任务队列读写锁
             ::std::lock_guard<::std::mutex> lck(m_task_lock);
-            m_tasks.push_back(::std::move(bind_function));
+            m_push_tasks->push_back(::std::move(bind_function));
         }
         m_task_all++;
         notify<1>();
@@ -354,19 +364,24 @@ public:
     template<class Fn, class... Args> bool push_multi(size_t count, Fn&& fn, Args&&... args)
     {
         assert(count >= 0 && count < USHRT_MAX);
-        // 退出流程中禁止添加新任务
-        if (m_exit_event != exit_event_t::NORMAL)
-            return false;
-        else if (count)
+        switch (m_exit_event)
         {
+        case exit_event_t::NORMAL:
+        case exit_event_t::PAUSE:
+            break;
+        default: // 退出流程中禁止操作线程控制事件
+            return false;
+        }
+        if (count)
+        {
+            // 绑定函数 -> 生成任务（仿函数）
+            ::std::function<void()> bind_function = ::std::bind(function_wapper(),
+                decay_type(::std::forward<Fn>(fn)), decay_type(::std::forward<Args>(args))...);
             if (true)
             {
-                // 绑定函数 -> 生成任务（仿函数）
-                ::std::function<void()> bind_function = ::std::bind(function_wapper(),
-                    decay_type(::std::forward<Fn>(fn)), decay_type(::std::forward<Args>(args))...);
                 // 任务队列读写锁
                 ::std::lock_guard<::std::mutex> lck(m_task_lock);
-                m_tasks.insert(m_tasks.end(), count, ::std::move(bind_function));
+                m_push_tasks->insert(m_push_tasks->end(), count, ::std::move(bind_function));
             }
             m_task_all += count;
             notify(count);
@@ -388,7 +403,7 @@ public:
         assert(thread_number_new); // 如果线程数为0，则分离的线程池中未处理的任务将丢弃
         auto detach_threadpool = new threadpool(thread_number_new);
         ::std::lock_guard<::std::mutex> lck_new(detach_threadpool->m_task_lock); // 新线程池任务队列读写锁
-        ::std::swap(m_tasks, detach_threadpool->m_tasks); // 交换任务队列
+        ::std::swap(*m_push_tasks, detach_threadpool->m_tasks); // 交换任务队列
         // 通知分离的线程对象运行
         detach_threadpool->notify(detach_threadpool->m_tasks.size());
         ::std::async([](decltype(detach_threadpool) pClass){
@@ -409,7 +424,7 @@ public:
     size_t get_tasks_number()
     {
         ::std::lock_guard<::std::mutex> lck(m_task_lock); // 任务队列读写锁
-        return m_tasks.size();
+        return m_push_tasks->size();
     }
     // 获取已完成任务数
     size_t get_tasks_completed_number()
@@ -421,41 +436,46 @@ public:
     bool set_new_thread_number(int thread_num_set)
     {
         assert(thread_num_set >= 0 && thread_num_set < 255); // "Thread number must greater than or equal 0 and less than 255"
-        if (m_exit_event == exit_event_t::NORMAL || thread_num_set < 0) // 线程池退出则失败
+        switch (m_exit_event)
         {
-            if (m_thread_started.load() != thread_num_set)
-            {
-                // 线程创建、销毁事件锁
-                ::std::lock_guard<::std::mutex> lck(m_thread_lock);
-                SetEvent(m_switch_notify);
-                if (m_thread_started.load() < thread_num_set)
-                {
-                    for (register int i = m_thread_started.load(); i < thread_num_set; i++)
-                    {
-                        HANDLE thread_exit_event = CreateEvent(nullptr, FALSE, FALSE, nullptr); // 自动复位，无信号
-                        auto iter = m_thread_object.insert(m_thread_object.end(), ::std::make_pair(
-                            ::std::thread(&threadpool::thread_entry, this, thread_exit_event), SAFE_HANDLE_OBJECT(thread_exit_event)));
-                        m_thread_started++;
-                    }
-                }
-                else
-                {
-                    for (register int i = m_thread_started.load(); i > thread_num_set; i--)
-                    {
-                        auto iter = m_thread_object.begin();
-                        SetEvent(iter->second);
-                        m_thread_destroy.push_back(::std::move(*iter));
-                        m_thread_object.erase(iter);
-                        m_thread_started--;
-                    }
-                }
-                assert(m_thread_started.load() == thread_num_set);
-                m_notify_task = SAFE_HANDLE_OBJECT(CreateSemaphore(nullptr, thread_num_set, thread_num_set, nullptr)); // 计数信号
-                ResetEvent(m_switch_notify);
-            }
-            return true;
-        }
-        else
+        case exit_event_t::NORMAL:
+        case exit_event_t::PAUSE:
+            break;
+        default: // 退出流程中禁止操作线程控制事件
             return false;
+        }
+        if (thread_num_set < 0) // 线程数小于0则失败
+            return false;
+        if (m_thread_started.load() != thread_num_set)
+        {
+            // 线程创建、销毁事件锁
+            ::std::lock_guard<::std::mutex> lck(m_thread_lock);
+            SetEvent(m_switch_notify);
+            if (m_thread_started.load() < thread_num_set)
+            {
+                for (register int i = m_thread_started.load(); i < thread_num_set; i++)
+                {
+                    HANDLE thread_exit_event = CreateEvent(nullptr, FALSE, FALSE, nullptr); // 自动复位，无信号
+                    auto iter = m_thread_object.insert(m_thread_object.end(), ::std::make_pair(
+                        ::std::thread(&threadpool::thread_entry, this, thread_exit_event), SAFE_HANDLE_OBJECT(thread_exit_event)));
+                    m_thread_started++;
+                }
+            }
+            else
+            {
+                for (register int i = m_thread_started.load(); i > thread_num_set; i--)
+                {
+                    auto iter = m_thread_object.begin();
+                    SetEvent(iter->second);
+                    m_thread_destroy.push_back(::std::move(*iter));
+                    m_thread_object.erase(iter);
+                    m_thread_started--;
+                }
+            }
+            assert(m_thread_started.load() == thread_num_set);
+            m_notify_task = SAFE_HANDLE_OBJECT(CreateSemaphore(nullptr, thread_num_set, thread_num_set, nullptr)); // 计数信号
+            ResetEvent(m_switch_notify);
+        }
+        return true;
     }
 };
