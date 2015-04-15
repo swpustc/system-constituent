@@ -138,25 +138,9 @@ private:
                 if (task_val.second > (size_t)get_thread_number())
                 {
                     notify<1>();
-                    if (handle_exception)
-                    {
-                        try
-                        {
-                            task_val.first();
-                        }
-                        catch (...)
-                        {
-                            throw ::std::move(task_val.first);
-                            return success_code - 0xff;
-                        }
-                    }
-                    else
-                    {
-                        task_val.first();
-                    }
-                    m_task_completed++;
-                } // 这是当前任务队列中最后的几个任务
-                else if (task_val.second)
+                }
+                // 这是当前任务队列中最后的几个任务
+                if (task_val.second)
                 {
                     if (handle_exception)
                     {
@@ -174,11 +158,10 @@ private:
                     {
                         task_val.first();
                     }
-                    if (m_exit_event == exit_event_t::WAIT_TASK_COMPLETE)
-                        return success_code + 6;
+                    m_task_completed++;
                 } // 任务队列中没有任务
                 else if (m_exit_event == exit_event_t::WAIT_TASK_COMPLETE)
-                    return success_code + 7;
+                    return success_code + 6;
                 break;
             case WAIT_OBJECT_0 + 2: // 切换线程数
                 if (true)
@@ -448,6 +431,7 @@ public:
                         HANDLE thread_exit_event = CreateEvent(nullptr, FALSE, FALSE, nullptr); // 自动复位，无信号
                         auto iter = m_thread_object.insert(m_thread_object.end(), ::std::make_pair(
                             ::std::thread(&threadpool::thread_entry, this, thread_exit_event), SAFE_HANDLE_OBJECT(thread_exit_event)));
+                        m_thread_started++;
                     }
                 }
                 else
@@ -461,7 +445,7 @@ public:
                         m_thread_started--;
                     }
                 }
-                m_thread_started = thread_num_set;
+                assert(m_thread_started.load() == thread_num_set);
                 m_notify_task = SAFE_HANDLE_OBJECT(CreateSemaphore(nullptr, thread_num_set, thread_num_set, nullptr)); // 计数信号
                 ResetEvent(m_switch_notify);
             }
