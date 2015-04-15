@@ -203,16 +203,20 @@ private:
     ::std::pair<::std::function<void()>, size_t> get_task()
     {
         ::std::function<void()> task;
-        ::std::lock_guard<::std::mutex> lck(m_task_lock); // 任务队列读写锁
+        ::std::unique_lock<::std::mutex> lck(m_task_lock); // 任务队列读写锁
         size_t task_num = m_tasks.size();
         if (task_num)
         {
             ::std::swap(task, m_tasks.front());
             m_tasks.pop_front();
+            lck.unlock();
             return ::std::make_pair(::std::move(task), task_num);
         }
         else
+        {
+            lck.unlock();
             return ::std::make_pair(::std::move(task), 0);
+        }
     }
 
 public:
