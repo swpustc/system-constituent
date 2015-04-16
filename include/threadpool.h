@@ -58,7 +58,7 @@ private:
     // 线程入口函数
     size_t thread_entry(HANDLE exit_event)
     {
-        debug_output("Thread Start: ", "(0x", this, ')');
+        debug_output("Thread Start: (OBJ:0x", this, ')');
         if (handle_exception)
         {
             while (true)
@@ -66,7 +66,7 @@ private:
                 try
                 {
                     size_t result = run(exit_event);
-                    debug_output("Thread Result: ", result, "(0x", (void*)result, ')');
+                    debug_output("Thread Result: [", (void*)result, "] (OBJ:0x", this, ')');
                     return result;
                 }
                 catch (::std::function<void()>& function_object)
@@ -78,7 +78,7 @@ private:
         else
         {
             size_t result = run(exit_event);
-            debug_output("Thread Result: ", result, "(0x", (void*)result, ')');
+            debug_output("Thread Result: [", (void*)result, "] (OBJ:0x", this, ')');
             return result;
         }
     }
@@ -220,15 +220,9 @@ public:
     {
         stop_on_completed(); // 退出时等待任务清空
         for (auto& handle_obj : m_thread_object) // VS2013+
-        {
-            if (handle_obj.first.joinable())
-                handle_obj.first.join(); // 等待所有打开的线程退出
-        }
+            handle_obj.first.join(); // 等待所有打开的线程退出
         for (auto& handle_obj : m_thread_destroy) // VS2013+
-        {
-            if (handle_obj.first.joinable())
-                handle_obj.first.join(); // 等待所有已销毁分离的线程退出
-        }
+            handle_obj.first.join(); // 等待所有已销毁分离的线程退出
     }
     // 复制构造函数
     threadpool(const threadpool&) = delete;
