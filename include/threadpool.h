@@ -457,6 +457,11 @@ public:
     {
         return m_task_completed.load();
     }
+    // 获取已添加任务总数
+    size_t get_tasks_total_number()
+    {
+        return m_task_all.load();
+    }
     // 获取类型信息
     const type_info& this_type() const
     {
