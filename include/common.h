@@ -3,12 +3,13 @@
  * 支持平台：Windows; Linux
  * 编译环境：VS2013+; g++ -std=c++11
  * 创建时间：2015-04-05 （宋万鹏）
- * 最后修改：2015-04-15 （宋万鹏）
+ * 最后修改：2015-04-16 （宋万鹏）
  **********************************************************/
 
 #pragma once
 
 #include <ctime>
+#include <mutex>
 #include <chrono>
 #include <cstdio>
 #include <memory>
@@ -136,6 +137,10 @@ struct function_wapper
 };
 
 
+extern ::std::mutex g_log_lock;
+extern ::std::ofstream g_log_ofstream;
+extern ::std::wofstream g_log_wofstream;
+
 template<class T, class Arg> inline void debug_put(::std::basic_ostream<char, T>& os, Arg&& arg)
 {
     ::std::stringstream ss;
@@ -162,7 +167,13 @@ inline void _debug_output()
 {
     auto now = ::std::chrono::system_clock::to_time_t(::std::chrono::system_clock::now());
     debug_put(::std::wclog, L" [TID:");
-    debug_put(::std::wclog, ::std::this_thread::get_id().hash());
+    debug_put(::std::wclog,
+#if defined(_WIN32) || defined(WIN32)
+        GetCurrentThreadId()
+#else // Linux
+        gettid()
+#endif // #if defined(_WIN32) || defined(WIN32)
+    );
     debug_put(::std::wclog, L"] ");
 #ifdef _MSC_VER
 #pragma warning( push )
@@ -232,6 +243,7 @@ template<class T, class A, class... Args> inline void _debug_output(const basic_
 // Debug下，无论output为何值总是输出。Release下，output为true时输出
 template<bool output = false, class... Args> inline void debug_output(Args&&... args)
 {
+    ::std::lock_guard<::std::mutex> lck(g_log_lock);
     _debug_output(decay_type(::std::forward<Args>(args))...);
 }
 
@@ -239,7 +251,11 @@ template<bool output = false, class... Args> inline void debug_output(Args&&... 
 // Debug下，无论output为何值总是输出。Release下，output为true时输出。不输出使用debug_output(...)
 template<bool output = false, class... Args> inline void debug_output(Args&&... args)
 {
-    if (output) _debug_output(decay_type(::std::forward<Args>(args))...);
+    if (output)
+    {
+        ::std::lock_guard<::std::mutex> lck(g_log_lock);
+        _debug_output(decay_type(::std::forward<Args>(args))...);
+    }
 }
 
 // Debug下，无论output为何值总是输出。Release下，默认不输出。输出使用debug_output<true>(...)
@@ -247,9 +263,6 @@ template<bool output = false, class... Args> inline void debug_output(Args&&... 
 
 #endif //#if defined(_DEBUG) || defined(DEBUG)
 
-
-static ::std::ofstream g_ofstream;
-static ::std::wofstream g_wofstream;
 
 // 设置std::clog和std::wclog的rdbuf
 template<class Elem, class T = ::std::char_traits<Elem>, class A = ::std::allocator<Elem>> inline
@@ -261,12 +274,12 @@ void set_log_location(::std::basic_string<Elem, T, A> file_name)
 // 设置std::clog和std::wclog的rdbuf
 template<class Elem> inline void set_log_location(const Elem* file_name)
 {
-    g_ofstream.open(file_name, ::std::ios::app);
-    g_wofstream.open(file_name, ::std::ios::app);
-    auto rdbuf = g_ofstream.rdbuf();
+    g_log_ofstream.open(file_name, ::std::ios::app);
+    g_log_wofstream.open(file_name, ::std::ios::app);
+    auto rdbuf = g_log_ofstream.rdbuf();
     if (rdbuf)
         ::std::clog.rdbuf(rdbuf);
-    auto wrdbuf = g_wofstream.rdbuf();
+    auto wrdbuf = g_log_wofstream.rdbuf();
     if (wrdbuf)
         ::std::wclog.rdbuf(wrdbuf);
     debug_output<true>("\n\nProcess Start: [PID:",

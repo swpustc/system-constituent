@@ -124,7 +124,7 @@ public:
 
 分离`detach`的线程池控制函数返回值为`success_code+0xff`。
 
-使用C++11模板类编写，无需链接额外的库文件。
+使用C++11模板类编写，需链接`system.lib`。
 `class threadpool`不允许通过复制构造对象，不允许复制另一个threadpool对象。
 
 
@@ -140,8 +140,8 @@ public:
 支持的平台 | Windows
 编译器版本 | VS2013+
 头文件     | threadpool.h
-库文件     | 无
-DLL        | 无
+库文件     | system.lib
+DLL        | system.dll
 
 
 ## 参见
