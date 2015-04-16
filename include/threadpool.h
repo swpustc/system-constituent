@@ -58,7 +58,7 @@ private:
     // 线程入口函数
     size_t thread_entry(HANDLE exit_event)
     {
-        debug_output("Thread Start: (OBJ:0x", this, ')');
+        debug_output("Thread Start: [", this_type().name(), "](0x", this, ")");
         if (handle_exception)
         {
             while (true)
@@ -66,7 +66,7 @@ private:
                 try
                 {
                     size_t result = run(exit_event);
-                    debug_output("Thread Result: [", (void*)result, "] (OBJ:0x", this, ')');
+                    debug_output("Thread Result: [", (void*)result, "] [", this_type().name(), "](0x", this, ")");
                     return result;
                 }
                 catch (::std::function<void()>& function_object)
@@ -78,7 +78,7 @@ private:
         else
         {
             size_t result = run(exit_event);
-            debug_output("Thread Result: [", (void*)result, "] (OBJ:0x", this, ')');
+            debug_output("Thread Result: [", (void*)result, "] [", this_type().name(), "](0x", this, ")");
             return result;
         }
     }
@@ -433,6 +433,11 @@ public:
     size_t get_tasks_completed_number()
     {
         return m_task_completed.load();
+    }
+    // 获取类型信息
+    const type_info& this_type() const
+    {
+        return typeid(decltype(*this));
     }
 
     // 增加新的处理线程，如果线程池进入中止流程则无动作

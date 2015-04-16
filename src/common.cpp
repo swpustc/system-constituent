@@ -6,7 +6,8 @@
  * 最后修改：2015-04-16 （宋万鹏）
  **********************************************************/
 
-#include "common.h"
+#include <mutex>
+#include <fstream>
 
 using namespace std;
 
