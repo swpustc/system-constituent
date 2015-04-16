@@ -193,25 +193,25 @@ template<class T, class... Args> inline void _debug_output(T&& arg, Args&&... ar
 
 template<class... Args> inline void _debug_output(const char* debug_string, Args&&... args)
 {
-    debug_put(::std::wclog, debug_string);
+    debug_put(::std::clog, debug_string);
     _debug_output(::std::forward<Args>(args)...);
 }
 
 template<class... Args> inline void _debug_output(volatile char* debug_string, Args&&... args)
 {
-    debug_put(::std::wclog, debug_string);
+    debug_put(::std::clog, debug_string);
     _debug_output(::std::forward<Args>(args)...);
 }
 
 template<class... Args> inline void _debug_output(const volatile char* debug_string, Args&&... args)
 {
-    debug_put(::std::wclog, debug_string);
+    debug_put(::std::clog, debug_string);
     _debug_output(::std::forward<Args>(args)...);
 }
 
-template<class T, class A, class... Args> inline void _debug_output(const basic_string<char, T, A>& debug_string, Args&&... args)
+template<class T, class A, class... Args> inline void _debug_output(const ::std::basic_string<char, T, A>& debug_string, Args&&... args)
 {
-    debug_put(::std::wclog, debug_string);
+    debug_put(::std::clog, debug_string);
     _debug_output(::std::forward<Args>(args)...);
 }
 
@@ -233,7 +233,7 @@ template<class... Args> inline void _debug_output(const volatile wchar_t* debug_
     _debug_output(::std::forward<Args>(args)...);
 }
 
-template<class T, class A, class... Args> inline void _debug_output(const basic_string<wchar_t, T, A>& debug_string, Args&&... args)
+template<class T, class A, class... Args> inline void _debug_output(const ::std::basic_string<wchar_t, T, A>& debug_string, Args&&... args)
 {
     debug_put(::std::wclog, debug_string);
     _debug_output(::std::forward<Args>(args)...);
