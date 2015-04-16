@@ -148,7 +148,7 @@ template<class T, class Arg> inline void debug_put(::std::basic_ostream<char, T>
     os << ss.str();
     os.flush();
 #if defined(_DEBUG) || defined(DEBUG)
-    OutputDebugStringA(ss.str().c_str());
+    ::OutputDebugStringA(ss.str().c_str());
 #endif
 }
 
@@ -159,7 +159,7 @@ template<class T, class Arg> inline void debug_put(::std::basic_ostream<wchar_t,
     os << ss.str();
     os.flush();
 #if defined(_DEBUG) || defined(DEBUG)
-    OutputDebugStringW(ss.str().c_str());
+    ::OutputDebugStringW(ss.str().c_str());
 #endif
 }
 
@@ -169,9 +169,9 @@ inline void _debug_output()
     debug_put(::std::wclog, L" [TID:");
     debug_put(::std::wclog,
 #if defined(_WIN32) || defined(WIN32)
-        GetCurrentThreadId()
+        ::GetCurrentThreadId()
 #else // Linux
-        gettid()
+        ::gettid()
 #endif // #if defined(_WIN32) || defined(WIN32)
     );
     debug_put(::std::wclog, L"] ");
@@ -284,10 +284,9 @@ template<class Elem> inline void set_log_location(const Elem* file_name)
         ::std::wclog.rdbuf(wrdbuf);
     debug_output<true>("\n\nProcess Start: [PID:",
 #if defined(_WIN32) || defined(WIN32)
-        GetCurrentProcessId()
+        ::GetCurrentProcessId()
 #else // Linux
-        getpid()
+        ::getpid()
 #endif // #if defined(_WIN32) || defined(WIN32)
         , ']');
-
 }

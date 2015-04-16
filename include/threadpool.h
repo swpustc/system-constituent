@@ -158,12 +158,17 @@ private:
     // 新任务添加通知
     void notify()
     { // 通知一个线程
-        SetEvent(m_notify_task);
+        ::SetEvent(m_notify_task);
     }
     void notify(size_t attach_tasks_number)
     { // 通知一个线程
-        if (attach_tasks_number)
-            SetEvent(m_notify_task);
+        if (attach_tasks_number > 1)
+        {
+            notify();
+            notify();
+        }
+        else if (attach_tasks_number)
+            notify();
     }
 
     // 获取任务队列中的任务，返回当前任务和未执行任务总数
@@ -197,14 +202,14 @@ public:
     threadpool(int _thread_number)
     {
         assert(_thread_number >= 0 && _thread_number < 255); // "Thread number must greater than or equal 0 and less than 255"
-        m_stop_thread = CreateEvent(nullptr, TRUE, FALSE, nullptr);  // 手动复位，无信号
-        m_notify_task = CreateEvent(nullptr, FALSE, FALSE, nullptr); // 自动复位，无信号
+        m_stop_thread = ::CreateEventW(nullptr, TRUE, FALSE, nullptr);  // 手动复位，无信号
+        m_notify_task = ::CreateEventW(nullptr, FALSE, FALSE, nullptr); // 自动复位，无信号
 
         // 线程创建、销毁事件锁
         ::std::lock_guard<::std::mutex> lck(m_thread_lock);
         for (register int i = 0; i < _thread_number; i++) // 线程对象
         {
-            HANDLE thread_exit_event = CreateEvent(nullptr, FALSE, FALSE, nullptr); // 自动复位，无信号
+            HANDLE thread_exit_event = ::CreateEventW(nullptr, FALSE, FALSE, nullptr); // 自动复位，无信号
             auto iter = m_thread_object.insert(m_thread_object.end(), ::std::make_pair(
                 ::std::thread(&threadpool::thread_entry, this, thread_exit_event), SAFE_HANDLE_OBJECT(thread_exit_event)));
             m_thread_started++;
@@ -286,7 +291,7 @@ public:
             assert(m_tasks.size() == 0);
         case exit_event_t::PAUSE:
             m_exit_event = exit_event_t::STOP_IMMEDIATELY;
-            SetEvent(m_stop_thread);
+            ::SetEvent(m_stop_thread);
         default:
             break;
         }
@@ -300,7 +305,7 @@ public:
             start();
         case exit_event_t::NORMAL:
             m_exit_event = exit_event_t::WAIT_TASK_COMPLETE;
-            SetEvent(m_stop_thread);
+            ::SetEvent(m_stop_thread);
         case exit_event_t::WAIT_TASK_COMPLETE:
             return true;
         default:
@@ -451,7 +456,7 @@ public:
             {
                 for (register int i = m_thread_started.load(); i < thread_num_set; i++)
                 {
-                    HANDLE thread_exit_event = CreateEvent(nullptr, FALSE, FALSE, nullptr); // 自动复位，无信号
+                    HANDLE thread_exit_event = ::CreateEventW(nullptr, FALSE, FALSE, nullptr); // 自动复位，无信号
                     auto iter = m_thread_object.insert(m_thread_object.end(), ::std::make_pair(
                         ::std::thread(&threadpool::thread_entry, this, thread_exit_event), SAFE_HANDLE_OBJECT(thread_exit_event)));
                     m_thread_started++;
@@ -462,7 +467,7 @@ public:
                 for (register int i = m_thread_started.load(); i > thread_num_set; i--)
                 {
                     auto iter = m_thread_object.begin();
-                    SetEvent(iter->second);
+                    ::SetEvent(iter->second);
                     m_thread_destroy.push_back(::std::move(*iter));
                     m_thread_object.erase(iter);
                     m_thread_started--;

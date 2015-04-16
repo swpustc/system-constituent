@@ -3,7 +3,7 @@
  * 支持平台：Windows
  * 编译环境：VS2010+
  * 创建时间：2015-04-05 （宋万鹏）
- * 最后修改：2015-04-12 （宋万鹏）
+ * 最后修改：2015-04-16 （宋万鹏）
  **********************************************************/
 
 #pragma once
@@ -21,7 +21,7 @@ private:
     {
         if (m_handle && m_handle != INVALID_HANDLE_VALUE)
         {
-            CloseHandle(m_handle);
+            ::CloseHandle(m_handle);
             m_handle = INVALID_HANDLE_VALUE;
         }
     }
