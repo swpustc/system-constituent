@@ -4,7 +4,7 @@
  * 编译环境：VS2013+
  * 创建时间：2015-04-05 （宋万鹏）
  * 最后修改：2015-04-16 （宋万鹏）
- **********************************************************/
+***********************************************************/
 
 #pragma once
 
@@ -44,15 +44,17 @@ private:
     // 线程创建、销毁事件锁
     ::std::mutex m_thread_lock;
     // 通知事件
-    SAFE_HANDLE_OBJECT m_stop_thread;   // 退出事件，关闭所有线程
-    SAFE_HANDLE_OBJECT m_notify_task;   // 通知线程有新任务
+    SAFE_HANDLE_OBJECT m_stop_thread; // 退出事件，关闭所有线程
+    SAFE_HANDLE_OBJECT m_notify_task; // 通知线程有新任务
 
-    enum class exit_event_t {           // 退出任务事件
+    enum class exit_event_t {
         NORMAL,
         PAUSE,
         STOP_IMMEDIATELY,
         WAIT_TASK_COMPLETE,
-    } m_exit_event{ exit_event_t::NORMAL };
+    };
+    // 退出任务事件
+    exit_event_t m_exit_event{ exit_event_t::NORMAL };
 
     // 线程入口函数
     size_t thread_entry(HANDLE exit_event)
@@ -89,7 +91,7 @@ private:
     }
     /* 线程任务调度函数
      * 返回值 >= success_code 表示正常退出，< success_code 为非正常退出
-     */
+    **/
     size_t run(HANDLE exit_event)
     {
         // 线程通知事件
