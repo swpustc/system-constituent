@@ -58,6 +58,7 @@ private:
     // 线程入口函数
     size_t thread_entry(HANDLE exit_event)
     {
+        debug_output("Thread Start: ", "(0x", this, ')');
         if (handle_exception)
         {
             while (true)
@@ -219,9 +220,15 @@ public:
     {
         stop_on_completed(); // 退出时等待任务清空
         for (auto& handle_obj : m_thread_object) // VS2013+
-            handle_obj.first.join(); // 等待所有打开的线程退出
+        {
+            if (handle_obj.first.joinable())
+                handle_obj.first.join(); // 等待所有打开的线程退出
+        }
         for (auto& handle_obj : m_thread_destroy) // VS2013+
-            handle_obj.first.join(); // 等待所有已销毁分离的线程退出
+        {
+            if (handle_obj.first.joinable())
+                handle_obj.first.join(); // 等待所有已销毁分离的线程退出
+        }
     }
     // 复制构造函数
     threadpool(const threadpool&) = delete;
