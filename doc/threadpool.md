@@ -34,6 +34,8 @@ public:
     size_t get_thread_number();
     size_t get_tasks_number();
     size_t get_tasks_completed_number();
+    const type_info& this_type() const;
+
     bool set_new_thread_number(int thread_num_set);
 };
 ```
@@ -107,6 +109,9 @@ public:
 
 - ##### `size_t get_tasks_completed_number()`
     获取已完成任务数。
+
+- ##### `const type_info& this_type() const`
+    获取类型信息。
 
 - ##### `bool set_new_thread_number(int thread_num_set)`
     增加线程池中工作线程的数量。
