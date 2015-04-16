@@ -134,6 +134,7 @@ private:
                             try
                             {
                                 task_val.first();
+                                task_val = decltype(task_val)();
                             }
                             catch (...)
                             {
@@ -144,6 +145,7 @@ private:
                         else
                         {
                             task_val.first();
+                            task_val = decltype(task_val)();
                         }
                         m_task_completed++;
                     }
