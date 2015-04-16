@@ -20,7 +20,6 @@
 #include <vector>
 #include <cassert>
 #include <functional>
-#include <process.h>
 #include <Windows.h>
 
 
@@ -67,6 +66,9 @@ private:
                 {
                     size_t result = run(exit_event);
                     debug_output("Thread Result: [", (void*)result, "] [", this_type().name(), "](0x", this, ")");
+#if _MSC_VER <= 1800 // Fix std::thread deadlock bug on VS2012,VS2013 (when call join on exit)
+                    ::ExitThread((DWORD)result);
+#endif // #if _MSC_VER <= 1800
                     return result;
                 }
                 catch (::std::function<void()>& function_object)
@@ -79,6 +81,9 @@ private:
         {
             size_t result = run(exit_event);
             debug_output("Thread Result: [", (void*)result, "] [", this_type().name(), "](0x", this, ")");
+#if _MSC_VER <= 1800 // Fix std::thread deadlock bug on VS2012,VS2013 (when call join on exit)
+            ::ExitThread((DWORD)result);
+#endif // #if _MSC_VER <= 1800
             return result;
         }
     }
@@ -220,9 +225,23 @@ public:
     {
         stop_on_completed(); // 退出时等待任务清空
         for (auto& handle_obj : m_thread_object) // VS2013+
+        {
+#if _MSC_VER <= 1800 // Fix std::thread deadlock bug on VS2012,VS2013 (when call join on exit)
+            ::WaitForSingleObject((HANDLE)handle_obj.first.native_handle(), INFINITE);
+            handle_obj.first.detach();
+#else // Other platform
             handle_obj.first.join(); // 等待所有打开的线程退出
+#endif // #if _MSC_VER <= 1800
+        }
         for (auto& handle_obj : m_thread_destroy) // VS2013+
+        {
+#if _MSC_VER <= 1800 // Fix std::thread deadlock bug on VS2012,VS2013 (when call join on exit)
+            ::WaitForSingleObject((HANDLE)handle_obj.first.native_handle(), INFINITE);
+            handle_obj.first.detach();
+#else // Other platform
             handle_obj.first.join(); // 等待所有已销毁分离的线程退出
+#endif // #if _MSC_VER <= 1800
+        }
     }
     // 复制构造函数
     threadpool(const threadpool&) = delete;
