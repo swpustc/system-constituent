@@ -40,6 +40,7 @@ public:
     const type_info& this_type() const;
 
     bool set_new_thread_number(int thread_num_set);
+    bool reset_thread_number();
 };
 ```
 
@@ -134,7 +135,10 @@ public:
 - ##### `bool set_new_thread_number(int thread_num_set)`
     增加线程池中工作线程的数量。
 
-    如果线程池已进入退出流程，或者添加的线程数`thread_num_set==0`，返回false，否则返回true。
+    如果线程池已进入退出流程，或者添加的线程数`thread_num_set<0`，返回false，否则返回true。
+
+- ##### `bool reset_thread_number()`
+    重置线程池工作线程数量为线程池初始值。
 
 
 ## 备注

@@ -521,4 +521,9 @@ public:
         }
         return true;
     }
+    // 重置线程池数量为初始数量
+    bool reset_thread_number()
+    {
+        return set_new_thread_number(thread_number);
+    }
 };
