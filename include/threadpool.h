@@ -3,7 +3,7 @@
  * 支持平台：Windows
  * 编译环境：VS2013+
  * 创建时间：2015-04-05 （宋万鹏）
- * 最后修改：2015-04-16 （宋万鹏）
+ * 最后修改：2015-04-17 （宋万鹏）
 ***********************************************************/
 
 #pragma once
@@ -37,6 +37,7 @@ private:
     ::std::deque<::std::function<void()>> m_tasks;
     decltype(m_tasks) m_pause_tasks;
     decltype(m_tasks)* m_push_tasks{ &m_tasks };
+    decltype(m_tasks) m_exception_tasks;
     ::std::atomic<size_t> m_task_completed{ 0 };
     ::std::atomic<size_t> m_task_all{ 0 };
     // 任务队列读写锁 (VS2012+)
@@ -60,33 +61,34 @@ private:
     size_t thread_entry(HANDLE exit_event)
     {
         debug_output("Thread Start: [", this_type().name(), "](0x", this, ")");
+        size_t result = pre_run(exit_event);
+        debug_output("Thread Result: [", (void*)result, "] [", this_type().name(), "](0x", this, ")");
+#if _MSC_VER <= 1800 // Fix std::thread deadlock bug on VS2012,VS2013 (when call join on exit)
+        ::ExitThread((DWORD)result);
+#endif // #if _MSC_VER <= 1800
+        return result;
+    }
+    // 线程运行前准备
+    size_t pre_run(HANDLE exit_event)
+    {
         if (handle_exception)
         {
             while (true)
             {
                 try
                 {
-                    size_t result = run(exit_event);
-                    debug_output("Thread Result: [", (void*)result, "] [", this_type().name(), "](0x", this, ")");
-#if _MSC_VER <= 1800 // Fix std::thread deadlock bug on VS2012,VS2013 (when call join on exit)
-                    ::ExitThread((DWORD)result);
-#endif // #if _MSC_VER <= 1800
-                    return result;
+                    return run(exit_event);
                 }
                 catch (::std::function<void()>& function_object)
                 {
                     debug_output<true>(__FILE__, '(', __LINE__, "): ", function_object.target_type().name());
+                    m_exception_tasks.push_back(::std::move(function_object));
                 }
             }
         }
         else
         {
-            size_t result = run(exit_event);
-            debug_output("Thread Result: [", (void*)result, "] [", this_type().name(), "](0x", this, ")");
-#if _MSC_VER <= 1800 // Fix std::thread deadlock bug on VS2012,VS2013 (when call join on exit)
-            ::ExitThread((DWORD)result);
-#endif // #if _MSC_VER <= 1800
-            return result;
+            return run(exit_event);
         }
     }
     /* 线程任务调度函数
@@ -96,8 +98,6 @@ private:
     {
         // 线程通知事件
         HANDLE handle_notify[] = { exit_event, m_stop_thread, m_notify_task };
-        // 任务内容
-        decltype(get_task()) task_val;
         while (true)
         {
             // 监听线程通知事件
@@ -121,35 +121,7 @@ private:
             case WAIT_OBJECT_0 + 2: // 当前线程激活
                 while (true)
                 {
-                    task_val = get_task();
-                    // 任务队列中有任务未处理，发送线程启动通知
-                    if (task_val.second > 1)
-                    {
-                        notify();
-                    }
-                    if (task_val.second)
-                    {
-                        if (handle_exception)
-                        {
-                            try
-                            {
-                                task_val.first();
-                                task_val = decltype(task_val)();
-                            }
-                            catch (...)
-                            {
-                                throw ::std::move(task_val.first);
-                                return success_code - 0xff;
-                            }
-                        }
-                        else
-                        {
-                            task_val.first();
-                            task_val = decltype(task_val)();
-                        }
-                        m_task_completed++;
-                    }
-                    if (task_val.second <= 1) // 任务队列中没有任务
+                    if (!run_task(get_task())) // 任务队列中没有任务
                     {
                         if (m_exit_event == exit_event_t::WAIT_TASK_COMPLETE)
                             return success_code + 4;
@@ -199,6 +171,34 @@ private:
             lck.unlock();
             return ::std::make_pair(::std::move(task), 0);
         }
+    }
+    // 运行一条任务，返回任务队列中是否还有任务[true:有任务; false:没任务]
+    bool run_task(::std::pair<::std::function<void()>, size_t>&& task_val)
+    {
+        // 任务队列中有任务未处理，发送线程启动通知
+        if (task_val.second > 1)
+            notify();
+        if (task_val.second)
+        {
+            if (handle_exception)
+            {
+                try
+                {
+                    task_val.first();
+                }
+                catch (...)
+                {
+                    throw ::std::move(task_val.first);
+                    return false;
+                }
+            }
+            else
+            {
+                task_val.first();
+            }
+            m_task_completed++;
+        }
+        return task_val.second > 1;
     }
 
 public:
@@ -461,6 +461,13 @@ public:
     size_t get_tasks_total_number()
     {
         return m_task_all.load();
+    }
+
+    // 获取异常任务队列
+    decltype(m_tasks) get_exception_tasks()
+    {
+        decltype(m_tasks) exception_tasks = ::std::move(m_exception_tasks);
+        return ::std::move(exception_tasks);
     }
     // 获取类型信息
     const type_info& this_type() const

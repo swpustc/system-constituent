@@ -8,7 +8,7 @@
 源文件：[include/threadpool.h](../include/threadpool.h)
 
 ```cpp
-template<int thread_number = 2> class threadpool
+template<int thread_number = 2, bool handle_exception = true> class threadpool
 {
 public:
     threadpool();
@@ -35,11 +35,22 @@ public:
     size_t get_tasks_number();
     size_t get_tasks_completed_number();
     size_t get_tasks_total_number();
+
+    ::std::deque<::std::function<void()>> get_exception_tasks();
     const type_info& this_type() const;
 
     bool set_new_thread_number(int thread_num_set);
 };
 ```
+
+
+## 模板参数
+
+- ##### `int thread_number`
+    初始化线程池线程数量。
+
+- ##### `bool handle_exception`
+    是否处理异常标志。如果处理异常，则会抛出任务，并跳过此任务继续运行。
 
 
 ## 成员函数
@@ -111,8 +122,11 @@ public:
 - ##### `size_t get_tasks_completed_number()`
     获取已完成任务数。
 
-- #### `size_t get_tasks_total_number()`
+- ##### `size_t get_tasks_total_number()`
     获取任务总数。
+
+- ##### `::std::deque<::std::function<void()>> get_exception_tasks()`
+    获取抛出异常的任务信息。每次调用此函数会清空异常队列。
 
 - ##### `const type_info& this_type() const`
     获取类型信息。
