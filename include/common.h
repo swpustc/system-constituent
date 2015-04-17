@@ -283,7 +283,7 @@ template<class Elem> inline void set_log_location(const Elem* file_name)
     auto wrdbuf = g_log_wofstream.rdbuf();
     if (wrdbuf)
         ::std::wclog.rdbuf(wrdbuf);
-    debug_output<true>("\n\nProcess Start: [PID:",
+    debug_output<true>("Process Start: [PID:",
 #if defined(_WIN32) || defined(WIN32)
         ::GetCurrentProcessId()
 #else // Linux
