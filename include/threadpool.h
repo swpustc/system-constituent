@@ -19,6 +19,7 @@
 #include <thread>
 #include <vector>
 #include <cassert>
+#include <typeinfo>
 #include <functional>
 #include <Windows.h>
 
