@@ -471,10 +471,15 @@ public:
         decltype(m_tasks) exception_tasks = ::std::move(m_exception_tasks);
         return ::std::move(exception_tasks);
     }
-    // 获取类型信息
-    const type_info& this_type() const
+    // 获取初始化线程数
+    static const int get_default_thread_number()
     {
-        return typeid(decltype(*this));
+        return thread_number;
+    }
+    // 获取类型信息
+    static const type_info& this_type()
+    {
+        return typeid(threadpool);
     }
 
     // 增加新的处理线程，如果线程池进入中止流程则无动作

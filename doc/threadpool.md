@@ -11,6 +11,8 @@
 template<int thread_number = 2, bool handle_exception = true> class threadpool
 {
 public:
+    static const size_t success_code = 0x00001000;
+
     threadpool();
     threadpool(int _thread_number);
     ~threadpool();
@@ -37,7 +39,8 @@ public:
     size_t get_tasks_total_number();
 
     ::std::deque<::std::function<void()>> get_exception_tasks();
-    const type_info& this_type() const;
+    static const int get_default_thread_number();
+    static const type_info& this_type();
 
     bool set_new_thread_number(int thread_num_set);
     bool reset_thread_number();
@@ -52,6 +55,12 @@ public:
 
 - ##### `bool handle_exception`
     是否处理异常标志。如果处理异常，则会抛出任务，并跳过此任务继续运行。
+
+
+## 成员变量
+
+- ##### `static const size_t success_code = 0x00001000`
+    标准退出代码。
 
 
 ## 成员函数
@@ -129,7 +138,10 @@ public:
 - ##### `::std::deque<::std::function<void()>> get_exception_tasks()`
     获取抛出异常的任务信息。每次调用此函数会清空异常队列。
 
-- ##### `const type_info& this_type() const`
+- ##### `static const int get_default_thread_number()`
+    获取初始化线程数。
+
+- ##### `static const type_info& this_type()`
     获取类型信息。
 
 - ##### `bool set_new_thread_number(int thread_num_set)`
