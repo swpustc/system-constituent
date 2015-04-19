@@ -448,6 +448,18 @@ public:
     {
         return m_thread_started.load();
     }
+    // 获取空闲线程数
+    int get_free_thread_number()
+    {
+        if (get_tasks_number())
+            return 0;
+        else
+        {
+            size_t run_tasks = get_tasks_total_number() - get_tasks_completed_number();
+            int thread_num = get_thread_number();
+            return (int)run_tasks >= thread_num ? 0 : thread_num - (int)run_tasks;
+        }
+    }
     // 获取任务队列数量
     size_t get_tasks_number()
     {
@@ -529,6 +541,6 @@ public:
     // 重置线程池数量为初始数量
     bool reset_thread_number()
     {
-        return set_new_thread_number(thread_number);
+        return set_new_thread_number(get_default_thread_number());
     }
 };

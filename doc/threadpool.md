@@ -33,7 +33,8 @@ public:
     bool detach();
     bool detach(int thread_number_new);
 
-    size_t get_thread_number();
+    int get_thread_number();
+    int get_free_thread_number();
     size_t get_tasks_number();
     size_t get_tasks_completed_number();
     size_t get_tasks_total_number();
@@ -123,8 +124,11 @@ public:
 
     如果任务队列为空，返回`false`，否则返回`true`。如果`thread_number_new==0`，未完成的任务不会被执行而是立即销毁。
 
-- ##### `size_t get_thread_number()`
-    获取当前线程中工作线程的数量。
+- ##### `int get_thread_number()`
+    获取当前线程池中线程的数量。
+
+- ##### `int get_free_thread_number()`
+    获取当前线程池中空闲线程的数量。
 
 - ##### `size_t get_tasks_number()`
     获取当前任务队列中未处理的任务数。
@@ -145,7 +149,7 @@ public:
     获取类型信息。
 
 - ##### `bool set_new_thread_number(int thread_num_set)`
-    增加线程池中工作线程的数量。
+    增加线程池中线程的数量。
 
     如果线程池已进入退出流程，或者添加的线程数`thread_num_set<0`，返回false，否则返回true。
 
