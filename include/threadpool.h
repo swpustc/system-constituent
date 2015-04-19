@@ -342,6 +342,7 @@ public:
     // 添加一个任务 VS2013+
     template<class Fn, class... Args> bool push(Fn&& fn, Args&&... args)
     {
+        typedef decltype(decay_type(::std::forward<Fn>(fn))(decay_type(::std::forward<Args>(args))...)) result_type;
         switch (m_exit_event)
         {
         case exit_event_t::NORMAL:
@@ -350,9 +351,10 @@ public:
         default: // 退出流程中禁止操作线程控制事件
             return false;
         }
-        // 绑定函数 -> 生成任务（仿函数）
-        ::std::function<void()> bind_function = ::std::bind(function_wapper(),
-            decay_type(::std::forward<Fn>(fn)), decay_type(::std::forward<Args>(args))...);
+        // 绑定函数
+        auto task_obj = ::std::bind(decay_type(::std::forward<Fn>(fn)), decay_type(::std::forward<Args>(args))...);
+        // 生成任务（仿函数）
+        ::std::function<void()> bind_function = ::std::bind(function_wapper(), ::std::move(task_obj));
         // 任务队列读写锁
         ::std::unique_lock<::std::mutex> lck(m_task_lock);
         m_push_tasks->push_back(::std::move(bind_function));
@@ -393,6 +395,7 @@ public:
     // 添加多个任务 VS2013+
     template<class Fn, class... Args> bool push_multi(size_t count, Fn&& fn, Args&&... args)
     {
+        typedef decltype(decay_type(::std::forward<Fn>(fn))(decay_type(::std::forward<Args>(args))...)) result_type;
         assert(count >= 0 && count < USHRT_MAX);
         switch (m_exit_event)
         {
@@ -404,9 +407,10 @@ public:
         }
         if (count)
         {
-            // 绑定函数 -> 生成任务（仿函数）
-            ::std::function<void()> bind_function = ::std::bind(function_wapper(),
-                decay_type(::std::forward<Fn>(fn)), decay_type(::std::forward<Args>(args))...);
+            // 绑定函数
+            auto task_obj = ::std::bind(decay_type(::std::forward<Fn>(fn)), decay_type(::std::forward<Args>(args))...);
+            // 生成任务（仿函数）
+            ::std::function<void()> bind_function = ::std::bind(function_wapper(), ::std::move(task_obj));
             // 任务队列读写锁
             ::std::unique_lock<::std::mutex> lck(m_task_lock);
             m_push_tasks->insert(m_push_tasks->end(), count, ::std::move(bind_function));
