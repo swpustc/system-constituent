@@ -34,14 +34,14 @@ private:
     ::std::list<::std::pair<::std::thread, SAFE_HANDLE_OBJECT>> m_thread_object;
     // 已销毁分离的线程对象
     ::std::vector<::std::pair<::std::thread, SAFE_HANDLE_OBJECT>> m_thread_destroy;
-    // 任务队列 (VS2010+)
+    // 任务队列
     ::std::deque<::std::function<void()>> m_tasks;
     decltype(m_tasks) m_pause_tasks;
     decltype(m_tasks)* m_push_tasks{ &m_tasks };
     decltype(m_tasks) m_exception_tasks;
     ::std::atomic<size_t> m_task_completed{ 0 };
     ::std::atomic<size_t> m_task_all{ 0 };
-    // 任务队列读写锁 (VS2012+)
+    // 任务队列读写锁
     ::std::mutex m_task_lock;
     // 线程创建、销毁事件锁
     ::std::mutex m_thread_lock;
@@ -230,7 +230,7 @@ public:
     ~threadpool()
     {
         stop_on_completed(); // 退出时等待任务清空
-        for (auto& handle_obj : m_thread_object) // VS2013+
+        for (auto& handle_obj : m_thread_object)
         {
 #if _MSC_VER <= 1800 // Fix std::thread deadlock bug on VS2012,VS2013 (when call join on exit)
             ::WaitForSingleObject((HANDLE)handle_obj.first.native_handle(), INFINITE);
@@ -239,7 +239,7 @@ public:
             handle_obj.first.join(); // 等待所有打开的线程退出
 #endif // #if _MSC_VER <= 1800
         }
-        for (auto& handle_obj : m_thread_destroy) // VS2013+
+        for (auto& handle_obj : m_thread_destroy)
         {
 #if _MSC_VER <= 1800 // Fix std::thread deadlock bug on VS2012,VS2013 (when call join on exit)
             ::WaitForSingleObject((HANDLE)handle_obj.first.native_handle(), INFINITE);
@@ -251,16 +251,12 @@ public:
     }
     // 复制构造函数
     threadpool(const threadpool&) = delete;
-    template<size_t _thread_number> threadpool(const threadpool<_thread_number>&) = delete;
     // 复制赋值语句
     threadpool& operator=(const threadpool&) = delete;
-    template<size_t _thread_number> threadpool& operator=(const threadpool<_thread_number>&) = delete;
     // 移动构造函数
     threadpool(threadpool&&) = delete;
-    template<size_t _thread_number> threadpool(threadpool<_thread_number>&&) = delete;
     // 移动赋值语句
     threadpool& operator=(threadpool&&) = delete;
-    template<size_t _thread_number> threadpool& operator=(threadpool<_thread_number>&&) = delete;
 
     // 启动暂停pause的线程
     bool start()
@@ -339,7 +335,7 @@ public:
         }
     }
 
-    // 添加一个任务 VS2013+
+    // 添加一个任务
     template<class Fn, class... Args> bool push(Fn&& fn, Args&&... args)
     {
         switch (m_exit_event)
@@ -390,7 +386,7 @@ public:
         notify();
         return ::std::make_pair(::std::move(future_obj), true);
     }
-    // 添加多个任务 VS2013+
+    // 添加多个任务
     template<class Fn, class... Args> bool push_multi(size_t count, Fn&& fn, Args&&... args)
     {
         assert(count >= 0 && count < USHRT_MAX);
