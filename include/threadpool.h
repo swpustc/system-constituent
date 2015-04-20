@@ -417,6 +417,41 @@ public:
         }
         return true;
     }
+    // 添加多个任务并返回返回值对象pair<vector<future>,bool>，使用future::get获取返回值（若未完成会等待完成）
+    template<class Fn, class... Args> auto push_multi_future(size_t count, Fn&& fn, Args&&... args)
+        -> ::std::pair<::std::vector<::std::future<decltype(decay_type(::std::forward<Fn>(fn))(decay_type(::std::forward<Args>(args))...))>>, bool>
+    {
+        typedef decltype(decay_type(::std::forward<Fn>(fn))(decay_type(::std::forward<Args>(args))...)) result_type;
+        assert(count >= 0 && count < USHRT_MAX);
+        ::std::vector<::std::future<result_type>> future_obj;
+        switch (m_exit_event)
+        {
+        case exit_event_t::NORMAL:
+        case exit_event_t::PAUSE:
+            break;
+        default: // 退出流程中禁止操作线程控制事件
+            return ::std::make_pair(::std::move(future_obj), false);
+        }
+        if (count)
+        {
+            future_obj.reserve(count);
+            while (count--)
+            {
+                // 绑定函数
+                auto task_obj = ::std::make_shared<::std::packaged_task<result_type()>>(
+                    ::std::bind(::std::forward<Fn>(fn), ::std::forward<Args>(args)...));
+                future_obj.push_back(task_obj->get_future());
+                // 生成任务（仿函数）
+                ::std::function<void()> bind_function(::std::bind(function_wapper(), ::std::move(task_obj)));
+                // 任务队列读写锁
+                ::std::lock_guard<::std::mutex> lck(m_task_lock);
+                m_push_tasks->push_back(::std::move(bind_function));
+            }
+            m_task_all += count;
+            notify(count);
+        }
+        return ::std::make_pair(::std::move(future_obj), true);
+    }
 
     // 分离所有任务，分离的线程池对象线程数不变
     bool detach()
