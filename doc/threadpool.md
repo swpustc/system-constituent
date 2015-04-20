@@ -26,9 +26,10 @@ public:
     void stop();
     bool stop_on_completed();
 
-    template<class Fn, class... Args> bool push(Fn&& fn, Args&&... args);
-    template<class Fn, class... Args> auto push_future(Fn&& fn, Args&&... args) -> ::std::pair<::std::future<fn(args...)>, bool>
-    template<class Fn, class... Args> bool push_multi(size_t Count, Fn&& fn, Args&&... args);
+    bool push(Fn&& fn, Args&&... args);
+    auto push_future(Fn&& fn, Args&&... args)->std::pair<std::future<fn(args...)>, bool>;
+    bool push_multi(size_t Count, Fn&& fn, Args&&... args);
+    auto push_multi_future(size_t count, Fn&& fn, Args&&... args)->std::pair<std::vector<std::future<fn(args...)>>, bool>;
 
     bool detach();
     bool detach(int thread_number_new);
@@ -39,7 +40,7 @@ public:
     size_t get_tasks_completed_number();
     size_t get_tasks_total_number();
 
-    ::std::deque<::std::function<void()>> get_exception_tasks();
+    std::deque<std::function<void()>> get_exception_tasks();
     static const int get_default_thread_number();
     static const type_info& this_type();
 
@@ -105,7 +106,7 @@ public:
 
     如果线程池已进入退出流程，返回false，否则返回true。
 
-- ##### `auto push_future(Fn&& fn, Args&&... args) -> ::std::pair<::std::future<fn(args...)>, bool>`
+- ##### `auto push_future(Fn&& fn, Args&&... args)->std::pair<std::future<fn(args...)>, bool>`
     返回类型为`pair<future, bool>`，可以通过`futurn::get`获取任务函数的返回值。
     其余和`push`函数相同。
 
@@ -113,6 +114,10 @@ public:
     添加重复的任务，Count为重复的次数。如果Count为0，亦返回true。
 
     如果线程池已进入退出流程，返回false，否则返回true。
+
+- ##### `auto push_multi_future(size_t count, Fn&& fn, Args&&... args)->std::pair<std::vector<std::future<fn(args...)>>, bool>`
+    返回类型为`pair<vector<future>, bool>`，可以通过`futurn::get`获取任务函数的返回值。
+    其余和`push_multi`函数相同。
 
 - ##### `bool detach()`
     分离所有任务，分离的线程池对象线程数和当前线程池正在运行的线程数相同。
