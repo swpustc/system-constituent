@@ -3,7 +3,7 @@
  * 支持平台：Windows; Linux
  * 编译环境：VS2013+; g++ -std=c++11
  * 创建时间：2015-04-05 （宋万鹏）
- * 最后修改：2015-04-17 （宋万鹏）
+ * 最后修改：2015-04-19 （宋万鹏）
 ***********************************************************/
 
 #pragma once
@@ -125,15 +125,15 @@ struct function_wapper
 {
     template<class Fn, class... Args> inline void operator()(Fn&& fn, Args&&... args)
     {
-        ::std::forward<Fn>(fn)(::std::forward<Args>(args)...);
+        decay_type(::std::forward<Fn>(fn))(decay_type(::std::forward<Args>(args))...);
     }
     template<class Fn, class... Args> inline void operator()(::std::shared_ptr<Fn>& fn, Args&&... args)
     {
-        (*fn.get())(::std::forward<Args>(args)...);
+        (*fn.get())(decay_type(::std::forward<Args>(args))...);
     }
     template<class Fn, class... Args> inline void operator()(::std::unique_ptr<Fn>& fn, Args&&... args)
     {
-        (*fn.get())(::std::forward<Args>(args)...);
+        (*fn.get())(decay_type(::std::forward<Args>(args))...);
     }
 };
 
