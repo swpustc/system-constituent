@@ -3,7 +3,7 @@
  * 支持平台：Windows
  * 编译环境：VS2013+
  * 创建时间：2015-04-05 （宋万鹏）
- * 最后修改：2015-04-17 （宋万鹏）
+ * 最后修改：2015-04-20 （宋万鹏）
 ***********************************************************/
 
 #pragma once
@@ -352,9 +352,10 @@ public:
             return false;
         }
         // 绑定函数
-        auto task_obj = ::std::bind(decay_type(::std::forward<Fn>(fn)), decay_type(::std::forward<Args>(args))...);
+        auto task_obj = ::std::make_shared<decltype(::std::bind(::std::forward<Fn>(fn), ::std::forward<Args>(args)...))>(
+            ::std::bind(::std::forward<Fn>(fn), ::std::forward<Args>(args)...));
         // 生成任务（仿函数）
-        ::std::function<void()> bind_function = ::std::bind(function_wapper(), ::std::move(task_obj));
+        ::std::function<void()> bind_function(::std::bind(function_wapper(), ::std::move(task_obj)));
         // 任务队列读写锁
         ::std::unique_lock<::std::mutex> lck(m_task_lock);
         m_push_tasks->push_back(::std::move(bind_function));
@@ -368,7 +369,6 @@ public:
         -> ::std::pair<::std::future<decltype(decay_type(::std::forward<Fn>(fn))(decay_type(::std::forward<Args>(args))...))>, bool>
     {
         typedef decltype(decay_type(::std::forward<Fn>(fn))(decay_type(::std::forward<Args>(args))...)) result_type;
-        typedef ::std::packaged_task<result_type()> task_type;
         ::std::future<result_type> future_obj;
         switch (m_exit_event)
         {
@@ -379,11 +379,11 @@ public:
             return ::std::make_pair(::std::move(future_obj), false);
         }
         // 绑定函数
-        auto task_obj = ::std::make_shared<task_type>(::std::bind(
-            decay_type(::std::forward<Fn>(fn)), decay_type(::std::forward<Args>(args))...));
+        auto task_obj = ::std::make_shared<::std::packaged_task<result_type()>>(
+            ::std::bind(::std::forward<Fn>(fn), ::std::forward<Args>(args)...));
         future_obj = task_obj->get_future();
         // 生成任务（仿函数）
-        ::std::function<void()> bind_function = ::std::bind(function_wapper(), ::std::move(task_obj));
+        ::std::function<void()> bind_function(::std::bind(function_wapper(), ::std::move(task_obj)));
         // 任务队列读写锁
         ::std::unique_lock<::std::mutex> lck(m_task_lock);
         m_push_tasks->push_back(::std::move(bind_function));
@@ -408,9 +408,10 @@ public:
         if (count)
         {
             // 绑定函数
-            auto task_obj = ::std::bind(decay_type(::std::forward<Fn>(fn)), decay_type(::std::forward<Args>(args))...);
+            auto task_obj = ::std::make_shared<decltype(::std::bind(::std::forward<Fn>(fn), ::std::forward<Args>(args)...))>(
+                ::std::bind(::std::forward<Fn>(fn), ::std::forward<Args>(args)...));
             // 生成任务（仿函数）
-            ::std::function<void()> bind_function = ::std::bind(function_wapper(), ::std::move(task_obj));
+            ::std::function<void()> bind_function(::std::bind(function_wapper(), ::std::move(task_obj)));
             // 任务队列读写锁
             ::std::unique_lock<::std::mutex> lck(m_task_lock);
             m_push_tasks->insert(m_push_tasks->end(), count, ::std::move(bind_function));
