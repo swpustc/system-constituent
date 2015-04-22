@@ -44,7 +44,8 @@ public:
     int get_default_thread_number();
     static const type_info& this_type();
 
-    bool set_new_thread_number(int thread_num_set);
+    bool set_thread_number(int thread_number);
+    bool set_new_thread_number(int thread_number_new);
     bool reset_thread_number();
 };
 ```
@@ -68,7 +69,8 @@ public:
 
 - ##### `threadpool()`
 
-    默认构造函数。
+    默认构造函数，线程池未初始化，直到调用**set_thread_number**或者**set_new_thread_number**（两者相同）启动线程。
+    未初始化的线程池可以添加、分离任务。
 
 - ##### `threadpool(size_t thread_number)`
 
@@ -86,13 +88,13 @@ public:
 
     如果线程池已暂停，则启动线程池。
 
-    如果线程池已进入退出流程，返回false，否则返回true。
+    如果线程池已进入退出流程，返回`false`，否则返回`true`。
 
 - ##### `bool pause()`
 
     暂停线程池中的所有线程。
 
-    如果线程池已进入退出流程，返回false，否则返回true。
+    如果线程池已进入退出流程，返回`false`，否则返回`true`。
 
 - ##### `void stop()`
 
@@ -101,9 +103,9 @@ public:
 - ##### `bool stop_on_completed()`
 
     停止线程池，不再允许添加新的任务；在所有任务完成后，退出工作线程。
-    可以调用**stop()**以立即停止线程池。
+    可以调用**stop**以立即停止线程池。
 
-    如果已经调用过**stop()**，返回false，否则返回true。
+    如果已经调用过**stop**，返回`false`，否则返回`true`。
 
 - ##### `bool push(Fn&& fn, Args&&... args)`
 
@@ -112,12 +114,12 @@ public:
 
     传入函数的参数列表的类型和数量必须与传入的参数类型和数量一致，否则会产生编译时错误。
 
-    如果线程池已进入退出流程，返回false，否则返回true。
+    如果线程池已进入退出流程，返回`false`，否则返回`true`。
 
 - ##### `auto push_future(Fn&& fn, Args&&... args)->std::pair<std::future<fn(args...)>, bool>`
 
-    返回类型为`pair<future, bool>`，可以通过`futurn::get`获取任务函数的返回值。
-    其余和`push`函数相同。
+    返回类型为`pair<future, bool>`，可以通过**futurn::get**获取任务函数的返回值。
+    其余和**push**函数相同。
 
 - ##### `bool push_multi(size_t Count, Fn&& fn, Args&&... args)`
 
@@ -127,8 +129,8 @@ public:
 
 - ##### `auto push_multi_future(size_t count, Fn&& fn, Args&&... args)->std::pair<std::vector<std::future<fn(args...)>>, bool>`
 
-    返回类型为`pair<vector<future>, bool>`，可以通过`futurn::get`获取任务函数的返回值。
-    其余和`push_multi`函数相同。
+    返回类型为`pair<vector<future>, bool>`，可以通过**futurn::get**获取任务函数的返回值。
+    其余和**push_multi**函数相同。
 
 - ##### `bool detach()`
 
@@ -174,11 +176,15 @@ public:
 
     获取类型信息。
 
-- ##### `bool set_new_thread_number(int thread_num_set)`
+- ##### `bool set_thread_number(int thread_number)`
 
-    增加线程池中线程的数量。
+    设置线程池中线程的数量。
 
-    如果线程池已进入退出流程，或者添加的线程数`thread_num_set<0`，返回false，否则返回true。
+    如果线程池已进入退出流程，或者添加的线程数`thread_num_set<0`，返回`false`，否则返回`true`。
+
+- ##### `bool set_new_thread_number(int thread_number_new)`
+
+    和**set_thread_number**函数相同。
 
 - ##### `bool reset_thread_number()`
 
@@ -187,7 +193,8 @@ public:
 
 ## 备注
 
-此线程池未使用虚函数，异常安全。默认的线程数为2，实际运用时的线程数应少于CPU核心数。
+线程池未使用虚函数，异常安全。默认的线程数为2，实际运用时的线程数应少于CPU核心数。
+未初始化的线程池，第一次调用**set_thread_number**设置线程数的同时会初始化线程池，此时需要在单线程中处理。
 
 线程退出代码基址为`success_code=0x00001000`，正常退出时，返回值大于等于`success_code`；
 非正常退出时，返回值小于`success_code`。
@@ -197,12 +204,12 @@ public:
 分离`detach`的线程池控制函数返回值为`success_code+0xff`。
 
 使用C++11模板类编写，需链接`system.lib`。
-`class threadpool`不允许通过复制构造对象，不允许复制另一个threadpool对象。
+`class threadpool`不允许通过复制构造对象，不允许复制另一个`threadpool`对象。
 
 
 ## 示例代码
 
-在测试代码中，可以查看**threadpool**的[示例代码](../test/threadpool.cpp)。
+在测试代码中，可以查看`threadpool`的[示例代码](../test/threadpool.cpp)。
 
 
 ## 要求

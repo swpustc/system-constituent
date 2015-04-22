@@ -538,8 +538,8 @@ public:
         return typeid(threadpool);
     }
 
-    // 增加新的处理线程，如果线程池进入中止流程则无动作
-    bool set_new_thread_number(int thread_num_set)
+    // 设置处理线程数，如果线程池进入中止流程则无动作
+    bool set_thread_number(int thread_number)
     {
         assert(thread_num_set >= 0 && thread_num_set < 255); // "Thread number must greater than or equal 0 and less than 255"
         switch (m_exit_event.load())
@@ -554,37 +554,36 @@ public:
         default: // 退出流程中禁止操作线程控制事件
             return false;
         }
-        if (thread_num_set < 0) // 线程数小于0则失败
+        if (thread_number < 0) // 线程数小于0则失败
             return false;
-        if (m_thread_started.load() != thread_num_set)
+        if (m_thread_started.load() != thread_number)
         {
             // 线程创建、销毁事件锁
             ::std::unique_lock<::std::mutex> lck(m_thread_lock);
-            if (m_thread_started.load() < thread_num_set)
+            for (register int i = m_thread_started.load(); i < thread_number; i++)
             {
-                for (register int i = m_thread_started.load(); i < thread_num_set; i++)
-                {
-                    HANDLE thread_exit_event = ::CreateEventW(nullptr, FALSE, FALSE, nullptr); // 自动复位，无信号
-                    auto iter = m_thread_object.insert(m_thread_object.end(), ::std::make_pair(
-                        ::std::thread(&threadpool::thread_entry, this, thread_exit_event), SAFE_HANDLE_OBJECT(thread_exit_event)));
-                    m_thread_started++;
-                }
+                HANDLE thread_exit_event = ::CreateEventW(nullptr, FALSE, FALSE, nullptr); // 自动复位，无信号
+                auto iter = m_thread_object.insert(m_thread_object.end(), ::std::make_pair(
+                    ::std::thread(&threadpool::thread_entry, this, thread_exit_event), SAFE_HANDLE_OBJECT(thread_exit_event)));
+                m_thread_started++;
             }
-            else
+            for (register int i = m_thread_started.load(); i > thread_number; i--)
             {
-                for (register int i = m_thread_started.load(); i > thread_num_set; i--)
-                {
-                    auto iter = m_thread_object.begin();
-                    ::SetEvent(iter->second);
-                    m_thread_destroy.push_back(::std::move(*iter));
-                    m_thread_object.erase(iter);
-                    m_thread_started--;
-                }
+                auto iter = m_thread_object.begin();
+                ::SetEvent(iter->second);
+                m_thread_destroy.push_back(::std::move(*iter));
+                m_thread_object.erase(iter);
+                m_thread_started--;
             }
             lck.unlock();
             assert(m_thread_started.load() == thread_num_set);
         }
         return true;
+    }
+    // 设置新的处理线程，如果线程池进入中止流程则无动作
+    bool set_new_thread_number(int thread_number_new)
+    {
+        return set_thread_number(thread_number_new);
     }
     // 重置线程池数量为初始数量
     bool reset_thread_number()
