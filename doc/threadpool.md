@@ -8,7 +8,7 @@
 源文件：[include/threadpool.h](../include/threadpool.h)
 
 ```cpp
-template<int thread_number = 2, bool handle_exception = true> class threadpool
+template<bool handle_exception = true> class threadpool
 {
 public:
     static const size_t success_code = 0x00001000;
@@ -41,7 +41,7 @@ public:
     size_t get_tasks_total_number();
 
     std::deque<std::function<void()>> get_exception_tasks();
-    static const int get_default_thread_number();
+    int get_default_thread_number();
     static const type_info& this_type();
 
     bool set_new_thread_number(int thread_num_set);
@@ -51,10 +51,6 @@ public:
 
 
 ## 模板参数
-
-- ##### `int thread_number`
-
-    初始化线程池线程数量。
 
 - ##### `bool handle_exception`
 
@@ -170,7 +166,7 @@ public:
 
     获取抛出异常的任务信息。每次调用此函数会清空异常队列。
 
-- ##### `static const int get_default_thread_number()`
+- ##### `int get_default_thread_number()`
 
     获取初始化线程数。
 
@@ -195,7 +191,8 @@ public:
 
 线程退出代码基址为`success_code=0x00001000`，正常退出时，返回值大于等于`success_code`；
 非正常退出时，返回值小于`success_code`。
-如果线程抛出异常，`thread_entry [private]`将捕获异常并重启工作线程，返回值为`success_code-0xff`。
+如果线程抛出异常，`thread_entry [private]`将捕获异常并将此任务添加到异常任务队列。
+如果线程池未准备好，线程返回值为`success_code-0xff`。
 
 分离`detach`的线程池控制函数返回值为`success_code+0xff`。
 

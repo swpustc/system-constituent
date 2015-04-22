@@ -25,10 +25,11 @@
 
 
 // 线程池类 thread_number初始化线程数量
-template<int thread_number = 2, bool handle_exception = true> class threadpool
+template<bool handle_exception = true> class threadpool
 {
 private:
     // 线程数
+    ::std::atomic<int> m_thread_number{ 0 };
     ::std::atomic<int> m_thread_started{ 0 };
     // 线程队列
     ::std::list<::std::pair<::std::thread, SAFE_HANDLE_OBJECT>> m_thread_object;
@@ -50,13 +51,14 @@ private:
     SAFE_HANDLE_OBJECT m_notify_task; // 通知线程有新任务
 
     enum class exit_event_t {
+        INITIALIZATION,
         NORMAL,
         PAUSE,
         STOP_IMMEDIATELY,
         WAIT_TASK_COMPLETE,
     };
     // 退出任务事件
-    exit_event_t m_exit_event{ exit_event_t::NORMAL };
+    ::std::atomic<exit_event_t> m_exit_event{ exit_event_t::INITIALIZATION };
 
     // 线程入口函数
     size_t thread_entry(HANDLE exit_event)
@@ -108,8 +110,10 @@ private:
             case WAIT_OBJECT_0:     // 退出当前线程
                 return success_code + 0;
             case WAIT_OBJECT_0 + 1: // 正常退出事件
-                switch (m_exit_event)
+                switch (m_exit_event.load())
                 {
+                case exit_event_t::INITIALIZATION:      // 线程池对象未准备好
+                    return success_code - 0xff;
                 case exit_event_t::NORMAL:              // 未设置退出事件
                     return success_code + 1;
                 case exit_event_t::PAUSE:               // 线程暂停中
@@ -146,12 +150,8 @@ private:
     }
     void notify(size_t attach_tasks_number)
     { // 通知一个线程
-        if (attach_tasks_number > 1)
-        {
-            notify();
-            notify();
-        }
-        else if (attach_tasks_number)
+        int i = auto_min(3, m_thread_started.load());
+        while (attach_tasks_number-- && i--)
             notify();
     }
 
@@ -207,19 +207,19 @@ public:
     // 标准线程结束代码
     static const size_t success_code = 0x00001000;
 
-    threadpool() : threadpool(thread_number)
+    threadpool(){}
+    threadpool(int thread_number)
     {
-        static_assert(thread_number >= 0 && thread_number < 255, "Thread number must greater than or equal 0 and less than 255");
-    }
-    threadpool(int _thread_number)
-    {
-        assert(_thread_number >= 0 && _thread_number < 255); // "Thread number must greater than or equal 0 and less than 255"
+        assert(thread_number >= 0 && thread_number < 255); // "Thread number must greater than or equal 0 and less than 255"
+        m_thread_number = thread_number;
+
+        m_exit_event = exit_event_t::NORMAL;
         m_stop_thread = ::CreateEventW(nullptr, TRUE, FALSE, nullptr);  // 手动复位，无信号
         m_notify_task = ::CreateEventW(nullptr, FALSE, FALSE, nullptr); // 自动复位，无信号
 
         // 线程创建、销毁事件锁
         ::std::lock_guard<::std::mutex> lck(m_thread_lock);
-        for (register int i = 0; i < _thread_number; i++) // 线程对象
+        for (register int i = 0; i < thread_number; i++) // 线程对象
         {
             HANDLE thread_exit_event = ::CreateEventW(nullptr, FALSE, FALSE, nullptr); // 自动复位，无信号
             auto iter = m_thread_object.insert(m_thread_object.end(), ::std::make_pair(
@@ -263,7 +263,7 @@ public:
     {
         // 任务队列读写锁
         ::std::unique_lock<::std::mutex> lck(m_task_lock);
-        switch (m_exit_event)
+        switch (m_exit_event.load())
         {
         case exit_event_t::PAUSE:
             m_exit_event = exit_event_t::NORMAL;
@@ -275,6 +275,7 @@ public:
         case exit_event_t::NORMAL:
             return true;
             // 退出流程中禁止操作线程控制事件
+        case exit_event_t::INITIALIZATION:
         default:
             return false;
         }
@@ -284,7 +285,7 @@ public:
     {
         // 任务队列读写锁
         ::std::unique_lock<::std::mutex> lck(m_task_lock);
-        switch (m_exit_event)
+        switch (m_exit_event.load())
         {
         case exit_event_t::NORMAL:
             m_exit_event = exit_event_t::PAUSE;
@@ -294,6 +295,7 @@ public:
             assert(m_tasks.size() == 0);
         case exit_event_t::PAUSE:
             return true;
+        case exit_event_t::INITIALIZATION:
         default: // 退出流程中禁止操作线程控制事件
             return false;
         }
@@ -301,7 +303,7 @@ public:
     // 立即结束任务，未处理的任务将丢弃
     void stop()
     {
-        switch (m_exit_event)
+        switch (m_exit_event.load())
         {
         case exit_event_t::NORMAL:
         case exit_event_t::WAIT_TASK_COMPLETE:
@@ -314,6 +316,7 @@ public:
         case exit_event_t::PAUSE:
             m_exit_event = exit_event_t::STOP_IMMEDIATELY;
             ::SetEvent(m_stop_thread);
+        case exit_event_t::INITIALIZATION:
         default:
             break;
         }
@@ -321,7 +324,7 @@ public:
     // 当任务队列执行完毕后退出线程，如果线程池正在退出则失败
     bool stop_on_completed()
     {
-        switch (m_exit_event)
+        switch (m_exit_event.load())
         {
         case exit_event_t::PAUSE:
             start();
@@ -330,6 +333,7 @@ public:
             ::SetEvent(m_stop_thread);
         case exit_event_t::WAIT_TASK_COMPLETE:
             return true;
+        case exit_event_t::INITIALIZATION:
         default:
             return false;
         }
@@ -339,10 +343,11 @@ public:
     template<class Fn, class... Args> bool push(Fn&& fn, Args&&... args)
     {
         typedef decltype(decay_type(::std::forward<Fn>(fn))(decay_type(::std::forward<Args>(args))...)) result_type;
-        switch (m_exit_event)
+        switch (m_exit_event.load())
         {
         case exit_event_t::NORMAL:
         case exit_event_t::PAUSE:
+        case exit_event_t::INITIALIZATION: // 未初始化的线程池仍然可以添加任务
             break;
         default: // 退出流程中禁止操作线程控制事件
             return false;
@@ -366,10 +371,11 @@ public:
     {
         typedef decltype(decay_type(::std::forward<Fn>(fn))(decay_type(::std::forward<Args>(args))...)) result_type;
         ::std::future<result_type> future_obj;
-        switch (m_exit_event)
+        switch (m_exit_event.load())
         {
         case exit_event_t::NORMAL:
         case exit_event_t::PAUSE:
+        case exit_event_t::INITIALIZATION: // 未初始化的线程池仍然可以添加任务
             break;
         default: // 退出流程中禁止操作线程控制事件
             return ::std::make_pair(::std::move(future_obj), false);
@@ -393,10 +399,11 @@ public:
     {
         typedef decltype(decay_type(::std::forward<Fn>(fn))(decay_type(::std::forward<Args>(args))...)) result_type;
         assert(count >= 0 && count < USHRT_MAX);
-        switch (m_exit_event)
+        switch (m_exit_event.load())
         {
         case exit_event_t::NORMAL:
         case exit_event_t::PAUSE:
+        case exit_event_t::INITIALIZATION: // 未初始化的线程池仍然可以添加任务
             break;
         default: // 退出流程中禁止操作线程控制事件
             return false;
@@ -424,10 +431,11 @@ public:
         typedef decltype(decay_type(::std::forward<Fn>(fn))(decay_type(::std::forward<Args>(args))...)) result_type;
         assert(count >= 0 && count < USHRT_MAX);
         ::std::vector<::std::future<result_type>> future_obj;
-        switch (m_exit_event)
+        switch (m_exit_event.load())
         {
         case exit_event_t::NORMAL:
         case exit_event_t::PAUSE:
+        case exit_event_t::INITIALIZATION: // 未初始化的线程池仍然可以添加任务
             break;
         default: // 退出流程中禁止操作线程控制事件
             return ::std::make_pair(::std::move(future_obj), false);
@@ -520,9 +528,9 @@ public:
         return ::std::move(exception_tasks);
     }
     // 获取初始化线程数
-    static const int get_default_thread_number()
+    int get_default_thread_number()
     {
-        return thread_number;
+        return m_thread_number.load();
     }
     // 获取类型信息
     static const type_info& this_type()
@@ -534,8 +542,12 @@ public:
     bool set_new_thread_number(int thread_num_set)
     {
         assert(thread_num_set >= 0 && thread_num_set < 255); // "Thread number must greater than or equal 0 and less than 255"
-        switch (m_exit_event)
+        switch (m_exit_event.load())
         {
+        case exit_event_t::INITIALIZATION: // 未初始化的线程池
+            m_exit_event = exit_event_t::NORMAL;
+            m_stop_thread = ::CreateEventW(nullptr, TRUE, FALSE, nullptr);  // 手动复位，无信号
+            m_notify_task = ::CreateEventW(nullptr, FALSE, FALSE, nullptr); // 自动复位，无信号
         case exit_event_t::NORMAL:
         case exit_event_t::PAUSE:
             break;
