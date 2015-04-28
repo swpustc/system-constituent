@@ -69,7 +69,8 @@ public:
 
 - ##### `threadpool()`
 
-    默认构造函数，线程池未初始化，直到调用**set_thread_number**或者**set_new_thread_number**（两者相同）启动线程。
+    默认构造函数，线程池未初始化，直到调用**set_thread_number**初始化线程池。
+
     未初始化的线程池可以添加、分离任务。
 
 - ##### `threadpool(size_t thread_number)`
@@ -180,11 +181,17 @@ public:
 
     设置线程池中线程的数量。
 
-    如果线程池已进入退出流程，或者添加的线程数`thread_num_set<0`，返回`false`，否则返回`true`。
+    未初始化的线程池，第一次调用**set_thread_number**设置线程数的同时会初始化线程池，此任务非线程安全。
+
+    已初始化的线程池调用此函数将返回`false`。
 
 - ##### `bool set_new_thread_number(int thread_number_new)`
 
-    和**set_thread_number**函数相同。
+    重新设置线程池中线程的数量。
+
+    如果线程池已进入退出流程，或者新的线程数`thread_num_set<0`，返回`false`，否则返回`true`。
+
+    未初始化的线程池调用此函数将返回`false`。
 
 - ##### `bool reset_thread_number()`
 
@@ -194,7 +201,6 @@ public:
 ## 备注
 
 线程池未使用虚函数，异常安全。默认的线程数为2，实际运用时的线程数应少于CPU核心数。
-未初始化的线程池，第一次调用**set_thread_number**设置线程数的同时会初始化线程池，此时需要在单线程中处理。
 
 线程退出代码基址为`success_code=0x00001000`，正常退出时，返回值大于等于`success_code`；
 非正常退出时，返回值小于`success_code`。
