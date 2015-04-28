@@ -167,7 +167,7 @@
     </ClCompile>
     <Link>
       <ProgramDatabaseFile>$(SolutionDir)pdb\$(Configuration)\$(Platform)\$(TargetName).pdb</ProgramDatabaseFile>
-      <StripPrivateSymbols>$(SolutionDir)pdb\public\$(Configuration)\$(Platform)\$(TargetName).pdb</StripPrivateSymbols>
+      <StripPrivateSymbols>$(SolutionDir)pdb\$(Configuration)\$(Platform)\$(TargetName)_pub.pdb</StripPrivateSymbols>
       <MapFileName>$(SolutionDir)map\$(Configuration)\$(Platform)\$(TargetName).map</MapFileName>
     </Link>
     <Bscmake>
@@ -181,7 +181,7 @@
     </ClCompile>
     <Link>
       <ProgramDatabaseFile>$(SolutionDir)pdb\$(TargetName).pdb</ProgramDatabaseFile>
-      <StripPrivateSymbols>$(SolutionDir)pdb\public\$(TargetName).pdb</StripPrivateSymbols>
+      <StripPrivateSymbols>$(SolutionDir)pdb\$(TargetName)_pub.pdb</StripPrivateSymbols>
       <MapFileName>$(SolutionDir)map\$(TargetName).map</MapFileName>
       <BaseAddress>0x68000000</BaseAddress>
     </Link>
@@ -196,7 +196,7 @@
     </ClCompile>
     <Link>
       <ProgramDatabaseFile>$(SolutionDir)pdb\$(Platform)\$(TargetName).pdb</ProgramDatabaseFile>
-      <StripPrivateSymbols>$(SolutionDir)pdb\public\$(Platform)\$(TargetName).pdb</StripPrivateSymbols>
+      <StripPrivateSymbols>$(SolutionDir)pdb\$(Platform)\$(TargetName)_pub.pdb</StripPrivateSymbols>
       <MapFileName>$(SolutionDir)map\$(Platform)\$(TargetName).map</MapFileName>
       <BaseAddress>0x078068000000</BaseAddress>
     </Link>
