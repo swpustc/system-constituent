@@ -158,6 +158,7 @@
       <ProgramDatabaseFile>$(SolutionDir)pdb\$(Configuration)\$(TargetName).pdb</ProgramDatabaseFile>
       <StripPrivateSymbols>$(SolutionDir)pdb\$(Configuration)\$(TargetName)_pub.pdb</StripPrivateSymbols>
       <MapFileName>$(SolutionDir)map\$(Configuration)\$(TargetName).map</MapFileName>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
     <Bscmake>
       <OutputFile>$(SolutionDir)bsc\$(Configuration)\$(TargetName).bsc</OutputFile>
