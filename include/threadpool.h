@@ -338,7 +338,7 @@ public:
             return false;
         }
         // 绑定函数
-        auto task_obj = ::std::make_shared<decltype(::std::bind(::std::forward<Fn>(fn), ::std::forward<Args>(args)...))>(
+        auto task_obj = ::std::make_unique<decltype(::std::bind(::std::forward<Fn>(fn), ::std::forward<Args>(args)...))>(
             ::std::bind(::std::forward<Fn>(fn), ::std::forward<Args>(args)...));
         // 生成任务（仿函数）
         ::std::function<void()> bind_function(::std::bind(function_wapper(), ::std::move(task_obj)));
@@ -366,7 +366,7 @@ public:
             return ::std::make_pair(::std::move(future_obj), false);
         }
         // 绑定函数
-        auto task_obj = ::std::make_shared<::std::packaged_task<result_type()>>(
+        auto task_obj = ::std::make_unique<::std::packaged_task<result_type()>>(
             ::std::bind(::std::forward<Fn>(fn), ::std::forward<Args>(args)...));
         future_obj = task_obj->get_future();
         // 生成任务（仿函数）
@@ -396,7 +396,7 @@ public:
         if (count)
         {
             // 绑定函数
-            auto task_obj = ::std::make_shared<decltype(::std::bind(::std::forward<Fn>(fn), ::std::forward<Args>(args)...))>(
+            auto task_obj = ::std::make_unique<decltype(::std::bind(::std::forward<Fn>(fn), ::std::forward<Args>(args)...))>(
                 ::std::bind(::std::forward<Fn>(fn), ::std::forward<Args>(args)...));
             // 生成任务（仿函数）
             ::std::function<void()> bind_function(::std::bind(function_wapper(), ::std::move(task_obj)));
@@ -431,7 +431,7 @@ public:
             while (count--)
             {
                 // 绑定函数
-                auto task_obj = ::std::make_shared<::std::packaged_task<result_type()>>(
+                auto task_obj = ::std::make_unique<::std::packaged_task<result_type()>>(
                     ::std::bind(::std::forward<Fn>(fn), ::std::forward<Args>(args)...));
                 future_obj.push_back(task_obj->get_future());
                 // 生成任务（仿函数）
