@@ -46,7 +46,7 @@
 #endif  /* _CRT_APPEND */
 
 #ifdef _WIN32
-#  ifdef SYSTEM_EXPORT
+#  ifdef SYSCON_EXPORT
 #    define SYSCONAPI           __declspec(dllexport)
 #  else
 #    define SYSCONAPI           extern __declspec(dllimport)
