@@ -45,6 +45,17 @@
 #define _CRT_APPEND(_Value1, _Value2) __CRT_APPEND(_Value1, _Value2)
 #endif  /* _CRT_APPEND */
 
+#ifdef _WIN32
+#  ifdef SYSTEM_EXPORT
+#    define SYSCONAPI           __declspec(dllexport)
+#  else
+#    define SYSCONAPI           extern __declspec(dllimport)
+#  endif
+#endif
+#ifndef SYSCONAPI
+#  define SYSCONAPI             extern
+#endif
+
 
 #if defined(_WIN32) || defined(WIN32)
 struct timezone
@@ -138,9 +149,9 @@ struct function_wapper
 };
 
 
-extern ::std::mutex g_log_lock;
-extern ::std::ofstream g_log_ofstream;
-extern ::std::wofstream g_log_wofstream;
+SYSCONAPI ::std::mutex g_log_lock;
+SYSCONAPI ::std::ofstream g_log_ofstream;
+SYSCONAPI ::std::wofstream g_log_wofstream;
 
 template<class T, class Arg> inline void debug_put(::std::basic_ostream<char, T>& os, Arg&& arg)
 {

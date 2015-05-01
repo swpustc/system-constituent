@@ -8,10 +8,4 @@
 
 #include <mutex>
 #include <fstream>
-
-using namespace std;
-
-
-mutex g_log_lock;
-ofstream g_log_ofstream;
-wofstream g_log_wofstream;
+#include "common.h"
