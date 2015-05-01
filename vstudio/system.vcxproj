@@ -7,6 +7,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)src\common.cpp" />
+    <ClInclude Include="$(SolutionDir)src\version.h" />
     <ClInclude Include="$(SolutionDir)include\*" />
     <ResourceCompile Include="$(SolutionDir)src\system.rc" />
   </ItemGroup>
