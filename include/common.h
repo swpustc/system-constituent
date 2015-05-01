@@ -21,6 +21,8 @@
 #include <type_traits>
 
 #if defined(_WIN32) || defined(WIN32)
+#include <tchar.h>
+#include <crtdefs.h>
 #include <Windows.h>
 #else // Linux
 #include <unistd.h>
@@ -162,6 +164,13 @@ SYSCONAPI ::std::mutex g_log_lock;
 SYSCONAPI ::std::ofstream g_log_ofstream;
 SYSCONAPI ::std::wofstream g_log_wofstream;
 
+#ifdef _UNICODE
+#define _tclog ::std::wclog
+#else  /* _UNICODE */
+#define _tclog ::std::clog
+#endif  /* _UNICODE */
+
+
 template<class T, class Arg> inline void debug_put(::std::basic_ostream<char, T>& os, Arg&& arg)
 {
     ::std::stringstream ss;
@@ -187,19 +196,19 @@ template<class T, class Arg> inline void debug_put(::std::basic_ostream<wchar_t,
 inline void _debug_output()
 {
     auto now = ::std::chrono::system_clock::to_time_t(::std::chrono::system_clock::now());
-    debug_put(::std::wclog, L" [TID:");
-    debug_put(::std::wclog,
+    debug_put(_tclog, _T(" [TID:"));
+    debug_put(_tclog,
 #if defined(_WIN32) || defined(WIN32)
         ::GetCurrentThreadId()
 #else // Linux
         ::gettid()
 #endif // #if defined(_WIN32) || defined(WIN32)
         );
-    debug_put(::std::wclog, L"] ");
+    debug_put(_tclog, _T("] "));
 #ifdef _MSC_VER
 #pragma warning( push )
 #pragma warning( disable : 4996 )
-    debug_put(::std::clog, ::std::ctime(&now));
+    debug_put(_tclog, ::_tctime(&now));
 #pragma warning( pop )
 #else // _MSC_VER
     debug_put(::std::clog, ::std::ctime(&now));
@@ -208,7 +217,7 @@ inline void _debug_output()
 
 template<class T, class... Args> inline void _debug_output(T&& arg, Args&&... args)
 {
-    debug_put(::std::wclog, arg);
+    debug_put(_tclog, arg);
     _debug_output(::std::forward<Args>(args)...);
 }
 
@@ -303,13 +312,13 @@ template<class Elem> inline void set_log_location(const Elem* file_name)
     auto wrdbuf = g_log_wofstream.rdbuf();
     if (wrdbuf)
         ::std::wclog.rdbuf(wrdbuf);
-    debug_output<true>("Process Start: [PID:",
+    debug_output<true>(_T("Process Start: [PID:"),
 #if defined(_WIN32) || defined(WIN32)
         ::GetCurrentProcessId()
 #else // Linux
         ::getpid()
 #endif // #if defined(_WIN32) || defined(WIN32)
-        , ']');
+        , _T(']'));
 }
 
 // ¹Ø±ÕlogÊä³öÁ÷
