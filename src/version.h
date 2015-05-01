@@ -9,7 +9,7 @@
 #define FILE_VERSION_MAJOR  1
 #define FILE_VERSION_MINOR  0
 #define FILE_VERSION_POINT  0
-#define FILE_VERSION_POINT2 1
+#define FILE_VERSION_POINT2 2
 
 #define INTERAL_NAME        "system"
 #define EMAIL_ADDRESS       "swpustc@mail.ustc.edu.cn"
