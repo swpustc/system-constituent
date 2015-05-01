@@ -1,9 +1,9 @@
 ﻿/**********************************************************
- * STL算法扩展
- * 支持平台：Windows; Linux
- * 编译环境：VS2013+; g++ -std=c++11
- * 创建时间：2015-04-05 （宋万鹏）
- * 最后修改：2015-05-01 （宋万鹏）
+* STL算法扩展
+* 支持平台：Windows; Linux
+* 编译环境：VS2013+; g++ -std=c++11
+* 创建时间：2015-04-05 （宋万鹏）
+* 最后修改：2015-05-01 （宋万鹏）
 ***********************************************************/
 
 #pragma once
@@ -47,7 +47,7 @@
 
 #ifdef _WIN32
 #  ifdef SYSCON_EXPORT
-#    define SYSCONAPI           __declspec(dllexport)
+#    define SYSCONAPI           extern __declspec(dllexport)
 #  else
 #    define SYSCONAPI           extern __declspec(dllimport)
 #  endif
@@ -185,7 +185,7 @@ inline void _debug_output()
 #else // Linux
         ::gettid()
 #endif // #if defined(_WIN32) || defined(WIN32)
-    );
+        );
     debug_put(::std::wclog, L"] ");
 #ifdef _MSC_VER
 #pragma warning( push )
