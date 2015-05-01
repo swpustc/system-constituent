@@ -23,11 +23,6 @@
 #define _CRT_STRINGIZE(_Value) __CRT_STRINGIZE(_Value)
 #endif
 
-#ifndef _CRT_WIDE
-#define __CRT_WIDE(_String) L ## _String
-#define _CRT_WIDE(_String) __CRT_WIDE(_String)
-#endif  /* _CRT_WIDE */
-
 #ifndef _T
 #ifdef _UNICODE
 #define __TXT(x)    L ## x

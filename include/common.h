@@ -45,6 +45,15 @@
 #define _CRT_APPEND(_Value1, _Value2) __CRT_APPEND(_Value1, _Value2)
 #endif  /* _CRT_APPEND */
 
+#ifndef _T
+#ifdef _UNICODE
+#define __TXT(x)    L ## x
+#else  /* _UNICODE */
+#define __TXT(x)    x
+#endif  /* _UNICODE */
+#define _T(x)       __TXT(x)
+#endif  /* _T */
+
 #ifdef _WIN32
 #  ifdef SYSCON_EXPORT
 #    define SYSCONAPI           extern __declspec(dllexport)
@@ -283,7 +292,7 @@ void set_log_location(::std::basic_string<Elem, T, A> file_name)
     set_log_location(file_name.c_str());
 }
 
-// 设置std::clog和std::wclog的rdbuf
+// 设置log流的文件位置，程序结束时序调用close_log_stream
 template<class Elem> inline void set_log_location(const Elem* file_name)
 {
     g_log_ofstream.open(file_name, ::std::ios::app);
@@ -301,4 +310,13 @@ template<class Elem> inline void set_log_location(const Elem* file_name)
         ::getpid()
 #endif // #if defined(_WIN32) || defined(WIN32)
         , ']');
+}
+
+// 关闭log输出流
+inline void close_log_stream()
+{
+    ::std::clog.rdbuf(nullptr);
+    ::std::wclog.rdbuf(nullptr);
+    g_log_ofstream.close();
+    g_log_wofstream.close();
 }

@@ -63,9 +63,9 @@ private:
     // 线程入口函数
     size_t thread_entry(HANDLE exit_event)
     {
-        debug_output("Thread Start: [", this_type().name(), "](0x", this, ")");
+        debug_output(_T("Thread Start: ["), this_type().name(), _T("](0x"), this, _T(')'));
         size_t result = pre_run(exit_event);
-        debug_output("Thread Result: [", (void*)result, "] [", this_type().name(), "](0x", this, ")");
+        debug_output(_T("Thread Result: ["), (void*)result, _T("] ["), this_type().name(), _T("](0x"), this, _T(')'));
 #if _MSC_VER <= 1800 // Fix std::thread deadlock bug on VS2012,VS2013 (when call join on exit)
         ::ExitThread((DWORD)result);
 #endif // #if _MSC_VER <= 1800
@@ -84,7 +84,7 @@ private:
                 }
                 catch (::std::function<void()>& function_object)
                 {
-                    debug_output<true>(__FILE__, '(', __LINE__, "): ", function_object.target_type().name());
+                    debug_output<true>(_T(__FILE__), _T('('), __LINE__, _T("): "), function_object.target_type().name());
                     m_exception_tasks.push_back(::std::move(function_object));
                 }
             }
@@ -466,7 +466,7 @@ public:
         ::std::async([](decltype(detach_threadpool) pClass){
             delete pClass;
             size_t result = success_code + 0xff;
-            debug_output("Thread Result: ", result, "(0x", (void*)result, ')');
+            debug_output(_T("Thread Result: "), result, _T("(0x"), (void*)result, _T(')'));
             return result;
         }, detach_threadpool);
         return true;
@@ -526,7 +526,7 @@ public:
     // 初始化线程池，设置处理线程数，已初始化则失败
     bool set_thread_number(int thread_number)
     {
-        assert(thread_number >= 0 && thread_number < 255); // "Thread number must greater than or equal 0 and less than 255"
+        assert(thread_number >= 0 && thread_number < 255); // Thread number must greater than or equal 0 and less than 255
         switch (m_exit_event.load())
         {
         case exit_event_t::INITIALIZATION: // 未初始化的线程池
@@ -545,7 +545,7 @@ public:
     // 设置新的处理线程数，退出流程和未初始化的线程池则失败
     bool set_new_thread_number(int thread_number_new)
     {
-        assert(thread_number_new >= 0 && thread_number_new < 255); // "Thread number must greater than or equal 0 and less than 255"
+        assert(thread_number_new >= 0 && thread_number_new < 255); // Thread number must greater than or equal 0 and less than 255
         switch (m_exit_event.load())
         {
         case exit_event_t::INITIALIZATION: // 未初始化的线程池将失败
