@@ -8,8 +8,8 @@
 
 #define FILE_VERSION_MAJOR  1
 #define FILE_VERSION_MINOR  0
-#define FILE_VERSION_POINT  0
-#define FILE_VERSION_POINT2 2
+#define FILE_VERSION_POINT  1
+#define FILE_VERSION_POINT2 0
 
 #define INTERAL_NAME        _T("system")
 #define PRODUCT_NAME        _T("System Constituent")
