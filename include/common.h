@@ -1,9 +1,9 @@
-ï»¿/**********************************************************
-* STLç®—æ³•æ‰©å±•
-* æ”¯æŒå¹³å°ï¼šWindows; Linux
-* ç¼–è¯‘ç¯å¢ƒï¼šVS2013+; g++ -std=c++11
-* åˆ›å»ºæ—¶é—´ï¼š2015-04-05 ï¼ˆå®‹ä¸‡é¹ï¼‰
-* æœ€åä¿®æ”¹ï¼š2015-05-01 ï¼ˆå®‹ä¸‡é¹ï¼‰
+/**********************************************************
+* STLËã·¨À©Õ¹
+* Ö§³ÖÆ½Ì¨£ºWindows; Linux
+* ±àÒë»·¾³£ºVS2013+; g++ -std=c++11
+* ´´½¨Ê±¼ä£º2015-04-05 £¨ËÎÍòÅô£©
+* ×îºóĞŞ¸Ä£º2015-05-01 £¨ËÎÍòÅô£©
 ***********************************************************/
 
 #pragma once
@@ -252,7 +252,7 @@ template<class T, class A, class... Args> inline void _debug_output(const ::std:
 }
 
 #if defined(_DEBUG) || defined(DEBUG)
-// Debugä¸‹ï¼Œæ— è®ºoutputä¸ºä½•å€¼æ€»æ˜¯è¾“å‡ºã€‚Releaseä¸‹ï¼Œoutputä¸ºtrueæ—¶è¾“å‡º
+// DebugÏÂ£¬ÎŞÂÛoutputÎªºÎÖµ×ÜÊÇÊä³ö¡£ReleaseÏÂ£¬outputÎªtrueÊ±Êä³ö
 template<bool output = false, class... Args> inline void debug_output(Args&&... args)
 {
     ::std::lock_guard<::std::mutex> lck(g_log_lock);
@@ -260,7 +260,7 @@ template<bool output = false, class... Args> inline void debug_output(Args&&... 
 }
 
 #else // NDEBUG
-// Debugä¸‹ï¼Œæ— è®ºoutputä¸ºä½•å€¼æ€»æ˜¯è¾“å‡ºã€‚Releaseä¸‹ï¼Œoutputä¸ºtrueæ—¶è¾“å‡ºã€‚ä¸è¾“å‡ºä½¿ç”¨debug_output(...)
+// DebugÏÂ£¬ÎŞÂÛoutputÎªºÎÖµ×ÜÊÇÊä³ö¡£ReleaseÏÂ£¬outputÎªtrueÊ±Êä³ö¡£²»Êä³öÊ¹ÓÃdebug_output(...)
 template<bool output = false, class... Args> inline void debug_output(Args&&... args)
 {
     if (output)
@@ -270,20 +270,20 @@ template<bool output = false, class... Args> inline void debug_output(Args&&... 
     }
 }
 
-// Debugä¸‹ï¼Œæ— è®ºoutputä¸ºä½•å€¼æ€»æ˜¯è¾“å‡ºã€‚Releaseä¸‹ï¼Œé»˜è®¤ä¸è¾“å‡ºã€‚è¾“å‡ºä½¿ç”¨debug_output<true>(...)
+// DebugÏÂ£¬ÎŞÂÛoutputÎªºÎÖµ×ÜÊÇÊä³ö¡£ReleaseÏÂ£¬Ä¬ÈÏ²»Êä³ö¡£Êä³öÊ¹ÓÃdebug_output<true>(...)
 #define debug_output(...)   void()
 
 #endif //#if defined(_DEBUG) || defined(DEBUG)
 
 
-// è®¾ç½®std::clogå’Œstd::wclogçš„rdbuf
+// ÉèÖÃstd::clogºÍstd::wclogµÄrdbuf
 template<class Elem, class T = ::std::char_traits<Elem>, class A = ::std::allocator<Elem>> inline
 void set_log_location(::std::basic_string<Elem, T, A> file_name)
 {
     set_log_location(file_name.c_str());
 }
 
-// è®¾ç½®std::clogå’Œstd::wclogçš„rdbuf
+// ÉèÖÃstd::clogºÍstd::wclogµÄrdbuf
 template<class Elem> inline void set_log_location(const Elem* file_name)
 {
     g_log_ofstream.open(file_name, ::std::ios::app);

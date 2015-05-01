@@ -1,9 +1,9 @@
-ï»¿/**********************************************************
-* ç‰ˆæœ¬å·å¤´æ–‡ä»¶
-* æ”¯æŒå¹³å°ï¼šWindows; Linux
-* ç¼–è¯‘ç¯å¢ƒï¼šVS2013+; g++ -std=c++11
-* åˆ›å»ºæ—¶é—´ï¼š2015-04-05 ï¼ˆå®‹ä¸‡é¹ï¼‰
-* æœ€åä¿®æ”¹ï¼š2015-05-01 ï¼ˆå®‹ä¸‡é¹ï¼‰
+/**********************************************************
+* °æ±¾ºÅÍ·ÎÄ¼ş
+* Ö§³ÖÆ½Ì¨£ºWindows; Linux
+* ±àÒë»·¾³£ºVS2013+; g++ -std=c++11
+* ´´½¨Ê±¼ä£º2015-04-05 £¨ËÎÍòÅô£©
+* ×îºóĞŞ¸Ä£º2015-05-01 £¨ËÎÍòÅô£©
 ***********************************************************/
 
 #define FILE_VERSION_MAJOR  1
@@ -11,12 +11,30 @@
 #define FILE_VERSION_POINT  0
 #define FILE_VERSION_POINT2 2
 
-#define INTERAL_NAME        "system"
-#define EMAIL_ADDRESS       "swpustc@mail.ustc.edu.cn"
-#define LEGAL_COPYRIGHT     "Copyright (C) 2015-2015 Chixiao Tech."
+#define INTERAL_NAME        _T("system")
+#define PRODUCT_NAME        _T("System Constituent")
+#define SUPPORT_AUTHOR      _T("ËÎÍòÅô")
+#define EMAIL_ADDRESS       _T("swpustc@mail.ustc.edu.cn")
+#define COMPANY_NAME        _T("º¼Öİ³àÏö¿Æ¼¼ÓĞÏŞ¹«Ë¾")
+#define LEGAL_COPYRIGHT     _T("Copyright (C) 2015-2015 ") COMPANY_NAME
 
 #ifndef _CRT_STRINGIZE
 #define __CRT_STRINGIZE(_Value) #_Value
 #define _CRT_STRINGIZE(_Value) __CRT_STRINGIZE(_Value)
 #endif
-#define FILE_VERSION        _CRT_STRINGIZE(FILE_VERSION_MAJOR) "." _CRT_STRINGIZE(FILE_VERSION_MINOR) "." _CRT_STRINGIZE(FILE_VERSION_POINT) "." _CRT_STRINGIZE(FILE_VERSION_POINT2)
+
+#ifndef _CRT_WIDE
+#define __CRT_WIDE(_String) L ## _String
+#define _CRT_WIDE(_String) __CRT_WIDE(_String)
+#endif  /* _CRT_WIDE */
+
+#ifndef _T
+#ifdef _UNICODE
+#define __TXT(x)    L ## x
+#else  /* _UNICODE */
+#define __TXT(x)    x
+#endif  /* _UNICODE */
+#define _T(x)       __TXT(x)
+#endif  /* _T */
+
+#define FILE_VERSION        _T(_CRT_STRINGIZE(FILE_VERSION_MAJOR)) _T(".") _T(_CRT_STRINGIZE(FILE_VERSION_MINOR)) _T(".") _T(_CRT_STRINGIZE(FILE_VERSION_POINT)) _T(".") _T(_CRT_STRINGIZE(FILE_VERSION_POINT2))

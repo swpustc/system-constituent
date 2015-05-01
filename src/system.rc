@@ -1,40 +1,48 @@
-Ôªø/**********************************************************
-* ËµÑÊ∫êÊñá‰ª∂
-* ÊîØÊåÅÂπ≥Âè∞ÔºöWindows
-* ÁºñËØëÁéØÂ¢ÉÔºöVS2013+
-* ÂàõÂª∫Êó∂Èó¥Ôºö2015-04-25 ÔºàÂÆã‰∏áÈπèÔºâ
-* ÊúÄÂêé‰øÆÊîπÔºö2015-05-01 ÔºàÂÆã‰∏áÈπèÔºâ
+/**********************************************************
+* ◊ ‘¥Œƒº˛
+* ÷ß≥÷∆ΩÃ®£∫Windows
+* ±‡“Îª∑æ≥£∫VS2013+
+* ¥¥Ω® ±º‰£∫2015-04-25 £®ÀŒÕÚ≈Ù£©
+* ◊Ó∫Û–ﬁ∏ƒ£∫2015-05-01 £®ÀŒÕÚ≈Ù£©
 ***********************************************************/
 
 #include <Windows.h>
 #include "version.h"
 
-#define IDR_VERSION1  1
-IDR_VERSION1        VERSIONINFO MOVEABLE IMPURE LOADONCALL DISCARDABLE
-  FILEVERSION       FILE_VERSION_MAJOR,FILE_VERSION_MINOR,FILE_VERSION_POINT,FILE_VERSION_POINT2
-  PRODUCTVERSION    FILE_VERSION_MAJOR,FILE_VERSION_MINOR,FILE_VERSION_POINT,FILE_VERSION_POINT2
-  FILEFLAGSMASK     VS_FFI_FILEFLAGSMASK
-  FILEFLAGS         0
-  FILEOS            VOS_NT_WINDOWS32
-  FILETYPE          VFT_APP
-  FILESUBTYPE       0 // not used
+LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
+
+#define IDR_VERSION  1
+
+IDR_VERSION VERSIONINFO
+    FILEVERSION    FILE_VERSION_MAJOR,FILE_VERSION_MINOR,FILE_VERSION_POINT,FILE_VERSION_POINT2
+    PRODUCTVERSION FILE_VERSION_MAJOR,FILE_VERSION_MINOR,FILE_VERSION_POINT,FILE_VERSION_POINT2
+    FILEFLAGSMASK  VS_FFI_FILEFLAGSMASK
+#ifdef _DEBUG
+    FILEFLAGS      0x1L
+#else
+    FILEFLAGS      0x0L
+#endif
+    FILEOS         VOS_NT_WINDOWS32
+    FILETYPE       VFT_DLL
+    FILESUBTYPE    0x0L
 BEGIN
-  BLOCK "StringFileInfo"
-  BEGIN
-    BLOCK "040904E4"
+    BLOCK "StringFileInfo"
     BEGIN
-      VALUE "FileDescription",  "System Constituent for Chixiao Tech."
-      VALUE "FileVersion",      FILE_VERSION
-      VALUE "ProductVersion",   FILE_VERSION
-      VALUE "InternalName",     INTERAL_NAME
-      VALUE "OriginalFilename", INTERAL_NAME ".dll"
-      VALUE "ProductName",      "System Constituent"
-      VALUE "Comments",         "DLL support by Wanpeng Song <" EMAIL_ADDRESS "> & Chixiao Tech."
-      VALUE "LegalCopyright",   LEGAL_COPYRIGHT "\0"
+        BLOCK "080404e4"
+        BEGIN
+            VALUE "Comments",         _T("DLL support by ") SUPPORT_AUTHOR _T("<") EMAIL_ADDRESS _T("> & ") COMPANY_NAME _T(".")
+            VALUE "CompanyName",      COMPANY_NAME
+            VALUE "FileDescription",  PRODUCT_NAME _T("by ") COMPANY_NAME _T(".")
+            VALUE "FileVersion",      FILE_VERSION
+            VALUE "InternalName",     INTERAL_NAME
+            VALUE "LegalCopyright",   LEGAL_COPYRIGHT
+            VALUE "OriginalFilename", INTERAL_NAME _T(".dll")
+            VALUE "ProductName",      PRODUCT_NAME
+            VALUE "ProductVersion",   FILE_VERSION
+        END
     END
-  END
-  BLOCK "VarFileInfo"
-  BEGIN
-    VALUE "Translation", 0x0409, 1252
-  END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x804, 1252
+    END
 END

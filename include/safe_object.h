@@ -1,9 +1,9 @@
-ï»¿/**********************************************************
-* å®‰å…¨çš„å¥æŸ„ã€å¯¹è±¡æ“ä½œå°è£…
-* æ”¯æŒå¹³å°ï¼šWindows
-* ç¼–è¯‘ç¯å¢ƒï¼šVS2010+
-* åˆ›å»ºæ—¶é—´ï¼š2015-04-05 ï¼ˆå®‹ä¸‡é¹ï¼‰
-* æœ€åä¿®æ”¹ï¼š2015-04-16 ï¼ˆå®‹ä¸‡é¹ï¼‰
+/**********************************************************
+* °²È«µÄ¾ä±ú¡¢¶ÔÏó²Ù×÷·â×°
+* Ö§³ÖÆ½Ì¨£ºWindows
+* ±àÒë»·¾³£ºVS2010+
+* ´´½¨Ê±¼ä£º2015-04-05 £¨ËÎÍòÅô£©
+* ×îºóĞŞ¸Ä£º2015-05-01 £¨ËÎÍòÅô£©
 ***********************************************************/
 
 #pragma once
@@ -27,27 +27,27 @@ private:
     }
 
 public:
-    // é»˜è®¤æ„é€ å‡½æ•°
+    // Ä¬ÈÏ¹¹Ôìº¯Êı
     SAFE_HANDLE_OBJECT() : m_handle(INVALID_HANDLE_VALUE)
     {
     }
-    // é»˜è®¤ææ„å‡½æ•°
+    // Ä¬ÈÏÎö¹¹º¯Êı
     ~SAFE_HANDLE_OBJECT()
     {
         close_handle();
     }
 
-    // å¤åˆ¶æ„é€ å‡½æ•°
+    // ¸´ÖÆ¹¹Ôìº¯Êı
     SAFE_HANDLE_OBJECT(const SAFE_HANDLE_OBJECT&) = delete;
-    // å¤åˆ¶èµ‹å€¼è¯­å¥
+    // ¸´ÖÆ¸³ÖµÓï¾ä
     SAFE_HANDLE_OBJECT& operator=(const SAFE_HANDLE_OBJECT&) = delete;
 
-    // ç§»åŠ¨æ„é€ å‡½æ•°
+    // ÒÆ¶¯¹¹Ôìº¯Êı
     SAFE_HANDLE_OBJECT(SAFE_HANDLE_OBJECT&& other) : m_handle(other.m_handle)
     {
         other.m_handle = INVALID_HANDLE_VALUE;
     }
-    // ç§»åŠ¨èµ‹å€¼è¯­å¥
+    // ÒÆ¶¯¸³ÖµÓï¾ä
     SAFE_HANDLE_OBJECT& operator=(SAFE_HANDLE_OBJECT&& other)
     {
         ::std::swap(m_handle, other.m_handle);
@@ -58,7 +58,7 @@ public:
     {
     }
 
-    // å…³é—­å¥æŸ„å¹¶æ·»åŠ æ–°å¥æŸ„
+    // ¹Ø±Õ¾ä±ú²¢Ìí¼ÓĞÂ¾ä±ú
     SAFE_HANDLE_OBJECT& operator=(HANDLE handle)
     {
         attach(handle);
@@ -70,7 +70,7 @@ public:
         m_handle = handle;
     }
 
-    // åˆ†ç¦»å¥æŸ„
+    // ·ÖÀë¾ä±ú
     HANDLE detach()
     {
         HANDLE detach_handle = m_handle;
@@ -78,7 +78,7 @@ public:
         return detach_handle;
     }
 
-    // è·å–å¥æŸ„
+    // »ñÈ¡¾ä±ú
     operator HANDLE() const
     {
         return get_safe_handle();

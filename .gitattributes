@@ -30,3 +30,12 @@
 *.key    text eol=lf
 *.pem    text eol=lf
 *.sln    text eol=crlf
+
+*.asm    encoding=GBK
+*.c      encoding=GBK
+*.cc     encoding=GBK
+*.cpp    encoding=GBK
+*.h      encoding=GBK
+*.hpp    encoding=GBK
+*.rc     encoding=GBK
+*.rc2    encoding=GBK
