@@ -13,9 +13,11 @@
 #include <chrono>
 #include <cstdio>
 #include <memory>
+#include <codecvt>
 #include <cstdint>
 #include <fstream>
 #include <sstream>
+#include <cassert>
 #include <iostream>
 #include <algorithm>
 #include <type_traits>
@@ -161,15 +163,118 @@ struct function_wapper
 
 
 SYSCONAPI ::std::mutex g_log_lock;
-SYSCONAPI ::std::unique_ptr<::std::ofstream> g_log_ofstream;
-SYSCONAPI ::std::unique_ptr<::std::wofstream> g_log_wofstream;
+SYSCONAPI ::std::ofstream g_log_ofstream;
 
-
-#ifdef _UNICODE
-#define _tclog          ::std::wclog
-#else  /* _UNICODE */
-#define _tclog          ::std::clog
-#endif  /* _UNICODE */
+#ifdef _MSC_VER
+template<uint32_t codepage = CP_ACP, class Elem = wchar_t, class Walloc = ::std::allocator<Elem>, class Balloc = ::std::allocator<char>>
+class convert_cp_unicode_t
+{
+    typedef ::std::basic_string<char, ::std::char_traits<char>, Balloc> byte_string;
+    typedef ::std::basic_string<Elem, ::std::char_traits<Elem>, Walloc> wide_string;
+    typedef ::mbstate_t state_type;
+    void init()
+    {
+        static_assert(sizeof(wchar_t) == sizeof(Elem), "sizeof Elem must be 2");
+        static state_type State0 = '?';
+        State = State0;
+        nconv = 0;
+    }
+public:
+    convert_cp_unicode_t()
+        : has_berr(false), has_werr(false), has_state(false)
+    {
+        init();
+    }
+    convert_cp_unicode_t(state_type State_arg)
+        : has_berr(false), has_werr(false), has_state(true)
+    {
+        init();
+        State = State_arg;
+    }
+    convert_cp_unicode_t(const byte_string& berr_arg)
+        : has_berr(true), has_werr(false), has_state(false), berr(berr_arg)
+    {
+        init();
+    }
+    convert_cp_unicode_t(const byte_string& berr_arg, const wide_string& werr_arg)
+        : has_berr(true), has_werr(false), has_state(false), berr(berr_arg), werr(werr_arg)
+    {
+        init();
+    }
+    ~convert_cp_unicode_t(){}
+    size_t converted() const
+    {
+        return nconv;
+    }
+    state_type state() const
+    {
+        return State;
+    }
+    wide_string from_bytes(char _Byte)
+    {
+        return from_bytes(&_Byte, &_Byte + 1);
+    }
+    wide_string from_bytes(const char *ptr)
+    {
+        return from_bytes(ptr, ptr + strlen(ptr));
+    }
+    wide_string from_bytes(const byte_string& bstr)
+    {
+        const char *ptr = bstr.c_str();
+        return from_bytes(ptr, ptr + bstr.size());
+    }
+    wide_string from_bytes(const char *first, const char *last)
+    {
+        size_t length = (size_t)::MultiByteToWideChar(codepage, 0, first, (int)(last - first), nullptr, 0);
+        wide_string wstr;
+        wstr.resize(length);
+        size_t result = (size_t)::MultiByteToWideChar(codepage, 0, first, (int)(last - first), (LPWSTR)const_cast<Elem*>(wstr.c_str()), length + 1);
+        assert(length == result);
+        nconv += result;
+        return ::std::move(wstr);
+    }
+    byte_string to_bytes(Elem _Char)
+    {
+        return to_bytes(&_Char, &_Char + 1);
+    }
+    byte_string to_bytes(const Elem *wptr)
+    {
+        const Elem *next = wptr;
+        for (; *next++;);
+        return to_bytes(wptr, next);
+    }
+    byte_string to_bytes(const wide_string& wstr)
+    {
+        const Elem *wptr = wstr.c_str();
+        return to_bytes(wptr, wptr + wstr.size());
+    }
+    byte_string to_bytes(const Elem *first, const Elem *last)
+    {
+        size_t length = (size_t)::WideCharToMultiByte(codepage, 0, (LPCWCH)first, (int)(last - first), nullptr, 0, (LPCCH)&State, nullptr);
+        byte_string str;
+        str.resize(length);
+        size_t result = (size_t)::WideCharToMultiByte(codepage, 0, (LPCWCH)first, (int)(last - first), const_cast<char*>(str.c_str()), 0, (LPCCH)&State, nullptr);
+        assert(length == result);
+        nconv += result;
+        return ::std::move(str);
+    }
+    convert_cp_unicode_t(const convert_cp_unicode_t&) = delete;
+    convert_cp_unicode_t& operator=(const convert_cp_unicode_t&) = delete;
+private:
+    byte_string berr;
+    wide_string werr;
+    state_type State;  // the remembered State
+    bool has_state;
+    bool has_berr;
+    bool has_werr;
+    size_t nconv;
+};
+SYSCONAPI convert_cp_unicode_t<CP_UTF8, wchar_t> convert_utf8_unicode;
+SYSCONAPI convert_cp_unicode_t<CP_ACP, wchar_t> convert_ansi_unicode;
+#else  /* _MSC_VER */
+SYSCONAPI ::std::wstring_convert<::std::codecvt_utf8<wchar_t>, wchar_t> convert_utf8_unicode;
+#define convert_ansi_unicode convert_utf8_unicode
+#endif  /* _MSC_VER */
 
 
 template<class T, class Arg> inline void debug_put(::std::basic_ostream<char, T>& os, Arg&& arg)
@@ -177,6 +282,7 @@ template<class T, class Arg> inline void debug_put(::std::basic_ostream<char, T>
     ::std::stringstream ss;
     ss << ::std::forward<Arg>(arg);
     auto&& str = ss.str();
+    convert_utf8_unicode.from_bytes(str);
     os << str;
     os.flush();
 #if defined(_DEBUG) || defined(DEBUG)

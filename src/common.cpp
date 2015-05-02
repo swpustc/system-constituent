@@ -12,29 +12,11 @@ using namespace std;
 
 // ÂØºÂá∫ÁöÑÂèòÈáè
 mutex g_log_lock;
-unique_ptr<ofstream> g_log_ofstream;
-unique_ptr<wofstream> g_log_wofstream;
+ofstream g_log_ofstream;
 
-// æ≤Ã¨±‰¡ø
-static streambuf* m_clog_rdbuf;
-static wstreambuf* m_wclog_rdbuf;
-
-struct log_stream_manager_t
-{
-    log_stream_manager_t()
-    {
-        m_clog_rdbuf = clog.rdbuf();
-        m_wclog_rdbuf = wclog.rdbuf();
-        g_log_ofstream = make_unique<ofstream>();
-        g_log_wofstream = make_unique<wofstream>();
-    }
-    ~log_stream_manager_t()
-    {
-        clog.rdbuf(m_clog_rdbuf);
-        wclog.rdbuf(m_wclog_rdbuf);
-#if _MSC_VER <= 1800
-        g_log_ofstream.release();
-        g_log_wofstream.release();
-#endif /* _MSC_VER <= 1800 */
-    }
-} m_log_stream_manager;
+#ifdef _MSC_VER
+convert_cp_unicode_t<CP_UTF8, wchar_t> convert_utf8_unicode("bad conversion to utf8", L"bad conversion from utf8");
+convert_cp_unicode_t<CP_ACP, wchar_t> convert_ansi_unicode("bad conversion to ansi", L"bad conversion from ansi");
+#else  /* _MSC_VER */
+wstring_convert<codecvt_utf8<wchar_t>, wchar_t> convert_utf8_unicode("bad conversion to utf8", L"bad conversion from utf8");
+#endif  /* _MSC_VER */
