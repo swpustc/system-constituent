@@ -14,7 +14,7 @@ public:
     static const size_t success_code = 0x00001000;
 
     threadpool();
-    threadpool(int _thread_number);
+    threadpool(int thread_number);
     ~threadpool();
     threadpool(const threadpool&) = delete;
     threadpool& operator=(const threadpool&) = delete;
