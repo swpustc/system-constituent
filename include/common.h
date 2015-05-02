@@ -212,50 +212,60 @@ public:
     }
     wide_string from_bytes(char _Byte)
     {
-        return from_bytes(&_Byte, &_Byte + 1);
+        return ::std::move(from_bytes(&_Byte, &_Byte + 1));
     }
     wide_string from_bytes(const char *ptr)
     {
-        return from_bytes(ptr, ptr + strlen(ptr));
+        return ::std::move(from_bytes(ptr, ptr + ::strlen(ptr)));
     }
     wide_string from_bytes(const byte_string& bstr)
     {
         const char *ptr = bstr.c_str();
-        return from_bytes(ptr, ptr + bstr.size());
+        return ::std::move(from_bytes(ptr, ptr + bstr.size()));
     }
     wide_string from_bytes(const char *first, const char *last)
     {
-        size_t length = (size_t)::MultiByteToWideChar(codepage, 0, first, (int)(last - first), nullptr, 0);
+        size_t length, result;
+        length = (size_t)::MultiByteToWideChar(codepage, 0, first, (int)(last - first), nullptr, 0);
         wide_string wstr;
         wstr.resize(length);
-        size_t result = (size_t)::MultiByteToWideChar(codepage, 0, first, (int)(last - first), (LPWSTR)const_cast<Elem*>(wstr.c_str()), (int)(length + 1));
-        assert(length == result);
-        nconv = result;
+        result = (size_t)::MultiByteToWideChar(codepage, 0, first, (int)(last - first), (LPWSTR)const_cast<Elem*>(wstr.c_str()), (int)(length + 1));
+        const Elem *wptr = wstr.c_str(), *next = wptr;
+        for (; *next++;);
+        wstr.resize(nconv = next - wptr - 1);
+        assert(length >= nconv);
         return ::std::move(wstr);
     }
     byte_string to_bytes(Elem _Char)
     {
-        return to_bytes(&_Char, &_Char + 1);
+        return ::std::move(to_bytes(&_Char, &_Char + 1));
     }
     byte_string to_bytes(const Elem *wptr)
     {
         const Elem *next = wptr;
         for (; *next++;);
-        return to_bytes(wptr, next);
+        return ::std::move(to_bytes(wptr, next));
     }
     byte_string to_bytes(const wide_string& wstr)
     {
         const Elem *wptr = wstr.c_str();
-        return to_bytes(wptr, wptr + wstr.size());
+        return ::std::move(to_bytes(wptr, wptr + wstr.size()));
     }
     byte_string to_bytes(const Elem *first, const Elem *last)
     {
-        size_t length = (size_t)::WideCharToMultiByte(codepage, 0, (LPCWCH)first, (int)(last - first), nullptr, 0, (LPCCH)&State, nullptr);
+        size_t length, result;
+        if (codepage == CP_UTF7 || codepage == CP_UTF8)
+            length = (size_t)::WideCharToMultiByte(codepage, 0, (LPCWCH)first, (int)(last - first) * sizeof(Elem), nullptr, 0, nullptr, nullptr);
+        else
+            length = (size_t)::WideCharToMultiByte(codepage, 0, (LPCWCH)first, (int)(last - first) * sizeof(Elem), nullptr, 0, (LPCCH)&State, nullptr);
         byte_string str;
         str.resize(length);
-        size_t result = (size_t)::WideCharToMultiByte(codepage, 0, (LPCWCH)first, (int)(last - first), const_cast<char*>(str.c_str()), (int)(length + 1), (LPCCH)&State, nullptr);
-        assert(length == result);
-        nconv = result;
+        if (codepage == CP_UTF7 || codepage == CP_UTF8)
+            result = (size_t)::WideCharToMultiByte(codepage, 0, (LPCWCH)first, (int)(last - first) * sizeof(Elem), const_cast<char*>(str.c_str()), (int)(length + 1), nullptr, nullptr);
+        else
+            result = (size_t)::WideCharToMultiByte(codepage, 0, (LPCWCH)first, (int)(last - first) * sizeof(Elem), const_cast<char*>(str.c_str()), (int)(length + 1), (LPCCH)&State, nullptr);
+        str.resize(nconv = ::strlen(str.c_str()));
+        assert(length >= nconv);
         return ::std::move(str);
     }
     convert_cp_unicode_t(const convert_cp_unicode_t&) = delete;
@@ -426,7 +436,7 @@ void set_log_location(::std::basic_string<Elem, T, A> file_name)
 // 设置log流的文件位置
 template<class Elem> inline void set_log_location(const Elem* file_name)
 {
-    g_log_ofstream.open(file_name, ::std::ios::app | ::std::ios::ate | ::std::ios::binary);
+    g_log_ofstream.open(file_name, ::std::ios::app | ::std::ios::ate);
     debug_output<true>(_T("Process Start: [PID:"),
 #if defined(_WIN32) || defined(WIN32)
         ::GetCurrentProcessId()
