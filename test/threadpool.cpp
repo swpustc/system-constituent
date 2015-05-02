@@ -1,9 +1,9 @@
-/**********************************************************
-* ²âÊÔÏß³Ì³Ø threadpool<>
-* Ö§³ÖÆ½Ì¨£ºWindows
-* ±àÒë»·¾³£ºVS2013+
-* ´´½¨Ê±¼ä£º2015-05-02 £¨ËÎÍòÅô£©
-* ×îºóĞŞ¸Ä£º2015-05-02 £¨ËÎÍòÅô£©
+ï»¿/**********************************************************
+* æµ‹è¯•çº¿ç¨‹æ±  threadpool<>
+* æ”¯æŒå¹³å°ï¼šWindows
+* ç¼–è¯‘ç¯å¢ƒï¼šVS2013+
+* åˆ›å»ºæ—¶é—´ï¼š2015-05-02 ï¼ˆå®‹ä¸‡é¹ï¼‰
+* æœ€åä¿®æ”¹ï¼š2015-05-02 ï¼ˆå®‹ä¸‡é¹ï¼‰
 ***********************************************************/
 
 // threadpool<> example
@@ -25,42 +25,42 @@ void foo(int length, char c, size_t ms)
 
 int main()
 {
-    set_log_location("threadpool.log"); // ÉèÖÃÈÕÖ¾ÎÄ¼ş´æ´¢Â·¾¶Îªµ±Ç°Ä¿Â¼
+    set_log_location("threadpool.log"); // è®¾ç½®æ—¥å¿—æ–‡ä»¶å­˜å‚¨è·¯å¾„ä¸ºå½“å‰ç›®å½•
 
-    threadpool<> thpool1; // Î´³õÊ¼»¯µÄÏß³Ì³Ø
-    threadpool<> thpool2(4); // ´´½¨Í¬Ê±³õÊ¼»¯Ïß³Ì³Ø
+    threadpool<> thpool1; // æœªåˆå§‹åŒ–çš„çº¿ç¨‹æ± 
+    threadpool<> thpool2(4); // åˆ›å»ºåŒæ—¶åˆå§‹åŒ–çº¿ç¨‹æ± 
 
     char c = 'a';
     for (int i = 0; i < 16; i++)
         thpool2.push(foo, 3 + i % 3, c++, (size_t)100 + i); // spawn thread that calls foo(3+i%3, c++, 100+i)
 
-    // ¹¦ÄÜĞÔ²âÊÔ
+    // åŠŸèƒ½æ€§æµ‹è¯•
     thpool2.push(foo, 1, '1', 300); // push
     auto fut1 = thpool2.push_future(foo, 1, '2', 300); // push_future
     thpool2.push_multi(2, foo, 1, '3', 300); // push_multi
     auto fut2 = thpool2.push_multi_future(2, foo, 1, '4', 300); // push_multi_future
     timeval begin, end;
-    gettimeofday(&begin, nullptr); // »ñÈ¡Æô¶¯Ê±¼ä
+    gettimeofday(&begin, nullptr); // è·å–å¯åŠ¨æ—¶é—´
     if (fut1.second)
         fut1.first.get();
     if (fut2.second)
         for (auto& fut : fut2.first)
             fut.get();
-    gettimeofday(&end, nullptr); // »ñÈ¡½áÊøÊ±¼ä
+    gettimeofday(&end, nullptr); // è·å–ç»“æŸæ—¶é—´
 
     auto us = end.tv_sec * 1000000ll + end.tv_usec - begin.tv_sec * 1000000ll + begin.tv_usec;
-    debug_output(_T("futÍê³ÉÊ±¼ä£º"), us / 1000000ll, _T('s'), us % 1000000ll, _T("us"));
+    debug_output<true>(_T("futå®Œæˆæ—¶é—´ï¼š"), us / 1000000ll, _T('s'), us % 1000000ll, _T("us"));
 
-    thpool2.push([](char c, size_t ms){foo(1, c, ms); }, '5', 300); // ²âÊÔlambda
-    thpool2.push(bind(foo, 1, '6', 300)); // ²âÊÔbind
-    thpool2.push(bind(foo, _1, _2, 300), 1, '7'); // ²âÊÔbind+placeholders
+    thpool2.push([](char c, size_t ms){foo(1, c, ms); }, '5', 300); // æµ‹è¯•lambda
+    thpool2.push(bind(foo, 1, '6', 300)); // æµ‹è¯•bind
+    thpool2.push(bind(foo, _1, _2, 300), 1, '7'); // æµ‹è¯•bind+placeholders
     auto&& bind_obj = bind(foo, 1, _1, 300);
-    thpool2.push(ref(bind_obj), '8'); // ²âÊÔfunction_wrapper
+    thpool2.push(ref(bind_obj), '8'); // æµ‹è¯•function_wrapper
 
     c = 'A';
     for (int i = 0; i < 32; i++)
         thpool1.push(foo, 3 + i % 3, c++, (size_t)100 + i); // spawn thread that calls foo(3+i%3, c++, 100+i)
-    thpool1.set_thread_number(2); // ÉèÖÃÏß³ÌÊıÒÔ³õÊ¼»¯Ïß³Ì
+    thpool1.set_thread_number(2); // è®¾ç½®çº¿ç¨‹æ•°ä»¥åˆå§‹åŒ–çº¿ç¨‹
 
     thpool1.pause();
 
@@ -70,7 +70,7 @@ int main()
     auto&& tasks_completed_number = thpool1.get_tasks_completed_number();
     auto&& tasks_total_number = thpool1.get_tasks_total_number();
     auto&& default_thread_number = thpool1.get_default_thread_number();
-    auto&& threadpool1_type = thpool1.this_type();
+    auto&& threadpool_type = thpool1.this_type();
     thpool1.set_new_thread_number(thread_number + thread_number);
     auto&& new_thread_number = thpool1.get_thread_number();
 
@@ -79,7 +79,13 @@ int main()
     thpool1.start();
 
     thpool1.detach(4);
-    // Í¬²½Ïß³Ì³Ø·ÖÀëµÄÈÎÎñ
+
+    debug_output<true>(_T("thread_number:"), thread_number, _T("\nfree_thread_number"), free_thread_number,
+        _T("\ntasks_number"), tasks_number, _T("\ntasks_completed_number"), tasks_completed_number,
+        _T("\ntasks_total_number"), tasks_total_number, _T("\ndefault_thread_number"), default_thread_number,
+        _T("\nthreadpool_type"), threadpool_type.name(), _T("\nnew_thread_number"), new_thread_number);
+
+    // åŒæ­¥çº¿ç¨‹æ± åˆ†ç¦»çš„ä»»åŠ¡
     if (fut_res.second)
         for (auto& fut : fut_res.first)
             fut.get();

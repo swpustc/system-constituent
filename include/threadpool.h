@@ -1,9 +1,9 @@
-/**********************************************************
-* Ïß³Ì³Ø¿ØÖÆÀà
-* Ö§³ÖÆ½Ì¨£ºWindows
-* ±àÒë»·¾³£ºVS2013+
-* ´´½¨Ê±¼ä£º2015-04-05 £¨ËÎÍòÅô£©
-* ×îºóĞŞ¸Ä£º2015-05-01 £¨ËÎÍòÅô£©
+ï»¿/**********************************************************
+* çº¿ç¨‹æ± æ§åˆ¶ç±»
+* æ”¯æŒå¹³å°ï¼šWindows
+* ç¼–è¯‘ç¯å¢ƒï¼šVS2013+
+* åˆ›å»ºæ—¶é—´ï¼š2015-04-05 ï¼ˆå®‹ä¸‡é¹ï¼‰
+* æœ€åä¿®æ”¹ï¼š2015-05-02 ï¼ˆå®‹ä¸‡é¹ï¼‰
 ***********************************************************/
 
 #pragma once
@@ -24,31 +24,31 @@
 #include <Windows.h>
 
 
-// Ïß³Ì³ØÀà; handle_exception: ÊÇ·ñ´¦Àí²¶»ñÈÎÎñÒì³£
+// çº¿ç¨‹æ± ç±»; handle_exception: æ˜¯å¦å¤„ç†æ•è·ä»»åŠ¡å¼‚å¸¸
 template<bool handle_exception = true> class threadpool
 {
 private:
-    // Ïß³ÌÊı
+    // çº¿ç¨‹æ•°
     ::std::atomic<int> m_thread_number{ 0 };
     ::std::atomic<int> m_thread_started{ 0 };
-    // Ïß³Ì¶ÓÁĞ
+    // çº¿ç¨‹é˜Ÿåˆ—
     ::std::list<::std::pair<::std::thread, SAFE_HANDLE_OBJECT>> m_thread_object;
-    // ÒÑÏú»Ù·ÖÀëµÄÏß³Ì¶ÔÏó
+    // å·²é”€æ¯åˆ†ç¦»çš„çº¿ç¨‹å¯¹è±¡
     ::std::vector<::std::pair<::std::thread, SAFE_HANDLE_OBJECT>> m_thread_destroy;
-    // ÈÎÎñ¶ÓÁĞ
+    // ä»»åŠ¡é˜Ÿåˆ—
     ::std::deque<::std::function<void()>> m_tasks;
     decltype(m_tasks) m_pause_tasks;
     decltype(m_tasks)* m_push_tasks{ &m_tasks };
     decltype(m_tasks) m_exception_tasks;
     ::std::atomic<size_t> m_task_completed{ 0 };
     ::std::atomic<size_t> m_task_all{ 0 };
-    // ÈÎÎñ¶ÓÁĞ¶ÁĞ´Ëø
+    // ä»»åŠ¡é˜Ÿåˆ—è¯»å†™é”
     ::std::mutex m_task_lock;
-    // Ïß³Ì´´½¨¡¢Ïú»ÙÊÂ¼şËø
+    // çº¿ç¨‹åˆ›å»ºã€é”€æ¯äº‹ä»¶é”
     ::std::mutex m_thread_lock;
-    // Í¨ÖªÊÂ¼ş
-    SAFE_HANDLE_OBJECT m_stop_thread; // ÍË³öÊÂ¼ş£¬¹Ø±ÕËùÓĞÏß³Ì
-    SAFE_HANDLE_OBJECT m_notify_task; // Í¨ÖªÏß³ÌÓĞĞÂÈÎÎñ
+    // é€šçŸ¥äº‹ä»¶
+    SAFE_HANDLE_OBJECT m_stop_thread; // é€€å‡ºäº‹ä»¶ï¼Œå…³é—­æ‰€æœ‰çº¿ç¨‹
+    SAFE_HANDLE_OBJECT m_notify_task; // é€šçŸ¥çº¿ç¨‹æœ‰æ–°ä»»åŠ¡
 
     enum class exit_event_t {
         INITIALIZATION,
@@ -57,10 +57,10 @@ private:
         STOP_IMMEDIATELY,
         WAIT_TASK_COMPLETE,
     };
-    // ÍË³öÈÎÎñÊÂ¼ş
+    // é€€å‡ºä»»åŠ¡äº‹ä»¶
     ::std::atomic<exit_event_t> m_exit_event{ exit_event_t::INITIALIZATION };
 
-    // Ïß³ÌÈë¿Úº¯Êı
+    // çº¿ç¨‹å…¥å£å‡½æ•°
     size_t thread_entry(HANDLE exit_event)
     {
         debug_output(_T("Thread Start: ["), this_type().name(), _T("](0x"), this, _T(')'));
@@ -71,7 +71,7 @@ private:
 #endif // #if _MSC_VER <= 1800
         return result;
     }
-    // Ïß³ÌÔËĞĞÇ°×¼±¸
+    // çº¿ç¨‹è¿è¡Œå‰å‡†å¤‡
     size_t pre_run(HANDLE exit_event)
     {
         if (handle_exception)
@@ -94,40 +94,40 @@ private:
             return run(exit_event);
         }
     }
-    /* Ïß³ÌÈÎÎñµ÷¶Èº¯Êı
-    * ·µ»ØÖµ >= success_code ±íÊ¾Õı³£ÍË³ö£¬< success_code Îª·ÇÕı³£ÍË³ö
-    * runº¯ÊıÌå±¾Éí¶ÑÕ»ÖĞÃ»ÓĞ¶ÔÏó£¬ÒÆ¶¯ebp/rbp¼Ä´æÆ÷°²È«£¬¿ÉÒÔ²»´¦ÀíÒì³£
+    /* çº¿ç¨‹ä»»åŠ¡è°ƒåº¦å‡½æ•°
+    * è¿”å›å€¼ >= success_code è¡¨ç¤ºæ­£å¸¸é€€å‡ºï¼Œ< success_code ä¸ºéæ­£å¸¸é€€å‡º
+    * runå‡½æ•°ä½“æœ¬èº«å †æ ˆä¸­æ²¡æœ‰å¯¹è±¡ï¼Œç§»åŠ¨ebp/rbpå¯„å­˜å™¨å®‰å…¨ï¼Œå¯ä»¥ä¸å¤„ç†å¼‚å¸¸
     **/
     size_t run(HANDLE exit_event)
     {
-        // Ïß³ÌÍ¨ÖªÊÂ¼ş
+        // çº¿ç¨‹é€šçŸ¥äº‹ä»¶
         HANDLE handle_notify[] = { exit_event, m_stop_thread, m_notify_task };
         while (true)
         {
-            // ¼àÌıÏß³ÌÍ¨ÖªÊÂ¼ş
+            // ç›‘å¬çº¿ç¨‹é€šçŸ¥äº‹ä»¶
             switch (WaitForMultipleObjects(sizeof(handle_notify) / sizeof(HANDLE), handle_notify, FALSE, INFINITE))
             {
-            case WAIT_OBJECT_0:     // ÍË³öµ±Ç°Ïß³Ì
+            case WAIT_OBJECT_0:     // é€€å‡ºå½“å‰çº¿ç¨‹
                 return success_code + 0;
-            case WAIT_OBJECT_0 + 1: // Õı³£ÍË³öÊÂ¼ş
+            case WAIT_OBJECT_0 + 1: // æ­£å¸¸é€€å‡ºäº‹ä»¶
                 switch (m_exit_event.load())
                 {
-                case exit_event_t::INITIALIZATION:      // Ïß³Ì³Ø¶ÔÏóÎ´×¼±¸ºÃ
+                case exit_event_t::INITIALIZATION:      // çº¿ç¨‹æ± å¯¹è±¡æœªå‡†å¤‡å¥½
                     return success_code - 0xff;
-                case exit_event_t::NORMAL:              // Î´ÉèÖÃÍË³öÊÂ¼ş
+                case exit_event_t::NORMAL:              // æœªè®¾ç½®é€€å‡ºäº‹ä»¶
                     return success_code + 1;
-                case exit_event_t::PAUSE:               // Ïß³ÌÔİÍ£ÖĞ
+                case exit_event_t::PAUSE:               // çº¿ç¨‹æš‚åœä¸­
                     return success_code + 2;
-                case exit_event_t::STOP_IMMEDIATELY:    // Á¢¼´ÍË³ö
+                case exit_event_t::STOP_IMMEDIATELY:    // ç«‹å³é€€å‡º
                     return success_code + 3;
-                case exit_event_t::WAIT_TASK_COMPLETE:  // µÈ´ıÈÎÎñ¶ÓÁĞÇå¿Õ
+                case exit_event_t::WAIT_TASK_COMPLETE:  // ç­‰å¾…ä»»åŠ¡é˜Ÿåˆ—æ¸…ç©º
                 default:
                     break;
                 }
-            case WAIT_OBJECT_0 + 2: // µ±Ç°Ïß³Ì¼¤»î
+            case WAIT_OBJECT_0 + 2: // å½“å‰çº¿ç¨‹æ¿€æ´»
                 while (true)
                 {
-                    if (!run_task(get_task())) // ÈÎÎñ¶ÓÁĞÖĞÃ»ÓĞÈÎÎñ
+                    if (!run_task(get_task())) // ä»»åŠ¡é˜Ÿåˆ—ä¸­æ²¡æœ‰ä»»åŠ¡
                     {
                         if (m_exit_event == exit_event_t::WAIT_TASK_COMPLETE)
                             return success_code + 4;
@@ -135,7 +135,7 @@ private:
                     }
                 }
                 break;
-            case WAIT_FAILED:       // ´íÎó
+            case WAIT_FAILED:       // é”™è¯¯
                 return success_code - 3;
             default:
                 return success_code - 4;
@@ -143,23 +143,23 @@ private:
         }
     }
 
-    // ĞÂÈÎÎñÌí¼ÓÍ¨Öª
+    // æ–°ä»»åŠ¡æ·»åŠ é€šçŸ¥
     void notify()
-    { // Í¨ÖªÒ»¸öÏß³Ì
+    { // é€šçŸ¥ä¸€ä¸ªçº¿ç¨‹
         ::SetEvent(m_notify_task);
     }
     void notify(size_t attach_tasks_number)
-    { // Í¨ÖªÒ»¸öÏß³Ì
+    { // é€šçŸ¥ä¸€ä¸ªçº¿ç¨‹
         int i = auto_min(3, m_thread_started.load());
         while (attach_tasks_number-- && i--)
             notify();
     }
 
-    // »ñÈ¡ÈÎÎñ¶ÓÁĞÖĞµÄÈÎÎñ£¬·µ»Øµ±Ç°ÈÎÎñºÍÎ´Ö´ĞĞÈÎÎñ×ÜÊı
+    // è·å–ä»»åŠ¡é˜Ÿåˆ—ä¸­çš„ä»»åŠ¡ï¼Œè¿”å›å½“å‰ä»»åŠ¡å’Œæœªæ‰§è¡Œä»»åŠ¡æ€»æ•°
     ::std::pair<::std::function<void()>, size_t> get_task()
     {
         ::std::function<void()> task;
-        ::std::unique_lock<::std::mutex> lck(m_task_lock); // ÈÎÎñ¶ÓÁĞ¶ÁĞ´Ëø
+        ::std::unique_lock<::std::mutex> lck(m_task_lock); // ä»»åŠ¡é˜Ÿåˆ—è¯»å†™é”
         size_t task_num = m_tasks.size();
         if (task_num)
         {
@@ -174,10 +174,10 @@ private:
             return ::std::make_pair(::std::move(task), 0);
         }
     }
-    // ÔËĞĞÒ»ÌõÈÎÎñ£¬·µ»ØÈÎÎñ¶ÓÁĞÖĞÊÇ·ñ»¹ÓĞÈÎÎñ[true:ÓĞÈÎÎñ; false:Ã»ÈÎÎñ]
+    // è¿è¡Œä¸€æ¡ä»»åŠ¡ï¼Œè¿”å›ä»»åŠ¡é˜Ÿåˆ—ä¸­æ˜¯å¦è¿˜æœ‰ä»»åŠ¡[true:æœ‰ä»»åŠ¡; false:æ²¡ä»»åŠ¡]
     bool run_task(::std::pair<::std::function<void()>, size_t>&& task_val)
     {
-        // ÈÎÎñ¶ÓÁĞÖĞÓĞÈÎÎñÎ´´¦Àí£¬·¢ËÍÏß³ÌÆô¶¯Í¨Öª
+        // ä»»åŠ¡é˜Ÿåˆ—ä¸­æœ‰ä»»åŠ¡æœªå¤„ç†ï¼Œå‘é€çº¿ç¨‹å¯åŠ¨é€šçŸ¥
         if (task_val.second > 1)
             notify();
         if (task_val.second)
@@ -204,7 +204,7 @@ private:
     }
 
 public:
-    // ±ê×¼Ïß³Ì½áÊø´úÂë
+    // æ ‡å‡†çº¿ç¨‹ç»“æŸä»£ç 
     static const size_t success_code = 0x00001000;
 
     threadpool(){}
@@ -214,14 +214,14 @@ public:
     }
     ~threadpool()
     {
-        stop_on_completed(); // ÍË³öÊ±µÈ´ıÈÎÎñÇå¿Õ
+        stop_on_completed(); // é€€å‡ºæ—¶ç­‰å¾…ä»»åŠ¡æ¸…ç©º
         for (auto& handle_obj : m_thread_object)
         {
 #if _MSC_VER <= 1800 // Fix std::thread deadlock bug on VS2012,VS2013 (when call join on exit)
             ::WaitForSingleObject((HANDLE)handle_obj.first.native_handle(), INFINITE);
             handle_obj.first.detach();
 #else // Other platform
-            handle_obj.first.join(); // µÈ´ıËùÓĞ´ò¿ªµÄÏß³ÌÍË³ö
+            handle_obj.first.join(); // ç­‰å¾…æ‰€æœ‰æ‰“å¼€çš„çº¿ç¨‹é€€å‡º
 #endif // #if _MSC_VER <= 1800
         }
         for (auto& handle_obj : m_thread_destroy)
@@ -230,23 +230,23 @@ public:
             ::WaitForSingleObject((HANDLE)handle_obj.first.native_handle(), INFINITE);
             handle_obj.first.detach();
 #else // Other platform
-            handle_obj.first.join(); // µÈ´ıËùÓĞÒÑÏú»Ù·ÖÀëµÄÏß³ÌÍË³ö
+            handle_obj.first.join(); // ç­‰å¾…æ‰€æœ‰å·²é”€æ¯åˆ†ç¦»çš„çº¿ç¨‹é€€å‡º
 #endif // #if _MSC_VER <= 1800
         }
     }
-    // ¸´ÖÆ¹¹Ôìº¯Êı
+    // å¤åˆ¶æ„é€ å‡½æ•°
     threadpool(const threadpool&) = delete;
-    // ¸´ÖÆ¸³ÖµÓï¾ä
+    // å¤åˆ¶èµ‹å€¼è¯­å¥
     threadpool& operator=(const threadpool&) = delete;
-    // ÒÆ¶¯¹¹Ôìº¯Êı
+    // ç§»åŠ¨æ„é€ å‡½æ•°
     threadpool(threadpool&&) = delete;
-    // ÒÆ¶¯¸³ÖµÓï¾ä
+    // ç§»åŠ¨èµ‹å€¼è¯­å¥
     threadpool& operator=(threadpool&&) = delete;
 
-    // Æô¶¯ÔİÍ£pauseµÄÏß³Ì
+    // å¯åŠ¨æš‚åœpauseçš„çº¿ç¨‹
     bool start()
     {
-        // ÈÎÎñ¶ÓÁĞ¶ÁĞ´Ëø
+        // ä»»åŠ¡é˜Ÿåˆ—è¯»å†™é”
         ::std::unique_lock<::std::mutex> lck(m_task_lock);
         switch (m_exit_event.load())
         {
@@ -259,16 +259,16 @@ public:
             assert(m_pause_tasks.size() == 0);
         case exit_event_t::NORMAL:
             return true;
-            // ÍË³öÁ÷³ÌÖĞ½ûÖ¹²Ù×÷Ïß³Ì¿ØÖÆÊÂ¼ş
+            // é€€å‡ºæµç¨‹ä¸­ç¦æ­¢æ“ä½œçº¿ç¨‹æ§åˆ¶äº‹ä»¶
         case exit_event_t::INITIALIZATION:
         default:
             return false;
         }
     }
-    // ÔİÍ£Ïß³ÌÖ´ĞĞ£¬Ö±µ½ÍË³östop»òÕßÆô¶¯start
+    // æš‚åœçº¿ç¨‹æ‰§è¡Œï¼Œç›´åˆ°é€€å‡ºstopæˆ–è€…å¯åŠ¨start
     bool pause()
     {
-        // ÈÎÎñ¶ÓÁĞ¶ÁĞ´Ëø
+        // ä»»åŠ¡é˜Ÿåˆ—è¯»å†™é”
         ::std::unique_lock<::std::mutex> lck(m_task_lock);
         switch (m_exit_event.load())
         {
@@ -281,18 +281,18 @@ public:
         case exit_event_t::PAUSE:
             return true;
         case exit_event_t::INITIALIZATION:
-        default: // ÍË³öÁ÷³ÌÖĞ½ûÖ¹²Ù×÷Ïß³Ì¿ØÖÆÊÂ¼ş
+        default: // é€€å‡ºæµç¨‹ä¸­ç¦æ­¢æ“ä½œçº¿ç¨‹æ§åˆ¶äº‹ä»¶
             return false;
         }
     }
-    // Á¢¼´½áÊøÈÎÎñ£¬Î´´¦ÀíµÄÈÎÎñ½«¶ªÆú
+    // ç«‹å³ç»“æŸä»»åŠ¡ï¼Œæœªå¤„ç†çš„ä»»åŠ¡å°†ä¸¢å¼ƒ
     void stop()
     {
         switch (m_exit_event.load())
         {
         case exit_event_t::NORMAL:
         case exit_event_t::WAIT_TASK_COMPLETE:
-            // ÈÎÎñ¶ÓÁĞ¶ÁĞ´Ëø
+            // ä»»åŠ¡é˜Ÿåˆ—è¯»å†™é”
             m_task_lock.lock();
             ::std::swap(m_tasks, m_pause_tasks);
             m_push_tasks = &m_pause_tasks;
@@ -306,7 +306,7 @@ public:
             break;
         }
     }
-    // µ±ÈÎÎñ¶ÓÁĞÖ´ĞĞÍê±ÏºóÍË³öÏß³Ì£¬Èç¹ûÏß³Ì³ØÕıÔÚÍË³öÔòÊ§°Ü
+    // å½“ä»»åŠ¡é˜Ÿåˆ—æ‰§è¡Œå®Œæ¯•åé€€å‡ºçº¿ç¨‹ï¼Œå¦‚æœçº¿ç¨‹æ± æ­£åœ¨é€€å‡ºåˆ™å¤±è´¥
     bool stop_on_completed()
     {
         switch (m_exit_event.load())
@@ -324,7 +324,7 @@ public:
         }
     }
 
-    // Ìí¼ÓÒ»¸öÈÎÎñ
+    // æ·»åŠ ä¸€ä¸ªä»»åŠ¡
     template<class Fn, class... Args> bool push(Fn&& fn, Args&&... args)
     {
         typedef decltype(decay_type(::std::forward<Fn>(fn))(decay_type(::std::forward<Args>(args))...)) result_type;
@@ -332,17 +332,17 @@ public:
         {
         case exit_event_t::NORMAL:
         case exit_event_t::PAUSE:
-        case exit_event_t::INITIALIZATION: // Î´³õÊ¼»¯µÄÏß³Ì³ØÈÔÈ»¿ÉÒÔÌí¼ÓÈÎÎñ
+        case exit_event_t::INITIALIZATION: // æœªåˆå§‹åŒ–çš„çº¿ç¨‹æ± ä»ç„¶å¯ä»¥æ·»åŠ ä»»åŠ¡
             break;
-        default: // ÍË³öÁ÷³ÌÖĞ½ûÖ¹²Ù×÷Ïß³Ì¿ØÖÆÊÂ¼ş
+        default: // é€€å‡ºæµç¨‹ä¸­ç¦æ­¢æ“ä½œçº¿ç¨‹æ§åˆ¶äº‹ä»¶
             return false;
         }
-        // °ó¶¨º¯Êı
+        // ç»‘å®šå‡½æ•°
         auto task_obj = ::std::make_shared<decltype(::std::bind(::std::forward<Fn>(fn), ::std::forward<Args>(args)...))>(
             ::std::bind(::std::forward<Fn>(fn), ::std::forward<Args>(args)...));
-        // Éú³ÉÈÎÎñ£¨·Âº¯Êı£©
+        // ç”Ÿæˆä»»åŠ¡ï¼ˆä»¿å‡½æ•°ï¼‰
         ::std::function<void()> bind_function(::std::bind(function_wapper(), ::std::move(task_obj)));
-        // ÈÎÎñ¶ÓÁĞ¶ÁĞ´Ëø
+        // ä»»åŠ¡é˜Ÿåˆ—è¯»å†™é”
         ::std::unique_lock<::std::mutex> lck(m_task_lock);
         m_push_tasks->push_back(::std::move(bind_function));
         lck.unlock();
@@ -350,7 +350,7 @@ public:
         notify();
         return true;
     }
-    // Ìí¼ÓÒ»¸öÈÎÎñ²¢·µ»Ø·µ»ØÖµ¶ÔÏópair<future,bool>£¬Ê¹ÓÃfuture::get»ñÈ¡·µ»ØÖµ£¨ÈôÎ´Íê³É»áµÈ´ıÍê³É£©
+    // æ·»åŠ ä¸€ä¸ªä»»åŠ¡å¹¶è¿”å›è¿”å›å€¼å¯¹è±¡pair<future,bool>ï¼Œä½¿ç”¨future::getè·å–è¿”å›å€¼ï¼ˆè‹¥æœªå®Œæˆä¼šç­‰å¾…å®Œæˆï¼‰
     template<class Fn, class... Args> auto push_future(Fn&& fn, Args&&... args)
         -> ::std::pair<::std::future<decltype(decay_type(::std::forward<Fn>(fn))(decay_type(::std::forward<Args>(args))...))>, bool>
     {
@@ -360,18 +360,18 @@ public:
         {
         case exit_event_t::NORMAL:
         case exit_event_t::PAUSE:
-        case exit_event_t::INITIALIZATION: // Î´³õÊ¼»¯µÄÏß³Ì³ØÈÔÈ»¿ÉÒÔÌí¼ÓÈÎÎñ
+        case exit_event_t::INITIALIZATION: // æœªåˆå§‹åŒ–çš„çº¿ç¨‹æ± ä»ç„¶å¯ä»¥æ·»åŠ ä»»åŠ¡
             break;
-        default: // ÍË³öÁ÷³ÌÖĞ½ûÖ¹²Ù×÷Ïß³Ì¿ØÖÆÊÂ¼ş
+        default: // é€€å‡ºæµç¨‹ä¸­ç¦æ­¢æ“ä½œçº¿ç¨‹æ§åˆ¶äº‹ä»¶
             return ::std::make_pair(::std::move(future_obj), false);
         }
-        // °ó¶¨º¯Êı
+        // ç»‘å®šå‡½æ•°
         auto task_obj = ::std::make_shared<::std::packaged_task<result_type()>>(
             ::std::bind(::std::forward<Fn>(fn), ::std::forward<Args>(args)...));
         future_obj = task_obj->get_future();
-        // Éú³ÉÈÎÎñ£¨·Âº¯Êı£©
+        // ç”Ÿæˆä»»åŠ¡ï¼ˆä»¿å‡½æ•°ï¼‰
         ::std::function<void()> bind_function(::std::bind(function_wapper(), ::std::move(task_obj)));
-        // ÈÎÎñ¶ÓÁĞ¶ÁĞ´Ëø
+        // ä»»åŠ¡é˜Ÿåˆ—è¯»å†™é”
         ::std::unique_lock<::std::mutex> lck(m_task_lock);
         m_push_tasks->push_back(::std::move(bind_function));
         lck.unlock();
@@ -379,7 +379,7 @@ public:
         notify();
         return ::std::make_pair(::std::move(future_obj), true);
     }
-    // Ìí¼Ó¶à¸öÈÎÎñ
+    // æ·»åŠ å¤šä¸ªä»»åŠ¡
     template<class Fn, class... Args> bool push_multi(size_t count, Fn&& fn, Args&&... args)
     {
         typedef decltype(decay_type(::std::forward<Fn>(fn))(decay_type(::std::forward<Args>(args))...)) result_type;
@@ -388,19 +388,19 @@ public:
         {
         case exit_event_t::NORMAL:
         case exit_event_t::PAUSE:
-        case exit_event_t::INITIALIZATION: // Î´³õÊ¼»¯µÄÏß³Ì³ØÈÔÈ»¿ÉÒÔÌí¼ÓÈÎÎñ
+        case exit_event_t::INITIALIZATION: // æœªåˆå§‹åŒ–çš„çº¿ç¨‹æ± ä»ç„¶å¯ä»¥æ·»åŠ ä»»åŠ¡
             break;
-        default: // ÍË³öÁ÷³ÌÖĞ½ûÖ¹²Ù×÷Ïß³Ì¿ØÖÆÊÂ¼ş
+        default: // é€€å‡ºæµç¨‹ä¸­ç¦æ­¢æ“ä½œçº¿ç¨‹æ§åˆ¶äº‹ä»¶
             return false;
         }
         if (count)
         {
-            // °ó¶¨º¯Êı
+            // ç»‘å®šå‡½æ•°
             auto task_obj = ::std::make_shared<decltype(::std::bind(::std::forward<Fn>(fn), ::std::forward<Args>(args)...))>(
                 ::std::bind(::std::forward<Fn>(fn), ::std::forward<Args>(args)...));
-            // Éú³ÉÈÎÎñ£¨·Âº¯Êı£©
+            // ç”Ÿæˆä»»åŠ¡ï¼ˆä»¿å‡½æ•°ï¼‰
             ::std::function<void()> bind_function(::std::bind(function_wapper(), ::std::move(task_obj)));
-            // ÈÎÎñ¶ÓÁĞ¶ÁĞ´Ëø
+            // ä»»åŠ¡é˜Ÿåˆ—è¯»å†™é”
             ::std::unique_lock<::std::mutex> lck(m_task_lock);
             m_push_tasks->insert(m_push_tasks->end(), count, ::std::move(bind_function));
             lck.unlock();
@@ -409,7 +409,7 @@ public:
         }
         return true;
     }
-    // Ìí¼Ó¶à¸öÈÎÎñ²¢·µ»Ø·µ»ØÖµ¶ÔÏópair<vector<future>,bool>£¬Ê¹ÓÃfuture::get»ñÈ¡·µ»ØÖµ£¨ÈôÎ´Íê³É»áµÈ´ıÍê³É£©
+    // æ·»åŠ å¤šä¸ªä»»åŠ¡å¹¶è¿”å›è¿”å›å€¼å¯¹è±¡pair<vector<future>,bool>ï¼Œä½¿ç”¨future::getè·å–è¿”å›å€¼ï¼ˆè‹¥æœªå®Œæˆä¼šç­‰å¾…å®Œæˆï¼‰
     template<class Fn, class... Args> auto push_multi_future(size_t count, Fn&& fn, Args&&... args)
         -> ::std::pair<::std::vector<::std::future<decltype(decay_type(::std::forward<Fn>(fn))(decay_type(::std::forward<Args>(args))...))>>, bool>
     {
@@ -420,9 +420,9 @@ public:
         {
         case exit_event_t::NORMAL:
         case exit_event_t::PAUSE:
-        case exit_event_t::INITIALIZATION: // Î´³õÊ¼»¯µÄÏß³Ì³ØÈÔÈ»¿ÉÒÔÌí¼ÓÈÎÎñ
+        case exit_event_t::INITIALIZATION: // æœªåˆå§‹åŒ–çš„çº¿ç¨‹æ± ä»ç„¶å¯ä»¥æ·»åŠ ä»»åŠ¡
             break;
-        default: // ÍË³öÁ÷³ÌÖĞ½ûÖ¹²Ù×÷Ïß³Ì¿ØÖÆÊÂ¼ş
+        default: // é€€å‡ºæµç¨‹ä¸­ç¦æ­¢æ“ä½œçº¿ç¨‹æ§åˆ¶äº‹ä»¶
             return ::std::make_pair(::std::move(future_obj), false);
         }
         if (count)
@@ -430,13 +430,13 @@ public:
             future_obj.reserve(count);
             while (count--)
             {
-                // °ó¶¨º¯Êı
+                // ç»‘å®šå‡½æ•°
                 auto task_obj = ::std::make_shared<::std::packaged_task<result_type()>>(
                     ::std::bind(::std::forward<Fn>(fn), ::std::forward<Args>(args)...));
                 future_obj.push_back(task_obj->get_future());
-                // Éú³ÉÈÎÎñ£¨·Âº¯Êı£©
+                // ç”Ÿæˆä»»åŠ¡ï¼ˆä»¿å‡½æ•°ï¼‰
                 ::std::function<void()> bind_function(::std::bind(function_wapper(), ::std::move(task_obj)));
-                // ÈÎÎñ¶ÓÁĞ¶ÁĞ´Ëø
+                // ä»»åŠ¡é˜Ÿåˆ—è¯»å†™é”
                 ::std::lock_guard<::std::mutex> lck(m_task_lock);
                 m_push_tasks->push_back(::std::move(bind_function));
             }
@@ -446,22 +446,22 @@ public:
         return ::std::make_pair(::std::move(future_obj), true);
     }
 
-    // ·ÖÀëËùÓĞÈÎÎñ£¬·ÖÀëµÄÏß³Ì³Ø¶ÔÏóÏß³ÌÊı²»±ä
+    // åˆ†ç¦»æ‰€æœ‰ä»»åŠ¡ï¼Œåˆ†ç¦»çš„çº¿ç¨‹æ± å¯¹è±¡çº¿ç¨‹æ•°ä¸å˜
     bool detach()
     {
         return detach(m_thread_started);
     }
-    // ·ÖÀëËùÓĞÈÎÎñ£¬ÉèÖÃ·ÖÀëµÄÏß³Ì³Ø¶ÔÏóÏß³ÌÊıÎªthread_number_new
+    // åˆ†ç¦»æ‰€æœ‰ä»»åŠ¡ï¼Œè®¾ç½®åˆ†ç¦»çš„çº¿ç¨‹æ± å¯¹è±¡çº¿ç¨‹æ•°ä¸ºthread_number_new
     bool detach(int thread_number_new)
     {
-        ::std::lock_guard<::std::mutex> lck(m_task_lock); // µ±Ç°Ïß³Ì³ØÈÎÎñ¶ÓÁĞ¶ÁĞ´Ëø
+        ::std::lock_guard<::std::mutex> lck(m_task_lock); // å½“å‰çº¿ç¨‹æ± ä»»åŠ¡é˜Ÿåˆ—è¯»å†™é”
         if (!m_push_tasks->size())
             return false;
-        assert(thread_number_new); // Èç¹ûÏß³ÌÊıÎª0£¬Ôò·ÖÀëµÄÏß³Ì³ØÖĞÎ´´¦ÀíµÄÈÎÎñ½«¶ªÆú
+        assert(thread_number_new); // å¦‚æœçº¿ç¨‹æ•°ä¸º0ï¼Œåˆ™åˆ†ç¦»çš„çº¿ç¨‹æ± ä¸­æœªå¤„ç†çš„ä»»åŠ¡å°†ä¸¢å¼ƒ
         auto detach_threadpool = new threadpool(thread_number_new);
-        ::std::lock_guard<::std::mutex> lck_new(detach_threadpool->m_task_lock); // ĞÂÏß³Ì³ØÈÎÎñ¶ÓÁĞ¶ÁĞ´Ëø
-        ::std::swap(*m_push_tasks, detach_threadpool->m_tasks); // ½»»»ÈÎÎñ¶ÓÁĞ
-        // Í¨Öª·ÖÀëµÄÏß³Ì¶ÔÏóÔËĞĞ
+        ::std::lock_guard<::std::mutex> lck_new(detach_threadpool->m_task_lock); // æ–°çº¿ç¨‹æ± ä»»åŠ¡é˜Ÿåˆ—è¯»å†™é”
+        ::std::swap(*m_push_tasks, detach_threadpool->m_tasks); // äº¤æ¢ä»»åŠ¡é˜Ÿåˆ—
+        // é€šçŸ¥åˆ†ç¦»çš„çº¿ç¨‹å¯¹è±¡è¿è¡Œ
         detach_threadpool->notify(detach_threadpool->m_tasks.size());
         ::std::async([](decltype(detach_threadpool) pClass){
             delete pClass;
@@ -472,12 +472,12 @@ public:
         return true;
     }
 
-    // »ñÈ¡Ïß³ÌÊıÁ¿
+    // è·å–çº¿ç¨‹æ•°é‡
     int get_thread_number()
     {
         return m_thread_started.load();
     }
-    // »ñÈ¡¿ÕÏĞÏß³ÌÊı
+    // è·å–ç©ºé—²çº¿ç¨‹æ•°
     int get_free_thread_number()
     {
         if (get_tasks_number())
@@ -489,52 +489,52 @@ public:
             return (int)run_tasks >= thread_num ? 0 : thread_num - (int)run_tasks;
         }
     }
-    // »ñÈ¡ÈÎÎñ¶ÓÁĞÊıÁ¿
+    // è·å–ä»»åŠ¡é˜Ÿåˆ—æ•°é‡
     size_t get_tasks_number()
     {
-        ::std::lock_guard<::std::mutex> lck(m_task_lock); // ÈÎÎñ¶ÓÁĞ¶ÁĞ´Ëø
+        ::std::lock_guard<::std::mutex> lck(m_task_lock); // ä»»åŠ¡é˜Ÿåˆ—è¯»å†™é”
         return m_push_tasks->size();
     }
-    // »ñÈ¡ÒÑÍê³ÉÈÎÎñÊı
+    // è·å–å·²å®Œæˆä»»åŠ¡æ•°
     size_t get_tasks_completed_number()
     {
         return m_task_completed.load();
     }
-    // »ñÈ¡ÒÑÌí¼ÓÈÎÎñ×ÜÊı
+    // è·å–å·²æ·»åŠ ä»»åŠ¡æ€»æ•°
     size_t get_tasks_total_number()
     {
         return m_task_all.load();
     }
 
-    // »ñÈ¡Òì³£ÈÎÎñ¶ÓÁĞ
+    // è·å–å¼‚å¸¸ä»»åŠ¡é˜Ÿåˆ—
     decltype(m_tasks) get_exception_tasks()
     {
         decltype(m_tasks) exception_tasks = ::std::move(m_exception_tasks);
         return ::std::move(exception_tasks);
     }
-    // »ñÈ¡³õÊ¼»¯Ïß³ÌÊı
+    // è·å–åˆå§‹åŒ–çº¿ç¨‹æ•°
     int get_default_thread_number()
     {
         return m_thread_number.load();
     }
-    // »ñÈ¡ÀàĞÍĞÅÏ¢
+    // è·å–ç±»å‹ä¿¡æ¯
     static const type_info& this_type()
     {
         return typeid(threadpool);
     }
 
-    // ³õÊ¼»¯Ïß³Ì³Ø£¬ÉèÖÃ´¦ÀíÏß³ÌÊı£¬ÒÑ³õÊ¼»¯ÔòÊ§°Ü
+    // åˆå§‹åŒ–çº¿ç¨‹æ± ï¼Œè®¾ç½®å¤„ç†çº¿ç¨‹æ•°ï¼Œå·²åˆå§‹åŒ–åˆ™å¤±è´¥
     bool set_thread_number(int thread_number)
     {
         assert(thread_number >= 0 && thread_number < 255); // Thread number must greater than or equal 0 and less than 255
         switch (m_exit_event.load())
         {
-        case exit_event_t::INITIALIZATION: // Î´³õÊ¼»¯µÄÏß³Ì³Ø
+        case exit_event_t::INITIALIZATION: // æœªåˆå§‹åŒ–çš„çº¿ç¨‹æ± 
             m_exit_event = exit_event_t::NORMAL;
-            m_stop_thread = ::CreateEventW(nullptr, TRUE, FALSE, nullptr);  // ÊÖ¶¯¸´Î»£¬ÎŞĞÅºÅ
-            m_notify_task = ::CreateEventW(nullptr, FALSE, FALSE, nullptr); // ×Ô¶¯¸´Î»£¬ÎŞĞÅºÅ
+            m_stop_thread = ::CreateEventW(nullptr, TRUE, FALSE, nullptr);  // æ‰‹åŠ¨å¤ä½ï¼Œæ— ä¿¡å·
+            m_notify_task = ::CreateEventW(nullptr, FALSE, FALSE, nullptr); // è‡ªåŠ¨å¤ä½ï¼Œæ— ä¿¡å·
             break;
-        default: // ÒÑ³õÊ¼»¯µÄÏß³Ì³Ø½«Ê§°Ü
+        default: // å·²åˆå§‹åŒ–çš„çº¿ç¨‹æ± å°†å¤±è´¥
             return false;
         }
         if (thread_number < 0)
@@ -542,29 +542,29 @@ public:
         m_thread_number = thread_number;
         return set_new_thread_number(thread_number);
     }
-    // ÉèÖÃĞÂµÄ´¦ÀíÏß³ÌÊı£¬ÍË³öÁ÷³ÌºÍÎ´³õÊ¼»¯µÄÏß³Ì³ØÔòÊ§°Ü
+    // è®¾ç½®æ–°çš„å¤„ç†çº¿ç¨‹æ•°ï¼Œé€€å‡ºæµç¨‹å’Œæœªåˆå§‹åŒ–çš„çº¿ç¨‹æ± åˆ™å¤±è´¥
     bool set_new_thread_number(int thread_number_new)
     {
         assert(thread_number_new >= 0 && thread_number_new < 255); // Thread number must greater than or equal 0 and less than 255
         switch (m_exit_event.load())
         {
-        case exit_event_t::INITIALIZATION: // Î´³õÊ¼»¯µÄÏß³Ì³Ø½«Ê§°Ü
+        case exit_event_t::INITIALIZATION: // æœªåˆå§‹åŒ–çš„çº¿ç¨‹æ± å°†å¤±è´¥
             return false;
         case exit_event_t::NORMAL:
         case exit_event_t::PAUSE:
             break;
-        default: // ÍË³öÁ÷³ÌÖĞ½ûÖ¹²Ù×÷Ïß³Ì¿ØÖÆÊÂ¼ş
+        default: // é€€å‡ºæµç¨‹ä¸­ç¦æ­¢æ“ä½œçº¿ç¨‹æ§åˆ¶äº‹ä»¶
             return false;
         }
-        if (thread_number_new < 0) // Ïß³ÌÊıĞ¡ÓÚ0ÔòÊ§°Ü
+        if (thread_number_new < 0) // çº¿ç¨‹æ•°å°äº0åˆ™å¤±è´¥
             return false;
         if (m_thread_started.load() != thread_number_new)
         {
-            // Ïß³Ì´´½¨¡¢Ïú»ÙÊÂ¼şËø
+            // çº¿ç¨‹åˆ›å»ºã€é”€æ¯äº‹ä»¶é”
             ::std::unique_lock<::std::mutex> lck(m_thread_lock);
             for (register int i = m_thread_started.load(); i < thread_number_new; i++)
             {
-                HANDLE thread_exit_event = ::CreateEventW(nullptr, FALSE, FALSE, nullptr); // ×Ô¶¯¸´Î»£¬ÎŞĞÅºÅ
+                HANDLE thread_exit_event = ::CreateEventW(nullptr, FALSE, FALSE, nullptr); // è‡ªåŠ¨å¤ä½ï¼Œæ— ä¿¡å·
                 auto iter = m_thread_object.insert(m_thread_object.end(), ::std::make_pair(
                     ::std::thread(&threadpool::thread_entry, this, thread_exit_event), SAFE_HANDLE_OBJECT(thread_exit_event)));
                 m_thread_started++;
@@ -582,7 +582,7 @@ public:
         }
         return true;
     }
-    // ÖØÖÃÏß³Ì³ØÊıÁ¿Îª³õÊ¼ÊıÁ¿
+    // é‡ç½®çº¿ç¨‹æ± æ•°é‡ä¸ºåˆå§‹æ•°é‡
     bool reset_thread_number()
     {
         return set_new_thread_number(get_default_thread_number());
