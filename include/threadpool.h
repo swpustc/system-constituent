@@ -458,15 +458,15 @@ public:
         if (!m_push_tasks->size())
             return false;
         assert(thread_number_new); // 如果线程数为0，则分离的线程池中未处理的任务将丢弃
-        auto detach_threadpool = new threadpool(thread_number_new);
+        auto detach_threadpool = new threadpool<handle_exception>(thread_number_new);
         ::std::lock_guard<::std::mutex> lck_new(detach_threadpool->m_task_lock); // 新线程池任务队列读写锁
         ::std::swap(*m_push_tasks, detach_threadpool->m_tasks); // 交换任务队列
         // 通知分离的线程对象运行
         detach_threadpool->notify(detach_threadpool->m_tasks.size());
         ::std::async([](decltype(detach_threadpool) pClass){
             delete pClass;
-            size_t result = success_code + 0xff;
-            debug_output(_T("Thread Result: "), result, _T("(0x"), (void*)result, _T(')'));
+            static const size_t result = success_code + 0xff;
+            debug_output(_T("Thread Result: ["), (void*)result, _T("] ["), pClass->this_type().name(), _T("](0x"), pClass, _T(')'));
             return result;
         }, detach_threadpool);
         return true;
@@ -520,7 +520,7 @@ public:
     // 获取类型信息
     static const type_info& this_type()
     {
-        return typeid(threadpool);
+        return typeid(threadpool<handle_exception>);
     }
 
     // 初始化线程池，设置处理线程数，已初始化则失败

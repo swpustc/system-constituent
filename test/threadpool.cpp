@@ -62,8 +62,6 @@ int main()
         thpool1.push(foo, 3 + i % 3, c++, (size_t)100 + i); // spawn thread that calls foo(3+i%3, c++, 100+i)
     thpool1.set_thread_number(2); // 设置线程数以初始化线程
 
-    thpool1.pause();
-
     auto&& thread_number = thpool1.get_thread_number();
     auto&& free_thread_number = thpool1.get_free_thread_number();
     auto&& tasks_number = thpool1.get_tasks_number();
@@ -71,19 +69,19 @@ int main()
     auto&& tasks_total_number = thpool1.get_tasks_total_number();
     auto&& default_thread_number = thpool1.get_default_thread_number();
     auto&& threadpool_type = thpool1.this_type();
-    thpool1.set_new_thread_number(thread_number + thread_number);
+    thpool1.set_new_thread_number(thread_number + 1);
     auto&& new_thread_number = thpool1.get_thread_number();
 
     auto fut_res = thpool1.push_multi_future(4, foo, 1, '9', 100); // push_multi_future
-
-    thpool1.start();
-
-    thpool1.detach(4);
+    thpool1.pause();
 
     debug_output<true>(_T("thread_number: "), thread_number, _T("\nfree_thread_number: "), free_thread_number,
         _T("\ntasks_number: "), tasks_number, _T("\ntasks_completed_number: "), tasks_completed_number,
         _T("\ntasks_total_number: "), tasks_total_number, _T("\ndefault_thread_number: "), default_thread_number,
         _T("\nthreadpool_type: "), threadpool_type.name(), _T("\nnew_thread_number: "), new_thread_number);
+
+    thpool1.detach(4);
+    thpool1.start();
 
     // 同步线程池分离的任务
     if (fut_res.second)
