@@ -1,9 +1,9 @@
 /**********************************************************
 * 资源文件
 * 支持平台：Windows
-* 编译环境：VS2013+
+* 编译环境：VS2010+
 * 创建时间：2015-04-25 （宋万鹏）
-* 最后修改：2015-05-01 （宋万鹏）
+* 最后修改：2015-05-02 （宋万鹏）
 ***********************************************************/
 
 #include <Windows.h>
@@ -32,7 +32,7 @@ BEGIN
         BEGIN
             VALUE "Comments",         _T("DLL support by ") SUPPORT_AUTHOR _T("<") EMAIL_ADDRESS _T("> & ") COMPANY_NAME _T(".")
             VALUE "CompanyName",      COMPANY_NAME
-            VALUE "FileDescription",  PRODUCT_NAME _T("by ") COMPANY_NAME _T(".")
+            VALUE "FileDescription",  PRODUCT_NAME _T(" by ") COMPANY_NAME _T(".")
             VALUE "FileVersion",      FILE_VERSION
             VALUE "InternalName",     INTERAL_NAME
             VALUE "LegalCopyright",   LEGAL_COPYRIGHT

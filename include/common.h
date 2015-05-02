@@ -3,7 +3,7 @@
 * 支持平台：Windows; Linux
 * 编译环境：VS2013+; g++ -std=c++11
 * 创建时间：2015-04-05 （宋万鹏）
-* 最后修改：2015-05-01 （宋万鹏）
+* 最后修改：2015-05-02 （宋万鹏）
 ***********************************************************/
 
 #pragma once
@@ -160,14 +160,29 @@ struct function_wapper
 };
 
 
-SYSCONAPI ::std::mutex g_log_lock;
-SYSCONAPI ::std::ofstream g_log_ofstream;
-SYSCONAPI ::std::wofstream g_log_wofstream;
+class log_stream_manager_t
+{
+private:
+    ::std::streambuf* m_clog_rdbuf;
+    ::std::wstreambuf* m_wclog_rdbuf;
+public:
+    ::std::mutex m_log_lock;
+    ::std::unique_ptr<::std::ofstream> m_log_ofstream;
+    ::std::unique_ptr<::std::wofstream> m_log_wofstream;
+    log_stream_manager_t();
+    ~log_stream_manager_t();
+};
+SYSCONAPI log_stream_manager_t g_log_stream_manager;
+
+#define g_log_lock      (g_log_stream_manager.m_log_lock)
+#define g_log_ofstream  (*g_log_stream_manager.m_log_ofstream)
+#define g_log_wofstream (*g_log_stream_manager.m_log_wofstream)
+
 
 #ifdef _UNICODE
-#define _tclog ::std::wclog
+#define _tclog          ::std::wclog
 #else  /* _UNICODE */
-#define _tclog ::std::clog
+#define _tclog          ::std::clog
 #endif  /* _UNICODE */
 
 
@@ -294,14 +309,14 @@ template<bool output = false, class... Args> inline void debug_output(Args&&... 
 #endif //#if defined(_DEBUG) || defined(DEBUG)
 
 
-// 设置std::clog和std::wclog的rdbuf
+// 设置log流的文件位置
 template<class Elem, class T = ::std::char_traits<Elem>, class A = ::std::allocator<Elem>> inline
 void set_log_location(::std::basic_string<Elem, T, A> file_name)
 {
     set_log_location(file_name.c_str());
 }
 
-// 设置log流的文件位置，程序结束时序调用close_log_stream
+// 设置log流的文件位置
 template<class Elem> inline void set_log_location(const Elem* file_name)
 {
     g_log_ofstream.open(file_name, ::std::ios::app);
@@ -319,13 +334,4 @@ template<class Elem> inline void set_log_location(const Elem* file_name)
         ::getpid()
 #endif // #if defined(_WIN32) || defined(WIN32)
         , _T(']'));
-}
-
-// 关闭log输出流
-inline void close_log_stream()
-{
-    ::std::clog.rdbuf(nullptr);
-    ::std::wclog.rdbuf(nullptr);
-    g_log_ofstream.close();
-    g_log_wofstream.close();
 }
