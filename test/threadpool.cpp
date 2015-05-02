@@ -16,7 +16,7 @@ using namespace placeholders;
 
 void foo(int length, char c, size_t ms)
 {
-    while (length-- >= 0)
+    while (length-- > 0)
     {
         debug_output<true>(c);
         this_thread::sleep_for(milliseconds(ms));
