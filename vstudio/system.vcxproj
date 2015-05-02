@@ -84,6 +84,7 @@
       <SDLCheck>true</SDLCheck>
     </ClCompile>
     <Link>
+      <AdditionalLibraryDirectories>$(SolutionDir)bin\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <SubSystem>Windows</SubSystem>
       <LargeAddressAware>true</LargeAddressAware>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
@@ -108,6 +109,9 @@
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <CreateHotpatchableImage>true</CreateHotpatchableImage>
     </ClCompile>
+    <Link>
+      <BaseAddress>0x68000000</BaseAddress>
+    </Link>
     <MASM>
       <UseSafeExceptionHandlers>true</UseSafeExceptionHandlers>
     </MASM>
@@ -116,6 +120,9 @@
     <ClCompile>
       <PreprocessorDefinitions>WIN64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
+    <Link>
+      <BaseAddress>0x078068000000</BaseAddress>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'">
     <ClCompile>
@@ -188,7 +195,6 @@
       <ProgramDatabaseFile>$(SolutionDir)pdb\$(TargetName).pdb</ProgramDatabaseFile>
       <StripPrivateSymbols>$(SolutionDir)pdb\$(TargetName)_pub.pdb</StripPrivateSymbols>
       <MapFileName>$(SolutionDir)map\$(TargetName).map</MapFileName>
-      <BaseAddress>0x68000000</BaseAddress>
     </Link>
     <Bscmake>
       <OutputFile>$(SolutionDir)bsc\$(TargetName).bsc</OutputFile>
@@ -203,7 +209,6 @@
       <ProgramDatabaseFile>$(SolutionDir)pdb\$(Platform)\$(TargetName).pdb</ProgramDatabaseFile>
       <StripPrivateSymbols>$(SolutionDir)pdb\$(Platform)\$(TargetName)_pub.pdb</StripPrivateSymbols>
       <MapFileName>$(SolutionDir)map\$(Platform)\$(TargetName).map</MapFileName>
-      <BaseAddress>0x078068000000</BaseAddress>
     </Link>
     <Bscmake>
       <OutputFile>$(SolutionDir)bsc\$(Platform)\$(TargetName).bsc</OutputFile>
