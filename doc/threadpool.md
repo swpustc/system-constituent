@@ -217,6 +217,45 @@ public:
 
 在测试代码中，可以查看`threadpool`的[示例代码](../test/threadpool.cpp)。
 
+```cpp
+// threadpool<> example
+#include <threadpool.h>                 // threadpool<>
+#include <link_system_constituent.h>    // linker
+
+using namespace std;
+
+void foo(int length, char c)
+{
+    while (length-- >= 0)
+    {
+        cout << c;
+        this_thread::sleep_for(chrono::milliseconds(100));
+    }
+}
+
+int main()
+{
+    set_log_location("threadpool.log"); // set log file location
+
+    threadpool<> thpool;
+    thpool.set_thread_number(6); // set threadpool thread number to 6
+    // the same as: threadpool<> thpool(6);
+
+    char c = 'A';
+    for (int i = 0; i < 16; i++)
+        thpool.push(foo, 3 + i % 3, c++); // spawn thread that calls foo(3+i%3, c++)
+
+    // synchronize threadpool: call threadpool<bool>::~threadpool
+
+    return 0;
+}
+```
+
+输出：
+```
+ABCFEDBCAFDEBACFEDBCAFEDBGCFEHCGIFJHIGKLHJIGKLJHIKMLHJIMKLNOIKMLONPMLNOPONPNOPO
+```
+
 
 ## 要求
 
