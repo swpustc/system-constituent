@@ -10,21 +10,31 @@
 
 using namespace std;
 
-log_stream_manager_t::log_stream_manager_t()
-    : m_log_ofstream(new ofstream), m_log_wofstream(new wofstream)
-{
-    m_clog_rdbuf = clog.rdbuf();
-    m_wclog_rdbuf = wclog.rdbuf();
-}
+// 导出的变量
+mutex g_log_lock;
+unique_ptr<ofstream> g_log_ofstream;
+unique_ptr<wofstream> g_log_wofstream;
 
-log_stream_manager_t::~log_stream_manager_t()
+// 静态变量
+static streambuf* m_clog_rdbuf;
+static wstreambuf* m_wclog_rdbuf;
+
+struct log_stream_manager_t
 {
-    clog.rdbuf(m_clog_rdbuf);
-    wclog.rdbuf(m_wclog_rdbuf);
+    log_stream_manager_t()
+    {
+        m_clog_rdbuf = clog.rdbuf();
+        m_wclog_rdbuf = wclog.rdbuf();
+        g_log_ofstream = make_unique<ofstream>();
+        g_log_wofstream = make_unique<wofstream>();
+    }
+    ~log_stream_manager_t()
+    {
+        clog.rdbuf(m_clog_rdbuf);
+        wclog.rdbuf(m_wclog_rdbuf);
 #if _MSC_VER <= 1800
-    m_log_ofstream.release();
-    m_log_wofstream.release();
+        g_log_ofstream.release();
+        g_log_wofstream.release();
 #endif /* _MSC_VER <= 1800 */
-}
-
-log_stream_manager_t g_log_stream_manager;
+    }
+} m_log_stream_manager;

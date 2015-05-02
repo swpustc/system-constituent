@@ -160,23 +160,9 @@ struct function_wapper
 };
 
 
-class log_stream_manager_t
-{
-private:
-    ::std::streambuf* m_clog_rdbuf;
-    ::std::wstreambuf* m_wclog_rdbuf;
-public:
-    ::std::mutex m_log_lock;
-    ::std::unique_ptr<::std::ofstream> m_log_ofstream;
-    ::std::unique_ptr<::std::wofstream> m_log_wofstream;
-    log_stream_manager_t();
-    ~log_stream_manager_t();
-};
-SYSCONAPI log_stream_manager_t g_log_stream_manager;
-
-#define g_log_lock      (g_log_stream_manager.m_log_lock)
-#define g_log_ofstream  (*g_log_stream_manager.m_log_ofstream)
-#define g_log_wofstream (*g_log_stream_manager.m_log_wofstream)
+SYSCONAPI ::std::mutex g_log_lock;
+SYSCONAPI ::std::unique_ptr<::std::ofstream> g_log_ofstream;
+SYSCONAPI ::std::unique_ptr<::std::wofstream> g_log_wofstream;
 
 
 #ifdef _UNICODE
@@ -319,12 +305,12 @@ void set_log_location(::std::basic_string<Elem, T, A> file_name)
 // 设置log流的文件位置
 template<class Elem> inline void set_log_location(const Elem* file_name)
 {
-    g_log_ofstream.open(file_name, ::std::ios::app);
-    g_log_wofstream.open(file_name, ::std::ios::app);
-    auto rdbuf = g_log_ofstream.rdbuf();
+    g_log_ofstream->open(file_name, ::std::ios::app);
+    g_log_wofstream->open(file_name, ::std::ios::app);
+    auto rdbuf = g_log_ofstream->rdbuf();
     if (rdbuf)
         ::std::clog.rdbuf(rdbuf);
-    auto wrdbuf = g_log_wofstream.rdbuf();
+    auto wrdbuf = g_log_wofstream->rdbuf();
     if (wrdbuf)
         ::std::wclog.rdbuf(wrdbuf);
     debug_output<true>(_T("Process Start: [PID:"),
