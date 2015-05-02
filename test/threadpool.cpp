@@ -90,5 +90,6 @@ int main()
         for (auto& fut : fut_res.first)
             fut.get();
 
+    this_thread::sleep_for(seconds(3));
     return 0;
 }
