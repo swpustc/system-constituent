@@ -3,16 +3,16 @@
 * 支持平台：Windows; Linux
 * 编译环境：VS2010+; g++
 * 创建时间：2015-04-25 （宋万鹏）
-* 最后修改：2015-05-01 （宋万鹏）
+* 最后修改：2015-05-02 （宋万鹏）
 ***********************************************************/
 
 #define FILE_VERSION_MAJOR  1
 #define FILE_VERSION_MINOR  0
 #define FILE_VERSION_POINT  1
-#define FILE_VERSION_POINT2 0
+#define FILE_VERSION_POINT2 1
 
 #define INTERAL_NAME        _T("system")
-#define PRODUCT_NAME        _T("System Constituent")
+#define PRODUCT_NAME        _T("系统组件")
 #define SUPPORT_AUTHOR      _T("宋万鹏")
 #define EMAIL_ADDRESS       _T("swpustc@mail.ustc.edu.cn")
 #define COMPANY_NAME        _T("杭州赤霄科技有限公司")
