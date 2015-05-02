@@ -176,10 +176,11 @@ template<class T, class Arg> inline void debug_put(::std::basic_ostream<char, T>
 {
     ::std::stringstream ss;
     ss << ::std::forward<Arg>(arg);
-    os << ss.str();
+    auto&& str = ss.str();
+    os << str;
     os.flush();
 #if defined(_DEBUG) || defined(DEBUG)
-    ::OutputDebugStringA(ss.str().c_str());
+    ::OutputDebugStringA(str.c_str());
 #endif
 }
 
@@ -187,10 +188,11 @@ template<class T, class Arg> inline void debug_put(::std::basic_ostream<wchar_t,
 {
     ::std::wstringstream ss;
     ss << ::std::forward<Arg>(arg);
-    os << ss.str();
+    auto&& str = ss.str();
+    os << str;
     os.flush();
 #if defined(_DEBUG) || defined(DEBUG)
-    ::OutputDebugStringW(ss.str().c_str());
+    ::OutputDebugStringW(str.c_str());
 #endif
 }
 
@@ -305,8 +307,13 @@ void set_log_location(::std::basic_string<Elem, T, A> file_name)
 // 设置log流的文件位置
 template<class Elem> inline void set_log_location(const Elem* file_name)
 {
-    g_log_ofstream->open(file_name, ::std::ios::app);
-    g_log_wofstream->open(file_name, ::std::ios::app);
+#ifdef _WIN32
+    g_log_ofstream->open(file_name, ::std::ios::app || ::std::ios::ate, _SH_DENYNO);
+    g_log_wofstream->open(file_name, ::std::ios::app || ::std::ios::ate, _SH_DENYNO);
+#else  /* _WIN32 */
+    g_log_ofstream->open(file_name, ::std::ios::app || ::std::ios::ate);
+    g_log_wofstream->open(file_name, ::std::ios::app || ::std::ios::ate);
+#endif  /* _WIN32 */
     auto rdbuf = g_log_ofstream->rdbuf();
     if (rdbuf)
         ::std::clog.rdbuf(rdbuf);
