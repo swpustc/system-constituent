@@ -228,9 +228,9 @@ public:
         size_t length = (size_t)::MultiByteToWideChar(codepage, 0, first, (int)(last - first), nullptr, 0);
         wide_string wstr;
         wstr.resize(length);
-        size_t result = (size_t)::MultiByteToWideChar(codepage, 0, first, (int)(last - first), (LPWSTR)const_cast<Elem*>(wstr.c_str()), length + 1);
+        size_t result = (size_t)::MultiByteToWideChar(codepage, 0, first, (int)(last - first), (LPWSTR)const_cast<Elem*>(wstr.c_str()), (int)(length + 1));
         assert(length == result);
-        nconv += result;
+        nconv = result;
         return ::std::move(wstr);
     }
     byte_string to_bytes(Elem _Char)
@@ -253,9 +253,9 @@ public:
         size_t length = (size_t)::WideCharToMultiByte(codepage, 0, (LPCWCH)first, (int)(last - first), nullptr, 0, (LPCCH)&State, nullptr);
         byte_string str;
         str.resize(length);
-        size_t result = (size_t)::WideCharToMultiByte(codepage, 0, (LPCWCH)first, (int)(last - first), const_cast<char*>(str.c_str()), 0, (LPCCH)&State, nullptr);
+        size_t result = (size_t)::WideCharToMultiByte(codepage, 0, (LPCWCH)first, (int)(last - first), const_cast<char*>(str.c_str()), (int)(length + 1), (LPCCH)&State, nullptr);
         assert(length == result);
-        nconv += result;
+        nconv = result;
         return ::std::move(str);
     }
     convert_cp_unicode_t(const convert_cp_unicode_t&) = delete;
@@ -287,25 +287,31 @@ template<class T, class Arg> inline void debug_put(::std::basic_stringstream<cha
 {
     ss << ::std::forward<Arg>(arg);
 #ifdef _MSC_VER
-    auto&& str = convert_utf8_unicode.to_bytes(convert_ansi_unicode.from_bytes(ss.str()));
+    auto&& uni_str = convert_ansi_unicode.from_bytes(ss.str());
+    auto&& cvt_str = convert_utf8_unicode.to_bytes(uni_str);
 #else  /* _MSC_VER */
-    auto&& str = ss.str();
+    auto&& cvt_str = ss.str();
 #endif  /* _MSC_VER */
-    g_log_ofstream << str;
+    g_log_ofstream << cvt_str;
     g_log_ofstream.flush();
 #if defined(_DEBUG) || defined(DEBUG)
-    ::OutputDebugStringA(str.c_str());
+#ifdef _MSC_VER
+    ::OutputDebugStringW(uni_str.c_str());
+#else  /* _MSC_VER */
+    ::OutputDebugStringA(cvt_str.c_str());
+#endif  /* _MSC_VER */
 #endif
 }
 
 template<class T, class Arg> inline void debug_put(::std::basic_stringstream<wchar_t, T>&& ss, Arg&& arg)
 {
     ss << ::std::forward<Arg>(arg);
-    auto&& str = convert_utf8_unicode.to_bytes(ss.str());
-    g_log_ofstream << str;
+    auto&& uni_str = ss.str();
+    auto&& cvt_str = convert_utf8_unicode.to_bytes(uni_str);
+    g_log_ofstream << cvt_str;
     g_log_ofstream.flush();
 #if defined(_DEBUG) || defined(DEBUG)
-    ::OutputDebugStringW(str.c_str());
+    ::OutputDebugStringW(uni_str.c_str());
 #endif
 }
 
@@ -333,7 +339,7 @@ inline void _debug_output()
 
 template<class T, class... Args> inline void _debug_output(T&& arg, Args&&... args)
 {
-    debug_put(_tstringstream, arg);
+    debug_put(_tstringstream(), arg);
     _debug_output(::std::forward<Args>(args)...);
 }
 
@@ -420,7 +426,7 @@ void set_log_location(::std::basic_string<Elem, T, A> file_name)
 // 设置log流的文件位置
 template<class Elem> inline void set_log_location(const Elem* file_name)
 {
-    g_log_ofstream.open(file_name, ::std::ios::app || ::std::ios::ate || ::std::ios::binary);
+    g_log_ofstream.open(file_name, ::std::ios::app | ::std::ios::ate | ::std::ios::binary);
     debug_output<true>(_T("Process Start: [PID:"),
 #if defined(_WIN32) || defined(WIN32)
         ::GetCurrentProcessId()

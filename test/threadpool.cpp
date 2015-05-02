@@ -80,10 +80,10 @@ int main()
 
     thpool1.detach(4);
 
-    debug_output<true>(_T("thread_number:"), thread_number, _T("\nfree_thread_number"), free_thread_number,
-        _T("\ntasks_number"), tasks_number, _T("\ntasks_completed_number"), tasks_completed_number,
-        _T("\ntasks_total_number"), tasks_total_number, _T("\ndefault_thread_number"), default_thread_number,
-        _T("\nthreadpool_type"), threadpool_type.name(), _T("\nnew_thread_number"), new_thread_number);
+    debug_output<true>(_T("thread_number: "), thread_number, _T("\nfree_thread_number: "), free_thread_number,
+        _T("\ntasks_number: "), tasks_number, _T("\ntasks_completed_number: "), tasks_completed_number,
+        _T("\ntasks_total_number: "), tasks_total_number, _T("\ndefault_thread_number: "), default_thread_number,
+        _T("\nthreadpool_type: "), threadpool_type.name(), _T("\nnew_thread_number: "), new_thread_number);
 
     // 同步线程池分离的任务
     if (fut_res.second)
