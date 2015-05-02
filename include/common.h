@@ -276,27 +276,34 @@ SYSCONAPI ::std::wstring_convert<::std::codecvt_utf8<wchar_t>, wchar_t> convert_
 #define convert_ansi_unicode convert_utf8_unicode
 #endif  /* _MSC_VER */
 
+#ifdef _UNICODE
+typedef ::std::wstringstream    _tstringstream;
+#else  /* _UNICODE */
+typedef ::std::stringstream     _tstringstream;
+#endif  /* _UNICODE */
 
-template<class T, class Arg> inline void debug_put(::std::basic_ostream<char, T>& os, Arg&& arg)
+
+template<class T, class Arg> inline void debug_put(::std::basic_stringstream<char, T>&& ss, Arg&& arg)
 {
-    ::std::stringstream ss;
     ss << ::std::forward<Arg>(arg);
+#ifdef _MSC_VER
+    auto&& str = convert_utf8_unicode.to_bytes(convert_ansi_unicode.from_bytes(ss.str()));
+#else  /* _MSC_VER */
     auto&& str = ss.str();
-    convert_utf8_unicode.from_bytes(str);
-    os << str;
-    os.flush();
+#endif  /* _MSC_VER */
+    g_log_ofstream << str;
+    g_log_ofstream.flush();
 #if defined(_DEBUG) || defined(DEBUG)
     ::OutputDebugStringA(str.c_str());
 #endif
 }
 
-template<class T, class Arg> inline void debug_put(::std::basic_ostream<wchar_t, T>& os, Arg&& arg)
+template<class T, class Arg> inline void debug_put(::std::basic_stringstream<wchar_t, T>&& ss, Arg&& arg)
 {
-    ::std::wstringstream ss;
     ss << ::std::forward<Arg>(arg);
-    auto&& str = ss.str();
-    os << str;
-    os.flush();
+    auto&& str = convert_utf8_unicode.to_bytes(ss.str());
+    g_log_ofstream << str;
+    g_log_ofstream.flush();
 #if defined(_DEBUG) || defined(DEBUG)
     ::OutputDebugStringW(str.c_str());
 #endif
@@ -305,76 +312,76 @@ template<class T, class Arg> inline void debug_put(::std::basic_ostream<wchar_t,
 inline void _debug_output()
 {
     auto now = ::std::chrono::system_clock::to_time_t(::std::chrono::system_clock::now());
-    debug_put(_tclog, _T(" [TID:"));
-    debug_put(_tclog,
+    debug_put(_tstringstream(), _T(" [TID:"));
+    debug_put(_tstringstream(),
 #if defined(_WIN32) || defined(WIN32)
         ::GetCurrentThreadId()
 #else // Linux
         ::gettid()
 #endif // #if defined(_WIN32) || defined(WIN32)
         );
-    debug_put(_tclog, _T("] "));
+    debug_put(_tstringstream(), _T("] "));
 #ifdef _MSC_VER
 #pragma warning( push )
 #pragma warning( disable : 4996 )
-    debug_put(_tclog, ::_tctime(&now));
+    debug_put(_tstringstream(), ::_tctime(&now));
 #pragma warning( pop )
 #else // _MSC_VER
-    debug_put(::std::clog, ::std::ctime(&now));
+    debug_put(::std::stringstream(), ::std::ctime(&now));
 #endif // #ifdef _MSC_VER
 }
 
 template<class T, class... Args> inline void _debug_output(T&& arg, Args&&... args)
 {
-    debug_put(_tclog, arg);
+    debug_put(_tstringstream, arg);
     _debug_output(::std::forward<Args>(args)...);
 }
 
 template<class... Args> inline void _debug_output(const char* debug_string, Args&&... args)
 {
-    debug_put(::std::clog, debug_string);
+    debug_put(::std::stringstream(), debug_string);
     _debug_output(::std::forward<Args>(args)...);
 }
 
 template<class... Args> inline void _debug_output(volatile char* debug_string, Args&&... args)
 {
-    debug_put(::std::clog, debug_string);
+    debug_put(::std::stringstream(), debug_string);
     _debug_output(::std::forward<Args>(args)...);
 }
 
 template<class... Args> inline void _debug_output(const volatile char* debug_string, Args&&... args)
 {
-    debug_put(::std::clog, debug_string);
+    debug_put(::std::stringstream(), debug_string);
     _debug_output(::std::forward<Args>(args)...);
 }
 
 template<class T, class A, class... Args> inline void _debug_output(const ::std::basic_string<char, T, A>& debug_string, Args&&... args)
 {
-    debug_put(::std::clog, debug_string);
+    debug_put(::std::stringstream(), debug_string);
     _debug_output(::std::forward<Args>(args)...);
 }
 
 template<class... Args> inline void _debug_output(const wchar_t* debug_string, Args&&... args)
 {
-    debug_put(::std::wclog, debug_string);
+    debug_put(::std::wstringstream(), debug_string);
     _debug_output(::std::forward<Args>(args)...);
 }
 
 template<class... Args> inline void _debug_output(volatile wchar_t* debug_string, Args&&... args)
 {
-    debug_put(::std::wclog, debug_string);
+    debug_put(::std::wstringstream(), debug_string);
     _debug_output(::std::forward<Args>(args)...);
 }
 
 template<class... Args> inline void _debug_output(const volatile wchar_t* debug_string, Args&&... args)
 {
-    debug_put(::std::wclog, debug_string);
+    debug_put(::std::wstringstream(), debug_string);
     _debug_output(::std::forward<Args>(args)...);
 }
 
 template<class T, class A, class... Args> inline void _debug_output(const ::std::basic_string<wchar_t, T, A>& debug_string, Args&&... args)
 {
-    debug_put(::std::wclog, debug_string);
+    debug_put(::std::wstringstream(), debug_string);
     _debug_output(::std::forward<Args>(args)...);
 }
 
@@ -413,19 +420,7 @@ void set_log_location(::std::basic_string<Elem, T, A> file_name)
 // 设置log流的文件位置
 template<class Elem> inline void set_log_location(const Elem* file_name)
 {
-#ifdef _WIN32
-    g_log_ofstream->open(file_name, ::std::ios::app || ::std::ios::ate, _SH_DENYNO);
-    g_log_wofstream->open(file_name, ::std::ios::app || ::std::ios::ate, _SH_DENYNO);
-#else  /* _WIN32 */
-    g_log_ofstream->open(file_name, ::std::ios::app || ::std::ios::ate);
-    g_log_wofstream->open(file_name, ::std::ios::app || ::std::ios::ate);
-#endif  /* _WIN32 */
-    auto rdbuf = g_log_ofstream->rdbuf();
-    if (rdbuf)
-        ::std::clog.rdbuf(rdbuf);
-    auto wrdbuf = g_log_wofstream->rdbuf();
-    if (wrdbuf)
-        ::std::wclog.rdbuf(wrdbuf);
+    g_log_ofstream.open(file_name, ::std::ios::app || ::std::ios::ate || ::std::ios::binary);
     debug_output<true>(_T("Process Start: [PID:"),
 #if defined(_WIN32) || defined(WIN32)
         ::GetCurrentProcessId()
