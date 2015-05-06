@@ -54,25 +54,25 @@
     <LinkIncremental>true</LinkIncremental>
     <TargetName>$(ProjectName)</TargetName>
     <OutDir>$(SolutionDir)..\master\bin\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)tmp\$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)..\master\tmp\$(ProjectName)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <TargetName>$(ProjectName)</TargetName>
     <OutDir>$(SolutionDir)..\master\bin\$(Configuration)\$(Platform)\</OutDir>
-    <IntDir>$(SolutionDir)tmp\$(Configuration)\$(Platform)\</IntDir>
+    <IntDir>$(SolutionDir)..\master\tmp\$(ProjectName)\$(Configuration)\$(Platform)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <TargetName>$(ProjectName)</TargetName>
     <OutDir>$(SolutionDir)..\master\bin\</OutDir>
-    <IntDir>$(SolutionDir)tmp\$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)..\master\tmp\$(ProjectName)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <TargetName>$(ProjectName)</TargetName>
     <OutDir>$(SolutionDir)..\master\bin\$(Platform)\</OutDir>
-    <IntDir>$(SolutionDir)tmp\$(Configuration)\$(Platform)\</IntDir>
+    <IntDir>$(SolutionDir)..\master\tmp\$(ProjectName)\$(Configuration)\$(Platform)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
