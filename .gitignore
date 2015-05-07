@@ -29,4 +29,6 @@
 /tmp/
 _UpgradeReport_Files/
 ipch/
+csvstream.csv
+csvstream.log
 threadpool.log

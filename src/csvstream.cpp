@@ -12,7 +12,7 @@
 using namespace std;
 
 // CSV 捕获正则表达式（原始字符串）
-static const regex g_csv_regex(R"___(^(?:"((?:[^"]|"")*)"|([^",]*))(?:,|$))___");
+static const regex g_csv_regex(R"___(^(?:"((?:[^"]|"")*)"|([^",]*)),)___");
 // CSV 替换字符串
 static const string g_csv_replace_from(R"_("")_");
 static const string g_csv_replace_to(R"_(")_");
@@ -36,6 +36,7 @@ bool csvstream::read()
     {
         // 单行数据
         vector<string> data_line;
+        line.push_back(',');
         const char* first = line.c_str();
         while (*first && regex_search(first, match_result, g_csv_regex, regex_constants::format_no_copy))
         {
@@ -80,20 +81,32 @@ bool csvstream::write()
     // 设置写指针到开始
     m_io.seekp(0, ios::beg);
     size_t row_number = 0;
-    // 每一行数据
+    // 获取最大是列宽
     for (auto& line_data : m_data)
-    {   // 每一个元数据
         row_number = auto_max(row_number, line_data.size());
-    }
+    // 每一行数据
     for (auto& line_data : m_data)
     {   // 验证元素个数少于最大列宽
         assert(line_data.size() <= row_number);
         line_data.resize(row_number);
         string line_string;
-        for (auto& line : line_data)
-            line_string += line + ',';
+        for (auto line : line_data)
+        {
+            size_t pos;
+            if ((pos = line.find_first_of(g_csv_replace_first_of)) != string::npos)
+            {
+                pos = line.find(g_csv_replace_to, pos);
+                while (pos != string::npos)
+                {
+                    line.replace(pos, g_csv_replace_to.size(), g_csv_replace_from);
+                    pos = line.find(g_csv_replace_to, pos + g_csv_replace_from.size());
+                }
+                line = '\"' + move(line) + '\"';
+            }
+            line_string += move(line) + ',';
+        }
         if (line_string.size())
-            *line_string.end() = '\n';
+            *line_string.rbegin() = '\n';
         m_io << line_string;
     }
     return true;

@@ -19,6 +19,6 @@ int main()
     csvstream csv; // CSV文档对象
     csv.open("csvstream.csv");
     csv.read();
-
+    csv.write();
     return 0;
 }
