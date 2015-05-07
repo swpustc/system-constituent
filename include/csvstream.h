@@ -9,7 +9,6 @@
 #pragma once
 
 #include "common.h"
-#include <mutex>
 #include <regex>
 #include <deque>
 #include <vector>
@@ -22,7 +21,7 @@ class csvstream
 {
 private:
     // 锁定文件读写
-    ::std::mutex m_lock;
+    spin_mutex m_lock;
     // CSV行列数据
     ::std::deque<::std::vector<::std::string>> m_data;
 
@@ -154,6 +153,9 @@ private:
     SYSCONAPI bool _write(::std::fstream&& svcstream);
 
 public:
+    csvstream(const csvstream&) = delete;
+    csvstream& operator=(const csvstream&) = delete;
+
     template<class T> // 读取CSV文件
     bool read(T&& filename){ return _read(_open(::std::forward<T>(filename), ::std::ios::in)); }
     template<class T> // 写入CSV文件

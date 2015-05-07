@@ -29,7 +29,7 @@ bool csvstream::_read(fstream&& svcstream)
     // 捕获结果match_results
     cmatch match_result;
     // IO读写锁
-    lock_guard<mutex> lck(m_lock);
+    lock_guard<spin_mutex> lck(m_lock);
     // 清空数据
     m_data.clear();
     // 读取一行
@@ -81,7 +81,7 @@ bool csvstream::_write(fstream&& svcstream)
         return false;
     size_t row_number = 0;
     // IO读写锁
-    lock_guard<mutex> lck(m_lock);
+    lock_guard<spin_mutex> lck(m_lock);
     // 获取最大是列宽
     for (auto& line_data : m_data)
         row_number = auto_max(row_number, line_data.size());
@@ -116,7 +116,7 @@ bool csvstream::_write(fstream&& svcstream)
 void csvstream::_set_cell(size_t row, size_t col, const char* val)
 {
     // IO读写锁
-    lock_guard<mutex> lck(m_lock);
+    lock_guard<spin_mutex> lck(m_lock);
     if (m_data.size() < row + 1)
         m_data.resize(row + 1);
     auto& data_line = m_data.at(row);
@@ -129,7 +129,7 @@ void csvstream::_set_cell(size_t row, size_t col, const char* val)
 void csvstream::_set_cell(size_t row, size_t col, const string& val)
 {
     // IO读写锁
-    lock_guard<mutex> lck(m_lock);
+    lock_guard<spin_mutex> lck(m_lock);
     if (m_data.size() < row + 1)
         m_data.resize(row + 1);
     auto& data_line = m_data.at(row);
@@ -142,7 +142,7 @@ void csvstream::_set_cell(size_t row, size_t col, const string& val)
 void csvstream::_set_cell(size_t row, size_t col, string&& val)
 {
     // IO读写锁
-    lock_guard<mutex> lck(m_lock);
+    lock_guard<spin_mutex> lck(m_lock);
     if (m_data.size() < row + 1)
         m_data.resize(row + 1);
     auto& data_line = m_data.at(row);
