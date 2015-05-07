@@ -1,16 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{25538A7E-3EAC-4AB2-A112-0762D6C3157E}</ProjectGuid>
-    <RootNamespace>system</RootNamespace>
+    <ProjectGuid>{13BE564E-1C7F-4C4B-9A97-F4345F38D36D}</ProjectGuid>
+    <RootNamespace>csvstream</RootNamespace>
     <Keyword>Win32Proj</Keyword>
   </PropertyGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)src\common.cpp" />
-    <ClCompile Include="$(SolutionDir)src\csvstream.cpp" />
-    <ClInclude Include="$(SolutionDir)src\version.h" />
-    <ClInclude Include="$(SolutionDir)include\*" />
-    <ResourceCompile Include="$(SolutionDir)src\system.rc" />
+    <ClCompile Include="$(SolutionDir)csvstream.cpp" />
   </ItemGroup>
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -32,7 +28,7 @@
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
@@ -54,39 +50,39 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <TargetName>$(ProjectName)</TargetName>
-    <OutDir>$(SolutionDir)..\master\bin\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)..\master\tmp\$(ProjectName)\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)..\..\master\bin\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)..\..\master\tmp\$(ProjectName)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <TargetName>$(ProjectName)</TargetName>
-    <OutDir>$(SolutionDir)..\master\bin\$(Configuration)\$(Platform)\</OutDir>
-    <IntDir>$(SolutionDir)..\master\tmp\$(ProjectName)\$(Configuration)\$(Platform)\</IntDir>
+    <OutDir>$(SolutionDir)..\..\master\bin\$(Configuration)\$(Platform)\</OutDir>
+    <IntDir>$(SolutionDir)..\..\master\tmp\$(ProjectName)\$(Configuration)\$(Platform)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <TargetName>$(ProjectName)</TargetName>
-    <OutDir>$(SolutionDir)..\master\bin\</OutDir>
-    <IntDir>$(SolutionDir)..\master\tmp\$(ProjectName)\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)..\..\master\bin\</OutDir>
+    <IntDir>$(SolutionDir)..\..\master\tmp\$(ProjectName)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <TargetName>$(ProjectName)</TargetName>
-    <OutDir>$(SolutionDir)..\master\bin\$(Platform)\</OutDir>
-    <IntDir>$(SolutionDir)..\master\tmp\$(ProjectName)\$(Configuration)\$(Platform)\</IntDir>
+    <OutDir>$(SolutionDir)..\..\master\bin\$(Platform)\</OutDir>
+    <IntDir>$(SolutionDir)..\..\master\tmp\$(ProjectName)\$(Configuration)\$(Platform)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>SYSCON_EXPORT;_WINDOWS;WIN32;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_WINDOWS;WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <WarningLevel>Level3</WarningLevel>
       <BrowseInformation>true</BrowseInformation>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <SDLCheck>true</SDLCheck>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>$(SolutionDir)..\master\bin\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <SubSystem>Windows</SubSystem>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\..\master\bin\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <SubSystem>Console</SubSystem>
       <LargeAddressAware>true</LargeAddressAware>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -94,14 +90,14 @@
     </Link>
     <ResourceCompile>
       <Culture>0x0804</Culture>
-      <AdditionalIncludeDirectories>$(SolutionDir)include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <NullTerminateStrings>true</NullTerminateStrings>
     </ResourceCompile>
     <Bscmake>
       <PreserveSbr>true</PreserveSbr>
     </Bscmake>
     <MASM>
-      <IncludePaths>$(SolutionDir)include\</IncludePaths>
+      <IncludePaths>$(SolutionDir)..\include\</IncludePaths>
       <WarningLevel>0</WarningLevel>
     </MASM>
   </ItemDefinitionGroup>
@@ -111,7 +107,7 @@
       <CreateHotpatchableImage>true</CreateHotpatchableImage>
     </ClCompile>
     <Link>
-      <BaseAddress>0x68000000</BaseAddress>
+      <BaseAddress>0x10000000</BaseAddress>
     </Link>
     <MASM>
       <UseSafeExceptionHandlers>true</UseSafeExceptionHandlers>
@@ -122,7 +118,7 @@
       <PreprocessorDefinitions>WIN64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <BaseAddress>0x078068000000</BaseAddress>
+      <BaseAddress>0x078010000000</BaseAddress>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'">
@@ -161,58 +157,58 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
-      <ProgramDataBaseFileName>$(SolutionDir)..\master\pdb\$(Configuration)\$(TargetName).vc$(PlatformToolsetVersion).pdb</ProgramDataBaseFileName>
+      <ProgramDataBaseFileName>$(SolutionDir)..\..\master\pdb\$(Configuration)\$(TargetName).vc$(PlatformToolsetVersion).pdb</ProgramDataBaseFileName>
     </ClCompile>
     <Link>
-      <ProgramDatabaseFile>$(SolutionDir)..\master\pdb\$(Configuration)\$(TargetName).pdb</ProgramDatabaseFile>
-      <StripPrivateSymbols>$(SolutionDir)..\master\pdb\$(Configuration)\$(TargetName)_pub.pdb</StripPrivateSymbols>
-      <MapFileName>$(SolutionDir)..\master\map\$(Configuration)\$(TargetName).map</MapFileName>
+      <ProgramDatabaseFile>$(SolutionDir)..\..\master\pdb\$(Configuration)\$(TargetName).pdb</ProgramDatabaseFile>
+      <StripPrivateSymbols>$(SolutionDir)..\..\master\pdb\$(Configuration)\$(TargetName)_pub.pdb</StripPrivateSymbols>
+      <MapFileName>$(SolutionDir)..\..\master\map\$(Configuration)\$(TargetName).map</MapFileName>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
     <Bscmake>
-      <OutputFile>$(SolutionDir)..\master\bsc\$(Configuration)\$(TargetName).bsc</OutputFile>
+      <OutputFile>$(SolutionDir)..\..\master\bsc\$(Configuration)\$(TargetName).bsc</OutputFile>
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <ProgramDataBaseFileName>$(SolutionDir)..\master\pdb\$(Configuration)\$(Platform)\$(TargetName).vc$(PlatformToolsetVersion).pdb</ProgramDataBaseFileName>
+      <ProgramDataBaseFileName>$(SolutionDir)..\..\master\pdb\$(Configuration)\$(Platform)\$(TargetName).vc$(PlatformToolsetVersion).pdb</ProgramDataBaseFileName>
     </ClCompile>
     <Link>
-      <ProgramDatabaseFile>$(SolutionDir)..\master\pdb\$(Configuration)\$(Platform)\$(TargetName).pdb</ProgramDatabaseFile>
-      <StripPrivateSymbols>$(SolutionDir)..\master\pdb\$(Configuration)\$(Platform)\$(TargetName)_pub.pdb</StripPrivateSymbols>
-      <MapFileName>$(SolutionDir)..\master\map\$(Configuration)\$(Platform)\$(TargetName).map</MapFileName>
+      <ProgramDatabaseFile>$(SolutionDir)..\..\master\pdb\$(Configuration)\$(Platform)\$(TargetName).pdb</ProgramDatabaseFile>
+      <StripPrivateSymbols>$(SolutionDir)..\..\master\pdb\$(Configuration)\$(Platform)\$(TargetName)_pub.pdb</StripPrivateSymbols>
+      <MapFileName>$(SolutionDir)..\..\master\map\$(Configuration)\$(Platform)\$(TargetName).map</MapFileName>
     </Link>
     <Bscmake>
-      <OutputFile>$(SolutionDir)..\master\bsc\$(Configuration)\$(Platform)\$(TargetName).bsc</OutputFile>
+      <OutputFile>$(SolutionDir)..\..\master\bsc\$(Configuration)\$(Platform)\$(TargetName).bsc</OutputFile>
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <ProgramDataBaseFileName>$(SolutionDir)..\master\pdb\$(TargetName).vc$(PlatformToolsetVersion).pdb</ProgramDataBaseFileName>
+      <ProgramDataBaseFileName>$(SolutionDir)..\..\master\pdb\$(TargetName).vc$(PlatformToolsetVersion).pdb</ProgramDataBaseFileName>
     </ClCompile>
     <Link>
-      <ProgramDatabaseFile>$(SolutionDir)..\master\pdb\$(TargetName).pdb</ProgramDatabaseFile>
-      <StripPrivateSymbols>$(SolutionDir)..\master\pdb\$(TargetName)_pub.pdb</StripPrivateSymbols>
-      <MapFileName>$(SolutionDir)..\master\map\$(TargetName).map</MapFileName>
+      <ProgramDatabaseFile>$(SolutionDir)..\..\master\pdb\$(TargetName).pdb</ProgramDatabaseFile>
+      <StripPrivateSymbols>$(SolutionDir)..\..\master\pdb\$(TargetName)_pub.pdb</StripPrivateSymbols>
+      <MapFileName>$(SolutionDir)..\..\master\map\$(TargetName).map</MapFileName>
     </Link>
     <Bscmake>
-      <OutputFile>$(SolutionDir)..\master\bsc\$(TargetName).bsc</OutputFile>
+      <OutputFile>$(SolutionDir)..\..\master\bsc\$(TargetName).bsc</OutputFile>
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <ProgramDataBaseFileName>$(SolutionDir)..\master\pdb\$(Platform)\$(TargetName).vc$(PlatformToolsetVersion).pdb</ProgramDataBaseFileName>
+      <ProgramDataBaseFileName>$(SolutionDir)..\..\master\pdb\$(Platform)\$(TargetName).vc$(PlatformToolsetVersion).pdb</ProgramDataBaseFileName>
     </ClCompile>
     <Link>
-      <ProgramDatabaseFile>$(SolutionDir)..\master\pdb\$(Platform)\$(TargetName).pdb</ProgramDatabaseFile>
-      <StripPrivateSymbols>$(SolutionDir)..\master\pdb\$(Platform)\$(TargetName)_pub.pdb</StripPrivateSymbols>
-      <MapFileName>$(SolutionDir)..\master\map\$(Platform)\$(TargetName).map</MapFileName>
+      <ProgramDatabaseFile>$(SolutionDir)..\..\master\pdb\$(Platform)\$(TargetName).pdb</ProgramDatabaseFile>
+      <StripPrivateSymbols>$(SolutionDir)..\..\master\pdb\$(Platform)\$(TargetName)_pub.pdb</StripPrivateSymbols>
+      <MapFileName>$(SolutionDir)..\..\master\map\$(Platform)\$(TargetName).map</MapFileName>
     </Link>
     <Bscmake>
-      <OutputFile>$(SolutionDir)..\master\bsc\$(Platform)\$(TargetName).bsc</OutputFile>
+      <OutputFile>$(SolutionDir)..\..\master\bsc\$(Platform)\$(TargetName).bsc</OutputFile>
     </Bscmake>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

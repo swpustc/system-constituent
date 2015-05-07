@@ -1,5 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "csvstream", "csvstream.vcxproj", "{13BE564E-1C7F-4C4B-9A97-F4345F38D36D}"
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "threadpool", "threadpool.vcxproj", "{4A0D4611-1162-4BE9-83AC-E633C9478F97}"
 EndProject
 Global
@@ -10,6 +11,14 @@ Global
 		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{13BE564E-1C7F-4C4B-9A97-F4345F38D36D}.Debug|Win32.ActiveCfg = Debug|Win32
+		{13BE564E-1C7F-4C4B-9A97-F4345F38D36D}.Debug|Win32.Build.0 = Debug|Win32
+		{13BE564E-1C7F-4C4B-9A97-F4345F38D36D}.Debug|x64.ActiveCfg = Debug|x64
+		{13BE564E-1C7F-4C4B-9A97-F4345F38D36D}.Debug|x64.Build.0 = Debug|x64
+		{13BE564E-1C7F-4C4B-9A97-F4345F38D36D}.Release|Win32.ActiveCfg = Release|Win32
+		{13BE564E-1C7F-4C4B-9A97-F4345F38D36D}.Release|Win32.Build.0 = Release|Win32
+		{13BE564E-1C7F-4C4B-9A97-F4345F38D36D}.Release|x64.ActiveCfg = Release|x64
+		{13BE564E-1C7F-4C4B-9A97-F4345F38D36D}.Release|x64.Build.0 = Release|x64
 		{4A0D4611-1162-4BE9-83AC-E633C9478F97}.Debug|Win32.ActiveCfg = Debug|Win32
 		{4A0D4611-1162-4BE9-83AC-E633C9478F97}.Debug|Win32.Build.0 = Debug|Win32
 		{4A0D4611-1162-4BE9-83AC-E633C9478F97}.Debug|x64.ActiveCfg = Debug|x64
