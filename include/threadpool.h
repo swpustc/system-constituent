@@ -478,28 +478,11 @@ public:
     // 获取类型信息
     static const type_info& this_type()
     {
-        return typeid(threadpool<handle_exception>);
+        return typeid(threadpool);
     }
 
     // 初始化线程池，设置处理线程数，已初始化则失败
-    bool set_thread_number(int thread_number)
-    {
-        assert(thread_number >= 0 && thread_number < 255); // Thread number must greater than or equal 0 and less than 255
-        switch (m_exit_event.load())
-        {
-        case exit_event_t::INITIALIZATION: // 未初始化的线程池
-            m_exit_event = exit_event_t::NORMAL;
-            m_stop_thread = ::CreateEventW(nullptr, TRUE, FALSE, nullptr);  // 手动复位，无信号
-            m_notify_task = ::CreateEventW(nullptr, FALSE, FALSE, nullptr); // 自动复位，无信号
-            break;
-        default: // 已初始化的线程池将失败
-            return false;
-        }
-        if (thread_number < 0)
-            return false;
-        m_thread_number = thread_number;
-        return set_new_thread_number(thread_number);
-    }
+    SYSCONAPI bool set_thread_number(int thread_number);
     // 设置新的处理线程数，退出流程和未初始化的线程池则失败
     SYSCONAPI bool set_new_thread_number(int thread_number_new);
     // 重置线程池数量为初始数量
