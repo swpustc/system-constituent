@@ -154,8 +154,6 @@ private:
     SYSCONAPI bool _write(::std::fstream&& svcstream);
 
 public:
-    csvstream(){}
-
     template<class T> // 读取CSV文件
     bool read(T&& filename){ return _read(_open(::std::forward<T>(filename), ::std::ios::in)); }
     template<class T> // 写入CSV文件
