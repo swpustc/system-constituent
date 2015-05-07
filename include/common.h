@@ -283,10 +283,10 @@ private:
     size_t nconv;
 };
 SYSCONAPI_EXTERN convert_cp_unicode_t<CP_UTF8, wchar_t> convert_utf8_unicode;
-SYSCONAPI_EXTERN convert_cp_unicode_t<CP_ACP, wchar_t> convert_ansi_unicode;
+SYSCONAPI_EXTERN convert_cp_unicode_t<CP_ACP, wchar_t> convert_default_unicode;
 #else  /* _MSC_VER */
 SYSCONAPI_EXTERN ::std::wstring_convert<::std::codecvt_utf8<wchar_t>, wchar_t> convert_utf8_unicode;
-#define convert_ansi_unicode convert_utf8_unicode
+#define convert_default_unicode convert_utf8_unicode
 #endif  /* _MSC_VER */
 
 #ifdef _UNICODE
@@ -300,7 +300,7 @@ template<class T, class Arg> inline void debug_put(::std::basic_stringstream<cha
 {
     ss << ::std::forward<Arg>(arg);
 #ifdef _MSC_VER
-    auto&& uni_str = convert_ansi_unicode.from_bytes(ss.str());
+    auto&& uni_str = convert_default_unicode.from_bytes(ss.str());
     auto&& cvt_str = convert_utf8_unicode.to_bytes(uni_str);
 #else  /* _MSC_VER */
     auto&& cvt_str = ss.str();
