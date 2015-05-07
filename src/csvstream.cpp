@@ -36,6 +36,8 @@ bool csvstream::read()
     {
         // 单行数据
         vector<string> data_line;
+        // 验证getline是否输出了换行符
+        assert(*line.rbegin() != '\n');
         line.push_back(',');
         const char* first = line.c_str();
         while (*first && regex_search(first, match_result, g_csv_regex, regex_constants::format_no_copy))
