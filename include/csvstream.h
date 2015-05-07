@@ -46,5 +46,7 @@ public:
     // 文件是否打开
     bool is_open(){ return m_io.is_open(); }
     // 读取CSV文件
-    bool read();
+    SYSCONAPI bool read();
+    // 写入CSV文件
+    SYSCONAPI bool write();
 };

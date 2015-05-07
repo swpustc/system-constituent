@@ -11,12 +11,12 @@
 using namespace std;
 
 // 导出的变量
-mutex g_log_lock;
-ofstream g_log_ofstream;
+SYSCONAPI mutex g_log_lock;
+SYSCONAPI ofstream g_log_ofstream;
 
 #ifdef _MSC_VER
-convert_cp_unicode_t<CP_UTF8, wchar_t> convert_utf8_unicode("bad conversion to utf8", L"bad conversion from utf8");
-convert_cp_unicode_t<CP_ACP, wchar_t> convert_ansi_unicode("bad conversion to ansi", L"bad conversion from ansi");
+SYSCONAPI convert_cp_unicode_t<CP_UTF8, wchar_t> convert_utf8_unicode("bad conversion to utf8", L"bad conversion from utf8");
+SYSCONAPI convert_cp_unicode_t<CP_ACP, wchar_t> convert_ansi_unicode("bad conversion to ansi", L"bad conversion from ansi");
 #else  /* _MSC_VER */
-wstring_convert<codecvt_utf8<wchar_t>, wchar_t> convert_utf8_unicode("bad conversion to utf8", L"bad conversion from utf8");
+SYSCONAPI wstring_convert<codecvt_utf8<wchar_t>, wchar_t> convert_utf8_unicode("bad conversion to utf8", L"bad conversion from utf8");
 #endif  /* _MSC_VER */

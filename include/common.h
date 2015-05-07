@@ -60,13 +60,16 @@
 
 #ifdef _WIN32
 #  ifdef SYSCON_EXPORT
-#    define SYSCONAPI           extern __declspec(dllexport)
+#    define SYSCONAPI_EXTERN    extern __declspec(dllexport)
+#    define SYSCONAPI           __declspec(dllexport)
 #  else
-#    define SYSCONAPI           extern __declspec(dllimport)
+#    define SYSCONAPI_EXTERN    extern __declspec(dllimport)
+#    define SYSCONAPI           __declspec(dllimport)
 #  endif
 #endif
 #ifndef SYSCONAPI
-#  define SYSCONAPI             extern
+#  define SYSCONAPI_EXTERN      extern
+#  define SYSCONAPI
 #endif
 
 
@@ -162,8 +165,8 @@ struct function_wapper
 };
 
 
-SYSCONAPI ::std::mutex g_log_lock;
-SYSCONAPI ::std::ofstream g_log_ofstream;
+SYSCONAPI_EXTERN ::std::mutex g_log_lock;
+SYSCONAPI_EXTERN ::std::ofstream g_log_ofstream;
 
 #ifdef _MSC_VER
 template<uint32_t codepage = CP_ACP, class Elem = wchar_t, class Walloc = ::std::allocator<Elem>, class Balloc = ::std::allocator<char>>
@@ -279,10 +282,10 @@ private:
     bool has_werr;
     size_t nconv;
 };
-SYSCONAPI convert_cp_unicode_t<CP_UTF8, wchar_t> convert_utf8_unicode;
-SYSCONAPI convert_cp_unicode_t<CP_ACP, wchar_t> convert_ansi_unicode;
+SYSCONAPI_EXTERN convert_cp_unicode_t<CP_UTF8, wchar_t> convert_utf8_unicode;
+SYSCONAPI_EXTERN convert_cp_unicode_t<CP_ACP, wchar_t> convert_ansi_unicode;
 #else  /* _MSC_VER */
-SYSCONAPI ::std::wstring_convert<::std::codecvt_utf8<wchar_t>, wchar_t> convert_utf8_unicode;
+SYSCONAPI_EXTERN ::std::wstring_convert<::std::codecvt_utf8<wchar_t>, wchar_t> convert_utf8_unicode;
 #define convert_ansi_unicode convert_utf8_unicode
 #endif  /* _MSC_VER */
 
