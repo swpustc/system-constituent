@@ -20,11 +20,11 @@ static const string g_csv_replace_first_of(R"_(",)_");
 
 bool csvstream::read()
 {
+    if (!is_open())
+        return false;
     string line;
     // 捕获结果match_results
     cmatch match_result;
-    if (!is_open())
-        return false;
     // IO读写锁
     lock_guard<mutex> lck(m_lock);
     // 清空数据
@@ -67,6 +67,34 @@ bool csvstream::read()
             first = match_result.suffix().first;
         }
         m_data.push_back(move(data_line));
+    }
+    return true;
+}
+
+bool csvstream::write()
+{
+    if (!is_open())
+        return false;
+    // IO读写锁
+    lock_guard<mutex> lck(m_lock);
+    // 设置写指针到开始
+    m_io.seekp(0, ios::beg);
+    size_t row_number = 0;
+    // 每一行数据
+    for (auto& line_data : m_data)
+    {   // 每一个元数据
+        row_number = auto_max(row_number, line_data.size());
+    }
+    for (auto& line_data : m_data)
+    {   // 验证元素个数少于最大列宽
+        assert(line_data.size() <= row_number);
+        line_data.resize(row_number);
+        string line_string;
+        for (auto& line : line_data)
+            line_string += line + ',';
+        if (line_string.size())
+            *line_string.end() = '\n';
+        m_io << line_string;
     }
     return true;
 }
