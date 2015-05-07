@@ -101,7 +101,11 @@ private:
     void _get_cell(size_t row, size_t col, cell_skip_t&&){}
     template<class T> void _get_cell(size_t row, size_t col, T&&)
     {
-        static_assert(false, "T must be l-value reference.");
+        static_assert(false, "T must be a l-value reference.");
+    }
+    template<class T> void _get_cell(size_t row, size_t col, const T&)
+    {
+        static_assert(false, "T must not be a const type");
     }
 
     void _set_row(size_t row, size_t col){}
@@ -160,7 +164,7 @@ public:
     template<class T> // 写入单元格
     void set_cell(size_t row, size_t col, T&& val){ _set_cell(row, col, ::std::forward<T>(val)); }
     template<class T> // 读取单元格
-    void get_cell(size_t row, size_t col, T& val){ _get_cell(row, col, val); }
+    void get_cell(size_t row, size_t col, T&& val){ _get_cell(row, col, ::std::forward<T>(val)); }
 
     template<class... Args> // 写入一行
     void set_row(size_t row, Args&&... args){ _set_row(row, 0, ::std::forward<Args>(args)...); }
@@ -168,9 +172,9 @@ public:
     void set_col(size_t col, Args&&... args){ _set_col(0, col, ::std::forward<Args>(args)...); }
 
     template<class... Args> // 读取一行
-    void get_row(size_t row, Args&... args){ _get_row(row, 0, args...); }
+    void get_row(size_t row, Args&&... args){ _get_row(row, 0, ::std::forward<Args>(args)...); }
     template<class... Args> // 读取一列
-    void get_col(size_t col, Args&... args){ _get_col(0, col, args...); }
+    void get_col(size_t col, Args&&... args){ _get_col(0, col, ::std::forward<Args>(args)...); }
 
     SYSCONAPI static cell_skip_t cell_skip;
 };
