@@ -84,11 +84,23 @@ bool csvstream::_write(fstream&& svcstream)
     lock_guard<spin_mutex> lck(m_lock);
     // 获取最大是列宽
     for (auto& line_data : m_data)
-        row_number = auto_max(row_number, line_data.size());
+    {
+        size_t line_size = line_data.size();
+        if (line_size > row_number)
+        {   // 最后非空的单元格
+            size_t line_not_empty = line_size - 1;
+            // 对于超出最大列宽的部分，验证是否为空
+            for (; line_not_empty >= row_number; line_not_empty--)
+            {
+                if (!line_data.at(line_not_empty).empty())
+                    break;
+            }
+            row_number = auto_max(row_number, line_not_empty + 1);
+        }
+    }
     // 每一行数据
     for (auto& line_data : m_data)
-    {   // 验证元素个数少于最大列宽
-        assert(line_data.size() <= row_number);
+    {
         line_data.resize(row_number);
         string line_string;
         for (auto line : line_data)
