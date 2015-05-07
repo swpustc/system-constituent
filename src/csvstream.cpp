@@ -18,6 +18,9 @@ static const string g_csv_replace_from(R"_("")_");
 static const string g_csv_replace_to(R"_(")_");
 static const string g_csv_replace_first_of(R"_(",)_");
 
+// 跳过变量标识
+csvstream::cell_skip_t csvstream::cell_skip;
+
 bool csvstream::_read(fstream&& svcstream)
 {
     if (!svcstream.is_open())

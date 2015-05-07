@@ -24,7 +24,7 @@ int main()
     csv.set_cell(0, 3, _T("Tstring"));
     csv.set_cell(0, 4, R"_(raw string, "")_");
 
-    csv.set_row(1, 'a', "b", 3, L"wide", "multi");
+    csv.set_row(1, 'a', "b", 3, L"wide", csvstream::cell_skip, csvstream::cell_skip, "multi");
     csv.set_col(5, wstring(L"wstring中文"), string("string中文"));
 
     int c_0_0;
@@ -32,7 +32,7 @@ int main()
     unsigned long long c_0_2;
     wstring c_0_3;
     string c_0_4;
-    string c_1[5];
+    string c_1[7];
 
     string c_0_5;
     wstring c_1_5;
@@ -43,7 +43,7 @@ int main()
     csv.get_cell(0, 3, c_0_3);
     csv.get_cell(0, 4, c_0_4);
 
-    csv.get_row(1, c_1[0], c_1[1], c_1[2], c_1[3], c_1[4]);
+    csv.get_row(1, c_1[0], c_1[1], c_1[2], c_1[3], c_1[4], csvstream::cell_skip, c_1[6]);
     csv.get_col(5, c_0_5, c_1_5);
 
     debug_output<true>(c_0_0);
@@ -57,6 +57,8 @@ int main()
     debug_output<true>(c_1[2]);
     debug_output<true>(c_1[3]);
     debug_output<true>(c_1[4]);
+    debug_output<true>(c_1[5]);
+    debug_output<true>(c_1[6]);
 
     debug_output<true>(c_0_5);
     debug_output<true>(c_1_5);

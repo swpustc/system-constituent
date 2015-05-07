@@ -356,6 +356,12 @@ template<class T, class... Args> inline void _debug_output(T&& arg, Args&&... ar
     _debug_output(::std::forward<Args>(args)...);
 }
 
+template<class... Args> inline void _debug_output(char* debug_string, Args&&... args)
+{
+    debug_put(::std::stringstream(), debug_string);
+    _debug_output(::std::forward<Args>(args)...);
+}
+
 template<class... Args> inline void _debug_output(const char* debug_string, Args&&... args)
 {
     debug_put(::std::stringstream(), debug_string);
@@ -374,6 +380,12 @@ template<class... Args> inline void _debug_output(const volatile char* debug_str
     _debug_output(::std::forward<Args>(args)...);
 }
 
+template<class T, class A, class... Args> inline void _debug_output(::std::basic_string<char, T, A>& debug_string, Args&&... args)
+{
+    debug_put(::std::stringstream(), debug_string);
+    _debug_output(::std::forward<Args>(args)...);
+}
+
 template<class T, class A, class... Args> inline void _debug_output(const ::std::basic_string<char, T, A>& debug_string, Args&&... args)
 {
     debug_put(::std::stringstream(), debug_string);
@@ -383,6 +395,12 @@ template<class T, class A, class... Args> inline void _debug_output(const ::std:
 template<class T, class A, class... Args> inline void _debug_output(::std::basic_string<char, T, A>&& debug_string, Args&&... args)
 {
     debug_put(::std::stringstream(), ::std::move(debug_string));
+    _debug_output(::std::forward<Args>(args)...);
+}
+
+template<class... Args> inline void _debug_output(wchar_t* debug_string, Args&&... args)
+{
+    debug_put(::std::wstringstream(), debug_string);
     _debug_output(::std::forward<Args>(args)...);
 }
 
@@ -399,6 +417,12 @@ template<class... Args> inline void _debug_output(volatile wchar_t* debug_string
 }
 
 template<class... Args> inline void _debug_output(const volatile wchar_t* debug_string, Args&&... args)
+{
+    debug_put(::std::wstringstream(), debug_string);
+    _debug_output(::std::forward<Args>(args)...);
+}
+
+template<class T, class A, class... Args> inline void _debug_output(::std::basic_string<wchar_t, T, A>& debug_string, Args&&... args)
 {
     debug_put(::std::wstringstream(), debug_string);
     _debug_output(::std::forward<Args>(args)...);

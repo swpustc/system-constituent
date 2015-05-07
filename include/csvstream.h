@@ -26,18 +26,35 @@ private:
     // CSV行列数据
     ::std::deque<::std::vector<::std::string>> m_data;
 
+    // 跳过单元格标识类型
+    struct cell_skip_t{};
+
     // 写入单元格 const char*
     SYSCONAPI void _set_cell(size_t row, size_t col, const char* val);
+    void _set_cell(size_t row, size_t col, char* val){ _set_cell(row, col, (const char*)(val)); }
+    void _set_cell(size_t row, size_t col, volatile char* val){ _set_cell(row, col, (const char*)(val)); }
+    void _set_cell(size_t row, size_t col, const volatile char* val){ _set_cell(row, col, (const char*)(val)); }
     // 写入单元格 const string&
     SYSCONAPI void _set_cell(size_t row, size_t col, const ::std::string& val);
+    // 写入单元格 string&
+    void _set_cell(size_t row, size_t col, ::std::string& val){ _set_cell(row, col, (const ::std::string&)(val)); }
     // 写入单元格 string&&
     SYSCONAPI void _set_cell(size_t row, size_t col, ::std::string&& val);
-    template<class T, class A> // 写入单元格 string
+    template<class T, class A> // 写入单元格 const string&
     void _set_cell(size_t row, size_t col, const ::std::basic_string<char, T, A>& val){ _set_cell(row, col, val.c_str()); }
+    template<class T, class A> // 写入单元格 string&
+    void _set_cell(size_t row, size_t col, ::std::basic_string<char, T, A>& val){ _set_cell(row, col, val.c_str()); }
+    template<class T, class A> // 写入单元格 string&&
+    void _set_cell(size_t row, size_t col, ::std::basic_string<char, T, A>&& val){ _set_cell(row, col, val.c_str()); }
     // 写入单元格 const wchar_t*
     void _set_cell(size_t row, size_t col, const wchar_t* val){ _set_cell(row, col, convert_default_unicode.to_bytes(val)); }
+    void _set_cell(size_t row, size_t col, wchar_t* val){ _set_cell(row, col, (const wchar_t*)(val)); }
+    void _set_cell(size_t row, size_t col, volatile wchar_t* val){ _set_cell(row, col, (const wchar_t*)(val)); }
+    void _set_cell(size_t row, size_t col, const volatile wchar_t* val){ _set_cell(row, col, (const wchar_t*)(val)); }
     template<class T, class A> // 写入单元格 const wstring&
     void _set_cell(size_t row, size_t col, const ::std::basic_string<wchar_t, T, A>& val){ _set_cell(row, col, convert_default_unicode.to_bytes(val)); }
+    template<class T, class A> // 写入单元格 wstring&
+    void _set_cell(size_t row, size_t col, ::std::basic_string<wchar_t, T, A>& val){ _set_cell(row, col, convert_default_unicode.to_bytes(val)); }
     template<class T, class A> // 写入单元格 wstring&&
     void _set_cell(size_t row, size_t col, ::std::basic_string<wchar_t, T, A>&& val){ _set_cell(row, col, convert_default_unicode.to_bytes(::std::move(val))); }
     template<class T> // 写入单元格 auto
@@ -47,6 +64,9 @@ private:
         ss << ::std::forward<T>(val);
         _set_cell(row, col, ss.str());
     }
+    void _set_cell(size_t row, size_t col, cell_skip_t&){}
+    void _set_cell(size_t row, size_t col, const cell_skip_t&){}
+    void _set_cell(size_t row, size_t col, cell_skip_t&&){}
 
     template<class T, class A> // 读取单元格 string&
     void _get_cell(size_t row, size_t col, ::std::basic_string<char, T, A>& val)
@@ -75,6 +95,13 @@ private:
         _get_cell(row, col, val_raw);
         ::std::stringstream ss(::std::move(val_raw));
         ss >> val;
+    }
+    void _get_cell(size_t row, size_t col, cell_skip_t&){}
+    void _get_cell(size_t row, size_t col, const cell_skip_t&){}
+    void _get_cell(size_t row, size_t col, cell_skip_t&&){}
+    template<class T> void _get_cell(size_t row, size_t col, T&&)
+    {
+        static_assert(false, "T must be l-value reference.");
     }
 
     void _set_row(size_t row, size_t col){}
@@ -144,4 +171,6 @@ public:
     void get_row(size_t row, Args&... args){ _get_row(row, 0, args...); }
     template<class... Args> // 读取一列
     void get_col(size_t col, Args&... args){ _get_col(0, col, args...); }
+
+    SYSCONAPI static cell_skip_t cell_skip;
 };
