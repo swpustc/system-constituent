@@ -26,6 +26,7 @@ int main()
 
     csv.set_row(1, 'a', "b", 3, L"wide", csvstream::cell_skip, csvstream::cell_skip, "multi");
     csv.set_col(5, wstring(L"wstring中文"), string("string中文"));
+    csv.set_row_begin(2, 3, "multi1", "multi2", "multi3");
 
     int c_0_0;
     double c_0_1;
@@ -33,6 +34,7 @@ int main()
     wstring c_0_3;
     string c_0_4;
     string c_1[7];
+    wstring c_3[3];
 
     string c_0_5;
     wstring c_1_5;
@@ -45,6 +47,7 @@ int main()
 
     csv.get_row(1, c_1[0], c_1[1], c_1[2], c_1[3], c_1[4], csvstream::cell_skip, c_1[6]);
     csv.get_col(5, c_0_5, c_1_5);
+    csv.get_row_begin(2, 2, csvstream::cell_skip, c_3[0], c_3[1], c_3[2]);
 
     debug_output<true>(c_0_0);
     debug_output<true>(c_0_1);
@@ -62,6 +65,10 @@ int main()
 
     debug_output<true>(c_0_5);
     debug_output<true>(c_1_5);
+
+    debug_output<true>(c_3[0]);
+    debug_output<true>(c_3[1]);
+    debug_output<true>(c_3[2]);
 
     csv.set_cell(99, 99, "100:100");
 
