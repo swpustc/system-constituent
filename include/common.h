@@ -10,6 +10,7 @@
 
 #include <ctime>
 #include <mutex>
+#include <atomic>
 #include <chrono>
 #include <cstdio>
 #include <memory>
@@ -162,6 +163,27 @@ struct function_wapper
     {
         (*fn.get())(decay_type(::std::forward<Args>(args))...);
     }
+};
+
+
+// 自旋锁
+class spin_mutex
+{
+private:
+#if _MSC_VER <= 1900
+    ::std::atomic_flag flag;
+public:
+    spin_mutex(){ flag.clear(); }
+#else  /* _MSC_VER <= 1900 */
+    ::std::atomic_flag flag = ATOMIC_FLAG_INIT;
+public:
+    spin_mutex()  = default;
+#endif  /* _MSC_VER <= 1900 */
+public:
+    spin_mutex(const spin_mutex&) = delete;
+    spin_mutex& operator= (const spin_mutex&) = delete;
+    void lock(){ while (flag.test_and_set(::std::memory_order_acquire)); }
+    void unlock(){ flag.clear(::std::memory_order_release); }
 };
 
 
