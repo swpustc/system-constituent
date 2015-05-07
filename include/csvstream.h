@@ -72,7 +72,7 @@ private:
     {
         val.clear();
         // IO读写锁
-        lock_guard<mutex> lck(m_lock);
+        lock_guard<spin_mutex> lck(m_lock);
         if (m_data.size() < row)
             return;
         auto& data_line = m_data.at(row);
@@ -153,6 +153,7 @@ private:
     SYSCONAPI bool _write(::std::fstream&& svcstream);
 
 public:
+    csvstream() = default;
     csvstream(const csvstream&) = delete;
     csvstream& operator=(const csvstream&) = delete;
 
