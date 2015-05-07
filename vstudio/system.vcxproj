@@ -8,6 +8,7 @@
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)src\common.cpp" />
     <ClCompile Include="$(SolutionDir)src\csvstream.cpp" />
+    <ClCompile Include="$(SolutionDir)src\threadpool.cpp" />
     <ClInclude Include="$(SolutionDir)src\version.h" />
     <ClInclude Include="$(SolutionDir)include\*" />
     <ResourceCompile Include="$(SolutionDir)src\system.rc" />
