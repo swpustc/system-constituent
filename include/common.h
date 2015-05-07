@@ -380,6 +380,12 @@ template<class T, class A, class... Args> inline void _debug_output(const ::std:
     _debug_output(::std::forward<Args>(args)...);
 }
 
+template<class T, class A, class... Args> inline void _debug_output(::std::basic_string<char, T, A>&& debug_string, Args&&... args)
+{
+    debug_put(::std::stringstream(), ::std::move(debug_string));
+    _debug_output(::std::forward<Args>(args)...);
+}
+
 template<class... Args> inline void _debug_output(const wchar_t* debug_string, Args&&... args)
 {
     debug_put(::std::wstringstream(), debug_string);
@@ -403,6 +409,13 @@ template<class T, class A, class... Args> inline void _debug_output(const ::std:
     debug_put(::std::wstringstream(), debug_string);
     _debug_output(::std::forward<Args>(args)...);
 }
+
+template<class T, class A, class... Args> inline void _debug_output(::std::basic_string<wchar_t, T, A>&& debug_string, Args&&... args)
+{
+    debug_put(::std::wstringstream(), ::std::move(debug_string));
+    _debug_output(::std::forward<Args>(args)...);
+}
+
 
 #if defined(_DEBUG) || defined(DEBUG)
 // Debug下，无论output为何值总是输出。Release下，output为true时输出
