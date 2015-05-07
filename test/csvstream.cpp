@@ -17,8 +17,7 @@ int main()
     set_log_location("csvstream.log"); // 设置日志文件存储路径为当前目录
 
     csvstream csv; // CSV文档对象
-    csv.open("csvstream.csv");
-    csv.read();
+    csv.read("csvstream.csv");
     csv.set_cell(0, 0, 1);
     csv.set_cell(0, 1, 2.34567);
     csv.set_cell(0, 2, 4ULL);
@@ -62,6 +61,8 @@ int main()
     debug_output<true>(c_0_5);
     debug_output<true>(c_1_5);
 
-    csv.write();
+    csv.set_cell(99, 99, "100:100");
+
+    csv.write("csvstream.csv");
     return 0;
 }

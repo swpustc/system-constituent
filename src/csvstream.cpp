@@ -18,9 +18,9 @@ static const string g_csv_replace_from(R"_("")_");
 static const string g_csv_replace_to(R"_(")_");
 static const string g_csv_replace_first_of(R"_(",)_");
 
-bool csvstream::read()
+bool csvstream::_read(fstream&& svcstream)
 {
-    if (!is_open())
+    if (!svcstream.is_open())
         return false;
     string line;
     // 捕获结果match_results
@@ -29,10 +29,8 @@ bool csvstream::read()
     lock_guard<mutex> lck(m_lock);
     // 清空数据
     m_data.clear();
-    // 设置读指针到开始
-    m_io.seekg(0, ios::beg);
     // 读取一行
-    while (getline(m_io, line))
+    while (getline(svcstream, line))
     {
         // 单行数据
         vector<string> data_line;
@@ -74,15 +72,13 @@ bool csvstream::read()
     return true;
 }
 
-bool csvstream::write()
+bool csvstream::_write(fstream&& svcstream)
 {
-    if (!is_open())
+    if (!svcstream.is_open())
         return false;
+    size_t row_number = 0;
     // IO读写锁
     lock_guard<mutex> lck(m_lock);
-    // 设置写指针到开始
-    m_io.seekp(0, ios::beg);
-    size_t row_number = 0;
     // 获取最大是列宽
     for (auto& line_data : m_data)
         row_number = auto_max(row_number, line_data.size());
@@ -109,49 +105,46 @@ bool csvstream::write()
         }
         if (line_string.size())
             *line_string.rbegin() = '\n';
-        m_io << line_string;
+        svcstream << line_string;
     }
     return true;
 }
 
-bool csvstream::_set_cell(size_t row, size_t col, const char* val)
+void csvstream::_set_cell(size_t row, size_t col, const char* val)
 {
     // IO读写锁
     lock_guard<mutex> lck(m_lock);
-    if (m_data.size() < row)
+    if (m_data.size() < row + 1)
+        m_data.resize(row + 1);
+    auto& data_line = m_data.at(row);
+    if (data_line.size() < col + 1)
+        data_line.resize(col + 1);
+    auto& cell = data_line.at(col);
+    cell = val;
+}
+
+void csvstream::_set_cell(size_t row, size_t col, const string& val)
+{
+    // IO读写锁
+    lock_guard<mutex> lck(m_lock);
+    if (m_data.size() < row + 1)
         m_data.resize(row + 1);
     auto& data_line = m_data.at(row);
     if (data_line.size() < col)
         data_line.resize(col + 1);
     auto& cell = data_line.at(col);
     cell = val;
-    return true;
 }
 
-bool csvstream::_set_cell(size_t row, size_t col, const string& val)
+void csvstream::_set_cell(size_t row, size_t col, string&& val)
 {
     // IO读写锁
     lock_guard<mutex> lck(m_lock);
-    if (m_data.size() < row)
+    if (m_data.size() < row + 1)
         m_data.resize(row + 1);
     auto& data_line = m_data.at(row);
-    if (data_line.size() < col)
-        data_line.resize(col + 1);
-    auto& cell = data_line.at(col);
-    cell = val;
-    return true;
-}
-
-bool csvstream::_set_cell(size_t row, size_t col, string&& val)
-{
-    // IO读写锁
-    lock_guard<mutex> lck(m_lock);
-    if (m_data.size() < row)
-        m_data.resize(row + 1);
-    auto& data_line = m_data.at(row);
-    if (data_line.size() < col)
+    if (data_line.size() < col + 1)
         data_line.resize(col + 1);
     auto& cell = data_line.at(col);
     cell = move(val);
-    return true;
 }
