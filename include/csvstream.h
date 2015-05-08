@@ -154,6 +154,20 @@ public:
     csvstream() = default;
     csvstream(const csvstream&) = delete;
     csvstream& operator=(const csvstream&) = delete;
+    csvstream(csvstream&& right)
+    {
+        ::std::lock_guard<spin_mutex> lck(right.m_lock);
+        m_data = ::std::move(right.m_data);
+    }
+    csvstream& operator=(csvstream&& right)
+    {
+        if (this == &right)
+            return *this;
+        ::std::lock_guard<spin_mutex> lck(m_lock);
+        ::std::lock_guard<spin_mutex> lck(right.m_lock);
+        m_data = ::std::move(right.m_data);
+        return *this;
+    };
 
     SYSCONAPI ::std::unique_lock<decltype(m_lock)> align_bound();
 
@@ -303,6 +317,15 @@ public:
         _set_col(begin_row, col, ::std::forward<Args>(args)...);
     }
 
+    // 交换两个工作表
+    void swap(csvstream& right)
+    {
+        if (this == &right)
+            return;
+        ::std::lock_guard<spin_mutex> lck(m_lock);
+        ::std::lock_guard<spin_mutex> lck(right.m_lock);
+        ::std::swap(m_data, right.m_data);
+    }
     // 交换两行
     SYSCONAPI void swap_row(size_t row1, size_t row2);
     // 交换两列
