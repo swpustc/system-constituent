@@ -221,5 +221,43 @@ public:
                 line_data.erase(line_data.cbegin() + col);
     }
 
+    template<class... Args> // 在row行上边插入一行
+    void insert_row(size_t row, Args&&... args)
+    {
+        ::std::lock_guard<spin_mutex> lck(m_lock);
+        // 如果插入的行已存在
+        if (m_data.size() >= row + 1)
+            m_data.insert(m_data.cbegin() + row, ::std::vector<::std::string>());
+        _set_row(row, 0, ::std::forward<Args>(args)...);
+    }
+    template<class... Args> // 在col列左边插入一列
+    void insert_col(size_t col, Args&&... args)
+    {
+        ::std::lock_guard<spin_mutex> lck(m_lock);
+        for (auto& line_data : m_data)
+            if (line_data.size() >= col + 1) // 如果插入的列已存在
+                line_data.insert(line_data.cbegin() + col, ::std::string());
+        _set_col(col, 0, ::std::forward<Args>(args)...);
+    }
+
+    template<class... Args> // 在row行上边插入一行，写入数据从begin_col列开始
+    void insert_row_begin(size_t row, size_t begin_col, Args&&... args)
+    {
+        ::std::lock_guard<spin_mutex> lck(m_lock);
+        // 如果插入的行已存在
+        if (m_data.size() >= row + 1)
+            m_data.insert(m_data.cbegin() + row, ::std::vector<::std::string>(begin_col));
+        _set_row(row, begin_col, ::std::forward<Args>(args)...);
+    }
+    template<class... Args> // 在col列左边插入一列，写入数据从begin_row行开始
+    void insert_col_begin(size_t col, size_t begin_row, Args&&... args)
+    {
+        ::std::lock_guard<spin_mutex> lck(m_lock);
+        for (auto& line_data : m_data)
+            if (line_data.size() >= col + 1) // 如果插入的列已存在
+                line_data.insert(line_data.cbegin() + col, ::std::string());
+        _set_col(col, begin_row, ::std::forward<Args>(args)...);
+    }
+
     SYSCONAPI static skip_cell_t skip_cell;
 };
