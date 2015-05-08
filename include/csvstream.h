@@ -205,5 +205,21 @@ public:
                 line_data.at(col).clear();
     }
 
+    // 删除一行，下边的行上移
+    void erase_row(size_t row)
+    {
+        ::std::lock_guard<spin_mutex> lck(m_lock);
+        if (m_data.size() >= row + 1)
+            m_data.erase(m_data.cbegin() + row);
+    }
+    // 删除一列，右边的行左移
+    void erase_col(size_t col)
+    {
+        ::std::lock_guard<spin_mutex> lck(m_lock);
+        for (auto& line_data : m_data)
+            if (line_data.size() >= col + 1)
+                line_data.erase(line_data.cbegin() + col);
+    }
+
     SYSCONAPI static skip_cell_t skip_cell;
 };
