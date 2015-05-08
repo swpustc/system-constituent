@@ -142,24 +142,50 @@ void csvstream::_set_cell(size_t row, size_t col, const string& val)
 {
     // IO读写锁
     lock_guard<spin_mutex> lck(m_lock);
-    if (m_data.size() < row + 1)
-        m_data.resize(row + 1);
-    auto& data_line = m_data.at(row);
-    if (data_line.size() < col)
-        data_line.resize(col + 1);
-    auto& cell = data_line.at(col);
-    cell = val;
+    if (val.empty())
+    {    /* val为空，清空已有单元格 */
+        if (m_data.size() < row + 1)
+            return;
+        auto& data_line = m_data.at(row);
+        if (data_line.size() < col + 1)
+            return;
+        auto& cell = data_line.at(col);
+        cell = move(val);
+    }
+    else /* val非空，设置新单元格 */
+    {
+        if (m_data.size() < row + 1)
+            m_data.resize(row + 1);
+        auto& data_line = m_data.at(row);
+        if (data_line.size() < col + 1)
+            data_line.resize(col + 1);
+        auto& cell = data_line.at(col);
+        cell = move(val);
+    }
 }
 
 void csvstream::_set_cell(size_t row, size_t col, string&& val)
 {
     // IO读写锁
     lock_guard<spin_mutex> lck(m_lock);
-    if (m_data.size() < row + 1)
-        m_data.resize(row + 1);
-    auto& data_line = m_data.at(row);
-    if (data_line.size() < col + 1)
-        data_line.resize(col + 1);
-    auto& cell = data_line.at(col);
-    cell = move(val);
+    if (val.empty())
+    {    /* val为空，清空已有单元格 */
+        if (m_data.size() < row + 1)
+            return;
+        auto& data_line = m_data.at(row);
+        if (data_line.size() < col + 1)
+            return;
+        auto& cell = data_line.at(col);
+        cell = move(val);
+    }
+    else /* val非空，设置新单元格 */
+    {
+        if (m_data.size() < row + 1)
+            m_data.resize(row + 1);
+        auto& data_line = m_data.at(row);
+        if (data_line.size() < col + 1)
+            data_line.resize(col + 1);
+        auto& cell = data_line.at(col);
+        cell = move(val);
+    }
 }
