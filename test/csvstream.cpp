@@ -19,13 +19,14 @@ int main()
     csvstream csv; // CSV文档对象
     csv.read("csvstream.csv");
     csv.set_cell(0, 0, 1);
-    csv.set_cell(0, 1, 2.34567);
-    csv.set_cell(0, 2, 4ULL);
+    csv.sync_cell(csvstream::sync_set, 0, 1, 2.34567);
+    csv.set_cell(0, 2, 3ULL);
     csv.set_cell(0, 3, _T("Tstring"));
     csv.set_cell(0, 4, R"_(raw string, "")_");
 
-    csv.set_row_begin(1, 3, "multi1", "multi2", "multi3");
     csv.insert_row(1, 'a', "b", 3, L"wide", csvstream::skip_cell, csvstream::skip_cell, "multi");
+    csv.set_row_begin(1, 3, "multi1", "multi2", "multi3");
+    csv.swap_row(1, 2);
     csv.set_col(5, wstring(L"wstring中文"), string("string中文"));
     csv.insert_col_begin(3, 1, "insert");
     csv.erase_col(4);
@@ -42,7 +43,7 @@ int main()
     wstring c_1_5;
 
     csv.get_cell(0, 0, c_0_0);
-    csv.get_cell(0, 1, c_0_1);
+    csv.sync_cell(csvstream::sync_get, 0, 1, c_0_1);
     csv.get_cell(0, 2, c_0_2);
     csv.get_cell(0, 3, c_0_3);
     csv.get_cell(0, 4, c_0_4);

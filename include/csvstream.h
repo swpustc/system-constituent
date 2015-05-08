@@ -109,16 +109,16 @@ private:
         static_assert(false, "T must not be a const type");
     }
 
-    // 读、写单元格
-    template<class S, class T> void _sync_cell(sync_set_t&, size_t row, size_t col, T&& val){ _set_cell(row, col, ::std::forward<T>(val)); }
-    template<class S, class T> void _sync_cell(const sync_set_t&, size_t row, size_t col, T&& val){ _set_cell(row, col, ::std::forward<T>(val)); }
-    template<class S, class T> void _sync_cell(sync_set_t&&, size_t row, size_t col, T&& val){ _set_cell(row, col, ::std::forward<T>(val)); }
-    template<class S, class T> void _sync_cell(sync_get_t&, size_t row, size_t col, T&& val){ _get_cell(row, col, ::std::forward<T>(val)); }
-    template<class S, class T> void _sync_cell(const sync_get_t&, size_t row, size_t col, T&& val){ _get_cell(row, col, ::std::forward<T>(val)); }
-    template<class S, class T> void _sync_cell(sync_get_t&&, size_t row, size_t col, T&& val){ _get_cell(row, col, ::std::forward<T>(val)); }
-    template<class S, class T> void _sync_cell(S, size_t row, size_t col, T&& val)
+    // 读取、写入单元格
+    template<class T> void _sync_cell(sync_set_t&, size_t row, size_t col, T&& val){ _set_cell(row, col, ::std::forward<T>(val)); }
+    template<class T> void _sync_cell(const sync_set_t&, size_t row, size_t col, T&& val){ _set_cell(row, col, ::std::forward<T>(val)); }
+    template<class T> void _sync_cell(sync_set_t&&, size_t row, size_t col, T&& val){ _set_cell(row, col, ::std::forward<T>(val)); }
+    template<class T> void _sync_cell(sync_get_t&, size_t row, size_t col, T&& val){ _get_cell(row, col, ::std::forward<T>(val)); }
+    template<class T> void _sync_cell(const sync_get_t&, size_t row, size_t col, T&& val){ _get_cell(row, col, ::std::forward<T>(val)); }
+    template<class T> void _sync_cell(sync_get_t&&, size_t row, size_t col, T&& val){ _get_cell(row, col, ::std::forward<T>(val)); }
+    template<class Sync, class T> void _sync_cell(Sync&&, size_t row, size_t col, T&& val)
     {
-        static_assert(false, "S must be csvstream::sync_set or csvstream::sync_get.");
+        static_assert(false, "Sync must be csvstream::sync_set or csvstream::sync_get.");
     }
 
 
@@ -137,6 +137,19 @@ private:
         _get_row(row, col + 1, args...);
     }
 
+    // 读取、写入一行
+    template<class... Args> void _sync_row(sync_set_t&, size_t row, size_t col, Args&... args){ _set_row(row, col, ::std::forward<Args>(args)...); }
+    template<class... Args> void _sync_row(const sync_set_t&, size_t row, size_t col, Args&... args){ _set_row(row, col, ::std::forward<Args>(args)...); }
+    template<class... Args> void _sync_row(sync_set_t&&, size_t row, size_t col, Args&... args){ _set_row(row, col, ::std::forward<Args>(args)...); }
+    template<class... Args> void _sync_row(sync_get_t&, size_t row, size_t col, Args&... args){ _get_row(row, col, ::std::forward<Args>(args)...); }
+    template<class... Args> void _sync_row(const sync_get_t&, size_t row, size_t col, Args&... args){ _get_row(row, col, ::std::forward<Args>(args)...); }
+    template<class... Args> void _sync_row(sync_get_t&&, size_t row, size_t col, Args&... args){ _get_row(row, col, ::std::forward<Args>(args)...); }
+    template<class Sync, class... Args> void _sync_row(Sync&&, size_t row, size_t col, Args&... args)
+    {
+        static_assert(false, "Sync must be csvstream::sync_set or csvstream::sync_get.");
+    }
+
+
     void _set_col(size_t row, size_t col){}
     // 写入一列
     template<class Arg, class... Args> void _set_col(size_t row, size_t col, Arg&& arg, Args&&... args)
@@ -150,6 +163,18 @@ private:
     {
         _get_cell(row, col, arg);
         _get_col(row + 1, col, args...);
+    }
+
+    // 读取、写入一列
+    template<class... Args> void _sync_col(sync_set_t&, size_t row, size_t col, Args&... args){ _set_col(row, col, ::std::forward<Args>(args)...); }
+    template<class... Args> void _sync_col(const sync_set_t&, size_t row, size_t col, Args&... args){ _set_col(row, col, ::std::forward<Args>(args)...); }
+    template<class... Args> void _sync_col(sync_set_t&&, size_t row, size_t col, Args&... args){ _set_col(row, col, ::std::forward<Args>(args)...); }
+    template<class... Args> void _sync_col(sync_get_t&, size_t row, size_t col, Args&... args){ _get_col(row, col, ::std::forward<Args>(args)...); }
+    template<class... Args> void _sync_col(const sync_get_t&, size_t row, size_t col, Args&... args){ _get_col(row, col, ::std::forward<Args>(args)...); }
+    template<class... Args> void _sync_col(sync_get_t&&, size_t row, size_t col, Args&... args){ _get_col(row, col, ::std::forward<Args>(args)...); }
+    template<class Sync, class... Args> void _sync_col(Sync&&, size_t row, size_t col, Args&... args)
+    {
+        static_assert(false, "Sync must be csvstream::sync_set or csvstream::sync_get.");
     }
 
 
@@ -204,11 +229,11 @@ public:
         ::std::lock_guard<spin_mutex> lck(m_lock);
         _get_cell(row, col, ::std::forward<T>(val));
     }
-    // 读、写单元格，通过传入S[csvstream::sync_set|svstream::sync_get]控制读和写操作
-    template<class S, class T> void sync_cell(S&& s, size_t row, size_t col, T&& val)
+    // 读取、写入单元格，通过传入Sync[csvstream::sync_set|svstream::sync_get]控制读和写操作
+    template<class Sync, class T> void sync_cell(Sync&& sync, size_t row, size_t col, T&& val)
     {
         ::std::lock_guard<spin_mutex> lck(m_lock);
-        _sync_cell(::std::forward<S>(s), row, col, ::std::forward<T>(val));
+        _sync_cell(::std::forward<Sync>(sync), row, col, ::std::forward<T>(val));
     }
 
     // 写入一行
@@ -223,6 +248,12 @@ public:
         ::std::lock_guard<spin_mutex> lck(m_lock);
         _get_row(row, 0, ::std::forward<Args>(args)...);
     }
+    // 读取、写入一行，通过传入Sync[csvstream::sync_set|svstream::sync_get]控制读和写操作
+    template<class Sync, class... Args> void sync_row(Sync&& sync, size_t row, Args&&... args)
+    {
+        ::std::lock_guard<spin_mutex> lck(m_lock);
+        _sync_row(::std::forward<Sync>(sync), row, 0, ::std::forward<Args>(args)...);
+    }
 
     // 从begin_col列开始写入一行
     template<class... Args> void set_row_begin(size_t row, size_t begin_col, Args&&... args)
@@ -235,6 +266,12 @@ public:
     {
         ::std::lock_guard<spin_mutex> lck(m_lock);
         _get_row(row, begin_col, ::std::forward<Args>(args)...);
+    }
+    // 从begin_col列开始读取、写入一行，通过传入Sync[csvstream::sync_set|svstream::sync_get]控制读和写操作
+    template<class Sync, class... Args> void sync_row_begin(Sync&& sync, size_t row, size_t begin_col, Args&&... args)
+    {
+        ::std::lock_guard<spin_mutex> lck(m_lock);
+        _sync_row(::std::forward<Sync>(sync), row, begin_col, ::std::forward<Args>(args)...);
     }
 
     // 写入一列
@@ -249,6 +286,12 @@ public:
         ::std::lock_guard<spin_mutex> lck(m_lock);
         _get_col(0, col, ::std::forward<Args>(args)...);
     }
+    // 读取、写入一列，通过传入Sync[csvstream::sync_set|svstream::sync_get]控制读和写操作
+    template<class Sync, class... Args> void sync_col(Sync&& sync, size_t col, Args&&... args)
+    {
+        ::std::lock_guard<spin_mutex> lck(m_lock);
+        _sync_row(::std::forward<Sync>(sync), 0, col, ::std::forward<Args>(args)...);
+    }
 
     // 从begin_row行开始写入一列
     template<class... Args> void set_col_begin(size_t col, size_t begin_row, Args&&... args)
@@ -261,6 +304,12 @@ public:
     {
         ::std::lock_guard<spin_mutex> lck(m_lock);
         _get_col(begin_row, col, ::std::forward<Args>(args)...);
+    }
+    // 从begin_row列开始读取、写入一列，通过传入Sync[csvstream::sync_set|svstream::sync_get]控制读和写操作
+    template<class Sync, class... Args> void sync_col_begin(Sync&& sync, size_t col, size_t begin_row, Args&&... args)
+    {
+        ::std::lock_guard<spin_mutex> lck(m_lock);
+        _sync_col(::std::forward<Sync>(sync), begin_row, col, ::std::forward<Args>(args)...);
     }
 
     // 清除整个数据表
