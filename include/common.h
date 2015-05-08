@@ -189,6 +189,7 @@ public:
 
 SYSCONAPI_EXTERN ::std::mutex g_log_lock;
 SYSCONAPI_EXTERN ::std::ofstream g_log_ofstream;
+SYSCONAPI_EXTERN const uint32_t system_version;
 
 #ifdef _MSC_VER
 template<uint32_t codepage = CP_ACP, class Elem = wchar_t, class Walloc = ::std::allocator<Elem>, class Balloc = ::std::allocator<char>>

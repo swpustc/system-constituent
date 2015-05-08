@@ -7,6 +7,7 @@
 ***********************************************************/
 
 #include "common.h"
+#include "version.h"
 
 using namespace std;
 
@@ -20,3 +21,10 @@ SYSCONAPI convert_cp_unicode_t<CP_ACP, wchar_t> convert_default_unicode("bad con
 #else  /* _MSC_VER */
 SYSCONAPI wstring_convert<codecvt_utf8<wchar_t>, wchar_t> convert_utf8_unicode("bad conversion to utf8", L"bad conversion from utf8");
 #endif  /* _MSC_VER */
+
+
+SYSCONAPI const uint32_t system_version = (uint32_t)(
+    ((uint32_t)((uint8_t)(FILE_VERSION_MAJOR & 0xff))) << 24 |
+    ((uint32_t)((uint8_t)(FILE_VERSION_MINOR & 0xff))) << 16 |
+    ((uint32_t)((uint8_t)(FILE_VERSION_POINT & 0xff))) << 8 |
+    ((uint32_t)((uint8_t)(FILE_VERSION_POINT2 & 0xff))));
