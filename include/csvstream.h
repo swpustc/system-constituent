@@ -303,5 +303,10 @@ public:
         _set_col(begin_row, col, ::std::forward<Args>(args)...);
     }
 
+    // 交换两行
+    SYSCONAPI void swap_row(size_t row1, size_t row2);
+    // 交换两列
+    SYSCONAPI void swap_col(size_t col1, size_t col2);
+
     SYSCONAPI static skip_cell_t skip_cell;
 };

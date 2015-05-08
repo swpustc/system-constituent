@@ -45,6 +45,9 @@ public:
 
     void insert_row_begin(size_t row, size_t begin_col, Args&&... args);
     void insert_col_begin(size_t col, size_t begin_row, Args&&... args);
+
+    void swap_row(size_t row1, size_t row2);
+    void swap_col(size_t col1, size_t col2);
 };
 ```
 
@@ -149,6 +152,20 @@ public:
 - ##### `void insert_col_begin(size_t col, size_t begin_row, Args&&... args)`
 
     和**insert_col**相同，区别是从`begin_row`行开始。
+
+- ##### `void swap_row(size_t row1, size_t row2)`
+
+    交换行号为row1和row2的两行。
+
+- ##### `void swap_col(size_t col1, size_t col2)`
+
+    交换列号为col1和col2的两列。
+
+
+## 备注
+
+行号和列号均从0开始编号，`csvstream::skip_cell`可以用在所有的单元格值操作中，
+读取和写入单元格的值为此类型时，会跳过此单元格的读取或写入，不会改变所指单元格的值，也不会改变传入的引用对象的值。
 
 
 ## 示例代码
