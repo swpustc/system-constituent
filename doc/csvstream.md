@@ -20,18 +20,23 @@ public:
 
     void set_cell(size_t row, size_t col, T&& val);
     void get_cell(size_t row, size_t col, T&& val);
+    void sync_cell(Sync&& sync, size_t row, size_t col, T&& val);
 
     void set_row(size_t row, Args&&... args);
     void get_row(size_t row, Args&&... args);
+    void sync_row(Sync&& sync, size_t row, Args&&... args);
 
     void set_row_begin(size_t row, size_t begin_col, Args&&... args);
     void get_row_begin(size_t row, size_t begin_col, Args&&... args);
+    void sync_row_begin(Sync&& sync, size_t row, size_t begin_col, Args&&... args);
 
     void set_col(size_t col, Args&&... args);
     void get_col(size_t col, Args&&... args);
+    void sync_col(Sync&& sync, size_t col, Args&&... args);
 
     void set_col_begin(size_t col, size_t begin_row, Args&&... args);
     void get_col_begin(size_t col, size_t begin_row, Args&&... args);
+    void sync_col_begin(Sync&& sync, size_t col, size_t begin_row, Args&&... args);
 
     void clear();
     void clear_row(size_t row);
@@ -86,6 +91,11 @@ public:
 
     获取单元格的内容，`val`可以是基础数据类型或者`string`，`wstring`的左值非常量引用。
 
+- ##### `void sync_cell(Sync&& sync, size_t row, size_t col, T&& val)`
+
+    传入`sync`值为`csvstream::sync_set`时，调用**set_cell**函数；
+    传入`sync`值为`csvstream::sync_get`时，调用**get_cell**函数。
+
 - ##### `void set_row(size_t row, Args&&... args)`
 
     设置一行数据，行号为`row`（从0开始），`args`为从第0列开始的按顺序的连续的单元格的数据。遇到`csvstream::skip_cell`则跳过此单元格。
@@ -93,6 +103,11 @@ public:
 - ##### `void get_row(size_t row, Args&&... args)`
 
     获取一行数据，行号为`row`（从0开始），`args`为从第0列开始的按顺序的连续的单元格的数据。遇到`csvstream::skip_cell`则跳过此单元格。
+
+- ##### `void sync_row(Sync&& sync, size_t row, Args&&... args)`
+
+    传入`sync`值为`csvstream::sync_set`时，调用**set_row**函数；
+    传入`sync`值为`csvstream::sync_get`时，调用**get_row**函数。
 
 - ##### `void set_row_begin(size_t row, size_t begin_col, Args&&... args)`
 
@@ -102,6 +117,11 @@ public:
 
     和**get_row**相同，区别是从`begin_col`列开始。
 
+- ##### `void sync_row_begin(Sync&& sync, size_t row, size_t begin_col, Args&&... args)`
+
+    传入`sync`值为`csvstream::sync_set`时，调用**set_row_begin**函数；
+    传入`sync`值为`csvstream::sync_get`时，调用**get_row_begin**函数。
+
 - ##### `void set_col(size_t col, Args&&... args)`
 
     设置一列数据，列号为`col`（从0开始），`args`为从第0列开始的按顺序的连续的单元格的数据。遇到`csvstream::skip_cell`则跳过此单元格。
@@ -110,6 +130,11 @@ public:
 
     获取一列数据，列号为`col`（从0开始），`args`为从第0列开始的按顺序的连续的单元格的数据。遇到`csvstream::skip_cell`则跳过此单元格。
 
+- ##### `void sync_col(Sync&& sync, size_t col, Args&&... args)`
+
+    传入`sync`值为`csvstream::sync_set`时，调用**set_col**函数；
+    传入`sync`值为`csvstream::sync_get`时，调用**get_col**函数。
+
 - ##### `void set_col_begin(size_t col, size_t begin_row, Args&&... args)`
 
     和**set_col**相同，区别是从`begin_row`行开始。
@@ -117,6 +142,11 @@ public:
 - ##### `void get_col_begin(size_t col, size_t begin_row, Args&&... args)`
 
     和**get_col**相同，区别是从`begin_row`行开始。
+
+- ##### `void sync_col_begin(Sync&& sync, size_t col, size_t begin_row, Args&&... args)`
+
+    传入`sync`值为`csvstream::sync_set`时，调用**set_col_begin**函数；
+    传入`sync`值为`csvstream::sync_get`时，调用**get_col_begin**函数。
 
 - ##### `void clear()`
 
