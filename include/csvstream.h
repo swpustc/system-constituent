@@ -21,7 +21,7 @@ class csvstream
 {
 private:
     // 锁定文件读写
-    spin_mutex m_lock;
+    mutable spin_mutex m_lock;
     // CSV行列数据
     ::std::deque<::std::vector<::std::string>> m_data;
 
@@ -68,7 +68,7 @@ private:
     void _set_cell(size_t row, size_t col, skip_cell_t&&){}
 
     // 读取单元格 string&
-    template<class T, class A> void _get_cell(size_t row, size_t col, ::std::basic_string<char, T, A>& val)
+    template<class T, class A> void _get_cell(size_t row, size_t col, ::std::basic_string<char, T, A>& val) const
     {
         val.clear();
         if (m_data.size() < row)
@@ -79,28 +79,28 @@ private:
         val = data_line.at(col);
     }
     // 读取单元格 wstring&
-    template<class T, class A> void _get_cell(size_t row, size_t col, ::std::basic_string<wchar_t, T, A>& val)
+    template<class T, class A> void _get_cell(size_t row, size_t col, ::std::basic_string<wchar_t, T, A>& val) const
     {
         ::std::string val_raw;
         _get_cell(row, col, val_raw);
         val = convert_default_unicode.from_bytes(::std::move(val_raw));
     }
     // 读取单元格 auto
-    template<class T> void _get_cell(size_t row, size_t col, T& val)
+    template<class T> void _get_cell(size_t row, size_t col, T& val) const
     {
         ::std::string val_raw;
         _get_cell(row, col, val_raw);
         ::std::stringstream ss(::std::move(val_raw));
         ss >> val;
     }
-    void _get_cell(size_t row, size_t col, skip_cell_t&){}
-    void _get_cell(size_t row, size_t col, const skip_cell_t&){}
-    void _get_cell(size_t row, size_t col, skip_cell_t&&){}
-    template<class T> void _get_cell(size_t row, size_t col, T&&)
+    void _get_cell(size_t row, size_t col, skip_cell_t&) const{}
+    void _get_cell(size_t row, size_t col, const skip_cell_t&) const{}
+    void _get_cell(size_t row, size_t col, skip_cell_t&&) const{}
+    template<class T> void _get_cell(size_t row, size_t col, T&&) const
     {
         static_assert(false, "T must be a l-value reference.");
     }
-    template<class T> void _get_cell(size_t row, size_t col, const T&)
+    template<class T> void _get_cell(size_t row, size_t col, const T&) const
     {
         static_assert(false, "T must not be a const type");
     }
@@ -121,24 +121,24 @@ private:
         _set_col(row + 1, col, ::std::forward<Args>(args)...);
     }
 
-    void _get_row(size_t row, size_t col){}
+    void _get_row(size_t row, size_t col) const{}
     // 读取一行
-    template<class Arg, class... Args> void _get_row(size_t row, size_t col, Arg& arg, Args&... args)
+    template<class Arg, class... Args> void _get_row(size_t row, size_t col, Arg& arg, Args&... args) const
     {
         _get_cell(row, col, arg);
         _get_row(row, col + 1, args...);
     }
 
-    void _get_col(size_t row, size_t col){}
+    void _get_col(size_t row, size_t col) const{}
     // 读取一列
-    template<class Arg, class... Args> void _get_col(size_t row, size_t col, Arg& arg, Args&... args)
+    template<class Arg, class... Args> void _get_col(size_t row, size_t col, Arg& arg, Args&... args) const
     {
         _get_cell(row, col, arg);
         _get_col(row + 1, col, args...);
     }
 
-    ::std::fstream _open(const char* filename, ::std::ios::openmode mode){ return ::std::fstream(filename, mode); }
-    ::std::fstream _open(const ::std::string& filename, ::std::ios::openmode mode){ return ::std::fstream(filename, mode); }
+    ::std::fstream _open(const char* filename, ::std::ios::openmode mode){ return ::std::fstream(filename, mode); } const
+        ::std::fstream _open(const ::std::string& filename, ::std::ios::openmode mode){ return ::std::fstream(filename, mode); } const
 #ifdef _WIN32
     ::std::fstream _open(const wchar_t* filename, ::std::ios::openmode mode){ return ::std::fstream(filename, mode); }
     ::std::fstream _open(const ::std::wstring& filename, ::std::ios::openmode mode){ return ::std::fstream(filename, mode); }
@@ -163,8 +163,8 @@ public:
     {
         if (this == &right)
             return *this;
-        ::std::lock_guard<spin_mutex> lck(m_lock);
-        ::std::lock_guard<spin_mutex> lck(right.m_lock);
+        ::std::lock_guard<spin_mutex> lck1(m_lock);
+        ::std::lock_guard<spin_mutex> lck2(right.m_lock);
         m_data = ::std::move(right.m_data);
         return *this;
     };
@@ -183,7 +183,7 @@ public:
         _set_cell(row, col, ::std::forward<T>(val));
     }
     // 读取单元格
-    template<class T> void get_cell(size_t row, size_t col, T&& val)
+    template<class T> void get_cell(size_t row, size_t col, T&& val) const
     {
         ::std::lock_guard<spin_mutex> lck(m_lock);
         _get_cell(row, col, ::std::forward<T>(val));
@@ -216,26 +216,26 @@ public:
     }
 
     // 读取一行
-    template<class... Args> void get_row(size_t row, Args&&... args)
+    template<class... Args> void get_row(size_t row, Args&&... args) const
     {
         ::std::lock_guard<spin_mutex> lck(m_lock);
         _get_row(row, 0, ::std::forward<Args>(args)...);
     }
     // 读取一列
-    template<class... Args> void get_col(size_t col, Args&&... args)
+    template<class... Args> void get_col(size_t col, Args&&... args) const
     {
         ::std::lock_guard<spin_mutex> lck(m_lock);
         _get_col(0, col, ::std::forward<Args>(args)...);
     }
 
     // 从begin_col列开始读取一行
-    template<class... Args> void get_row_begin(size_t row, size_t begin_col, Args&&... args)
+    template<class... Args> void get_row_begin(size_t row, size_t begin_col, Args&&... args) const
     {
         ::std::lock_guard<spin_mutex> lck(m_lock);
         _get_row(row, begin_col, ::std::forward<Args>(args)...);
     }
     // 从begin_row行开始读取一列
-    template<class... Args> void get_col_begin(size_t col, size_t begin_row, Args&&... args)
+    template<class... Args> void get_col_begin(size_t col, size_t begin_row, Args&&... args) const
     {
         ::std::lock_guard<spin_mutex> lck(m_lock);
         _get_col(begin_row, col, ::std::forward<Args>(args)...);
@@ -322,8 +322,8 @@ public:
     {
         if (this == &right)
             return;
-        ::std::lock_guard<spin_mutex> lck(m_lock);
-        ::std::lock_guard<spin_mutex> lck(right.m_lock);
+        ::std::lock_guard<spin_mutex> lck1(m_lock);
+        ::std::lock_guard<spin_mutex> lck2(right.m_lock);
         ::std::swap(m_data, right.m_data);
     }
     // 交换两行
