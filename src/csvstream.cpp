@@ -27,7 +27,6 @@ unique_lock<decltype(csvstream::m_lock)> csvstream::align_bound()
 {
     // 最优列宽
     size_t col_number = 0;
-    // IO读写锁
     unique_lock<spin_mutex> lck(m_lock);
     // 获取最大是列宽
     for (auto& line_data : m_data)
@@ -128,7 +127,6 @@ bool csvstream::_read(fstream&& svcstream)
         }
         data.push_back(move(data_line));
     }
-    // IO读写锁
     lock_guard<spin_mutex> lck(m_lock);
     // 写入数据
     m_data = move(data);
@@ -141,7 +139,6 @@ bool csvstream::_write(fstream&& svcstream)
         return false;
     // 输出数据流
     stringstream ss;
-    // IO读写锁
     auto&& lck = align_bound();
     // 每一行数据
     for (auto& line_data : m_data)
