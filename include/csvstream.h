@@ -281,7 +281,7 @@ public:
         for (auto& line_data : m_data)
             if (line_data.size() >= col + 1) // 如果插入的列已存在
                 line_data.insert(line_data.cbegin() + col, ::std::string());
-        _set_col(col, 0, ::std::forward<Args>(args)...);
+        _set_col(0, col, ::std::forward<Args>(args)...);
     }
 
     // 在row行上边插入一行，写入数据从begin_col列开始
@@ -300,7 +300,7 @@ public:
         for (auto& line_data : m_data)
             if (line_data.size() >= col + 1) // 如果插入的列已存在
                 line_data.insert(line_data.cbegin() + col, ::std::string());
-        _set_col(col, begin_row, ::std::forward<Args>(args)...);
+        _set_col(begin_row, col, ::std::forward<Args>(args)...);
     }
 
     SYSCONAPI static skip_cell_t skip_cell;
