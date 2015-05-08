@@ -67,8 +67,8 @@ private:
     void _set_cell(size_t row, size_t col, const skip_cell_t&){}
     void _set_cell(size_t row, size_t col, skip_cell_t&&){}
 
-    template<class T, class A> // 读取单元格 string&
-    void _get_cell(size_t row, size_t col, ::std::basic_string<char, T, A>& val)
+    // 读取单元格 string&
+    template<class T, class A> void _get_cell(size_t row, size_t col, ::std::basic_string<char, T, A>& val)
     {
         val.clear();
         if (m_data.size() < row)
@@ -78,15 +78,15 @@ private:
             return;
         val = data_line.at(col);
     }
-    template<class T, class A> // 读取单元格 wstring&
-    void _get_cell(size_t row, size_t col, ::std::basic_string<wchar_t, T, A>& val)
+    // 读取单元格 wstring&
+    template<class T, class A> void _get_cell(size_t row, size_t col, ::std::basic_string<wchar_t, T, A>& val)
     {
         ::std::string val_raw;
         _get_cell(row, col, val_raw);
         val = convert_default_unicode.from_bytes(::std::move(val_raw));
     }
-    template<class T> // 读取单元格 auto
-    void _get_cell(size_t row, size_t col, T& val)
+    // 读取单元格 auto
+    template<class T> void _get_cell(size_t row, size_t col, T& val)
     {
         ::std::string val_raw;
         _get_cell(row, col, val_raw);
@@ -106,32 +106,32 @@ private:
     }
 
     void _set_row(size_t row, size_t col){}
-    template<class Arg, class... Args> // 写入一行
-    void _set_row(size_t row, size_t col, Arg&& arg, Args&&... args)
+    // 写入一行
+    template<class Arg, class... Args> void _set_row(size_t row, size_t col, Arg&& arg, Args&&... args)
     {
         _set_cell(row, col, ::std::forward<Arg>(arg));
         _set_row(row, col + 1, ::std::forward<Args>(args)...);
     }
 
     void _set_col(size_t row, size_t col){}
-    template<class Arg, class... Args> // 写入一列
-    void _set_col(size_t row, size_t col, Arg&& arg, Args&&... args)
+    // 写入一列
+    template<class Arg, class... Args> void _set_col(size_t row, size_t col, Arg&& arg, Args&&... args)
     {
         _set_cell(row, col, ::std::forward<Arg>(arg));
         _set_col(row + 1, col, ::std::forward<Args>(args)...);
     }
 
     void _get_row(size_t row, size_t col){}
-    template<class Arg, class... Args> // 读取一行
-    void _get_row(size_t row, size_t col, Arg& arg, Args&... args)
+    // 读取一行
+    template<class Arg, class... Args> void _get_row(size_t row, size_t col, Arg& arg, Args&... args)
     {
         _get_cell(row, col, arg);
         _get_row(row, col + 1, args...);
     }
 
     void _get_col(size_t row, size_t col){}
-    template<class Arg, class... Args> // 读取一列
-    void _get_col(size_t row, size_t col, Arg& arg, Args&... args)
+    // 读取一列
+    template<class Arg, class... Args> void _get_col(size_t row, size_t col, Arg& arg, Args&... args)
     {
         _get_cell(row, col, arg);
         _get_col(row + 1, col, args...);
@@ -157,38 +157,82 @@ public:
 
     SYSCONAPI ::std::unique_lock<decltype(m_lock)> align_bound();
 
-    template<class T> // 读取CSV文件
-    bool read(T&& filename){ return _read(_open(::std::forward<T>(filename), ::std::ios::in)); }
-    template<class T> // 写入CSV文件
-    bool write(T&& filename){ return _write(_open(::std::forward<T>(filename), ::std::ios::out | ::std::ios::trunc)); }
+    // 读取CSV文件
+    template<class T> bool read(T&& filename){ return _read(_open(::std::forward<T>(filename), ::std::ios::in)); }
+    // 写入CSV文件
+    template<class T> bool write(T&& filename){ return _write(_open(::std::forward<T>(filename), ::std::ios::out | ::std::ios::trunc)); }
 
-    template<class T> // 写入单元格
-    void set_cell(size_t row, size_t col, T&& val){ ::std::lock_guard<spin_mutex> lck(m_lock); _set_cell(row, col, ::std::forward<T>(val)); }
-    template<class T> // 读取单元格
-    void get_cell(size_t row, size_t col, T&& val){ ::std::lock_guard<spin_mutex> lck(m_lock); _get_cell(row, col, ::std::forward<T>(val)); }
+    // 写入单元格
+    template<class T> void set_cell(size_t row, size_t col, T&& val)
+    {
+        ::std::lock_guard<spin_mutex> lck(m_lock);
+        _set_cell(row, col, ::std::forward<T>(val));
+    }
+    // 读取单元格
+    template<class T> void get_cell(size_t row, size_t col, T&& val)
+    {
+        ::std::lock_guard<spin_mutex> lck(m_lock);
+        _get_cell(row, col, ::std::forward<T>(val));
+    }
 
-    template<class... Args> // 写入一行
-    void set_row(size_t row, Args&&... args){ ::std::lock_guard<spin_mutex> lck(m_lock); _set_row(row, 0, ::std::forward<Args>(args)...); }
-    template<class... Args> // 写入一列
-    void set_col(size_t col, Args&&... args){ ::std::lock_guard<spin_mutex> lck(m_lock); _set_col(0, col, ::std::forward<Args>(args)...); }
+    // 写入一行
+    template<class... Args> void set_row(size_t row, Args&&... args)
+    {
+        ::std::lock_guard<spin_mutex> lck(m_lock);
+        _set_row(row, 0, ::std::forward<Args>(args)...);
+    }
+    // 写入一列
+    template<class... Args> void set_col(size_t col, Args&&... args)
+    {
+        ::std::lock_guard<spin_mutex> lck(m_lock);
+        _set_col(0, col, ::std::forward<Args>(args)...);
+    }
 
-    template<class... Args> // 从begin_col列开始写入一行
-    void set_row_begin(size_t row, size_t begin_col, Args&&... args){ ::std::lock_guard<spin_mutex> lck(m_lock); _set_row(row, begin_col, ::std::forward<Args>(args)...); }
-    template<class... Args> // 从begin_row行开始写入一列
-    void set_col_begin(size_t col, size_t begin_row, Args&&... args){ ::std::lock_guard<spin_mutex> lck(m_lock); _set_col(begin_row, col, ::std::forward<Args>(args)...); }
+    // 从begin_col列开始写入一行
+    template<class... Args> void set_row_begin(size_t row, size_t begin_col, Args&&... args)
+    {
+        ::std::lock_guard<spin_mutex> lck(m_lock);
+        _set_row(row, begin_col, ::std::forward<Args>(args)...);
+    }
+    // 从begin_row行开始写入一列
+    template<class... Args> void set_col_begin(size_t col, size_t begin_row, Args&&... args)
+    {
+        ::std::lock_guard<spin_mutex> lck(m_lock);
+        _set_col(begin_row, col, ::std::forward<Args>(args)...);
+    }
 
-    template<class... Args> // 读取一行
-    void get_row(size_t row, Args&&... args){ ::std::lock_guard<spin_mutex> lck(m_lock); _get_row(row, 0, ::std::forward<Args>(args)...); }
-    template<class... Args> // 读取一列
-    void get_col(size_t col, Args&&... args){ ::std::lock_guard<spin_mutex> lck(m_lock); _get_col(0, col, ::std::forward<Args>(args)...); }
+    // 读取一行
+    template<class... Args> void get_row(size_t row, Args&&... args)
+    {
+        ::std::lock_guard<spin_mutex> lck(m_lock);
+        _get_row(row, 0, ::std::forward<Args>(args)...);
+    }
+    // 读取一列
+    template<class... Args> void get_col(size_t col, Args&&... args)
+    {
+        ::std::lock_guard<spin_mutex> lck(m_lock);
+        _get_col(0, col, ::std::forward<Args>(args)...);
+    }
 
-    template<class... Args> // 从begin_col列开始读取一行
-    void get_row_begin(size_t row, size_t begin_col, Args&&... args){ ::std::lock_guard<spin_mutex> lck(m_lock); _get_row(row, begin_col, ::std::forward<Args>(args)...); }
-    template<class... Args> // 从begin_row行开始读取一列
-    void get_col_begin(size_t col, size_t begin_row, Args&&... args){ ::std::lock_guard<spin_mutex> lck(m_lock); _get_col(begin_row, col, ::std::forward<Args>(args)...); }
+    // 从begin_col列开始读取一行
+    template<class... Args> void get_row_begin(size_t row, size_t begin_col, Args&&... args)
+    {
+        ::std::lock_guard<spin_mutex> lck(m_lock);
+        _get_row(row, begin_col, ::std::forward<Args>(args)...);
+    }
+    // 从begin_row行开始读取一列
+    template<class... Args> void get_col_begin(size_t col, size_t begin_row, Args&&... args)
+    {
+        ::std::lock_guard<spin_mutex> lck(m_lock);
+        _get_col(begin_row, col, ::std::forward<Args>(args)...);
+    }
 
     // 清除整个数据表
-    void clear() { ::std::lock_guard<spin_mutex> lck(m_lock); m_data.clear(); }
+    void clear()
+    {
+        ::std::lock_guard<spin_mutex> lck(m_lock);
+        m_data.clear();
+    }
     // 清除一行
     void clear_row(size_t row)
     {
@@ -212,7 +256,7 @@ public:
         if (m_data.size() >= row + 1)
             m_data.erase(m_data.cbegin() + row);
     }
-    // 删除一列，右边的行左移
+    // 删除一列，右边的列左移
     void erase_col(size_t col)
     {
         ::std::lock_guard<spin_mutex> lck(m_lock);
@@ -221,8 +265,8 @@ public:
                 line_data.erase(line_data.cbegin() + col);
     }
 
-    template<class... Args> // 在row行上边插入一行
-    void insert_row(size_t row, Args&&... args)
+    // 在row行上边插入一行
+    template<class... Args> void insert_row(size_t row, Args&&... args)
     {
         ::std::lock_guard<spin_mutex> lck(m_lock);
         // 如果插入的行已存在
@@ -230,8 +274,8 @@ public:
             m_data.insert(m_data.cbegin() + row, ::std::vector<::std::string>());
         _set_row(row, 0, ::std::forward<Args>(args)...);
     }
-    template<class... Args> // 在col列左边插入一列
-    void insert_col(size_t col, Args&&... args)
+    // 在col列左边插入一列
+    template<class... Args> void insert_col(size_t col, Args&&... args)
     {
         ::std::lock_guard<spin_mutex> lck(m_lock);
         for (auto& line_data : m_data)
@@ -240,8 +284,8 @@ public:
         _set_col(col, 0, ::std::forward<Args>(args)...);
     }
 
-    template<class... Args> // 在row行上边插入一行，写入数据从begin_col列开始
-    void insert_row_begin(size_t row, size_t begin_col, Args&&... args)
+    // 在row行上边插入一行，写入数据从begin_col列开始
+    template<class... Args> void insert_row_begin(size_t row, size_t begin_col, Args&&... args)
     {
         ::std::lock_guard<spin_mutex> lck(m_lock);
         // 如果插入的行已存在
@@ -249,8 +293,8 @@ public:
             m_data.insert(m_data.cbegin() + row, ::std::vector<::std::string>(begin_col));
         _set_row(row, begin_col, ::std::forward<Args>(args)...);
     }
-    template<class... Args> // 在col列左边插入一列，写入数据从begin_row行开始
-    void insert_col_begin(size_t col, size_t begin_row, Args&&... args)
+    // 在col列左边插入一列，写入数据从begin_row行开始
+    template<class... Args> void insert_col_begin(size_t col, size_t begin_row, Args&&... args)
     {
         ::std::lock_guard<spin_mutex> lck(m_lock);
         for (auto& line_data : m_data)

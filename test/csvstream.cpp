@@ -24,9 +24,11 @@ int main()
     csv.set_cell(0, 3, _T("Tstring"));
     csv.set_cell(0, 4, R"_(raw string, "")_");
 
-    csv.set_row(1, 'a', "b", 3, L"wide", csvstream::skip_cell, csvstream::skip_cell, "multi");
+    csv.set_row_begin(1, 3, "multi1", "multi2", "multi3");
+    csv.insert_row(1, 'a', "b", 3, L"wide", csvstream::skip_cell, csvstream::skip_cell, "multi");
     csv.set_col(5, wstring(L"wstring中文"), string("string中文"));
-    csv.set_row_begin(2, 3, "multi1", "multi2", "multi3");
+    csv.insert_col_begin(3, 1, "insert");
+    csv.erase_col(4);
 
     int c_0_0;
     double c_0_1;
