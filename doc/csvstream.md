@@ -11,7 +11,7 @@
 class csvstream
 {
 public:
-    static struct cell_skip_t cell_skip;
+    static struct skip_cell_t skip_cell;
 
     bool read(T&& filename);
     bool write(T&& filename);
@@ -36,7 +36,7 @@ public:
 
 ## 成员变量
 
-- ##### `static struct cell_skip_t cell_skip`
+- ##### `static struct skip_cell_t skip_cell`
 
     跳过单元格标识。
 
@@ -65,11 +65,11 @@ public:
 
 - ##### `void set_row(size_t row, Args&&... args)`
 
-    设置一行数据，行号为`row`（从0开始），`args`为从第0列开始的按顺序的连续的单元格的数据。遇到`csvstream::cell_skip`则跳过此单元格。
+    设置一行数据，行号为`row`（从0开始），`args`为从第0列开始的按顺序的连续的单元格的数据。遇到`csvstream::skip_cell`则跳过此单元格。
 
 - ##### `void set_col(size_t col, Args&&... args)`
 
-    设置一列数据，列号为`col`（从0开始），`args`为从第0列开始的按顺序的连续的单元格的数据。遇到`csvstream::cell_skip`则跳过此单元格。
+    设置一列数据，列号为`col`（从0开始），`args`为从第0列开始的按顺序的连续的单元格的数据。遇到`csvstream::skip_cell`则跳过此单元格。
 
 - ##### `void set_row_begin(size_t row, size_t begin_col, Args&&... args)`
 
@@ -81,11 +81,11 @@ public:
 
 - ##### `void get_row(size_t row, Args&&... args)`
 
-    获取一行数据，行号为`row`（从0开始），`args`为从第0列开始的按顺序的连续的单元格的数据。遇到`csvstream::cell_skip`则跳过此单元格。
+    获取一行数据，行号为`row`（从0开始），`args`为从第0列开始的按顺序的连续的单元格的数据。遇到`csvstream::skip_cell`则跳过此单元格。
 
 - ##### `void get_col(size_t col, Args&&... args)`
 
-    获取一列数据，列号为`col`（从0开始），`args`为从第0列开始的按顺序的连续的单元格的数据。遇到`csvstream::cell_skip`则跳过此单元格。
+    获取一列数据，列号为`col`（从0开始），`args`为从第0列开始的按顺序的连续的单元格的数据。遇到`csvstream::skip_cell`则跳过此单元格。
 
 - ##### `void get_row_begin(size_t row, size_t begin_col, Args&&... args)`
 

@@ -3,7 +3,7 @@
 * 支持平台：Windows; Linux
 * 编译环境：VS2013+; g++ -std=c++11
 * 创建时间：2015-05-07 （宋万鹏）
-* 最后修改：2015-05-07 （宋万鹏）
+* 最后修改：2015-05-08 （宋万鹏）
 ***********************************************************/
 
 #pragma once
@@ -26,7 +26,7 @@ private:
     ::std::deque<::std::vector<::std::string>> m_data;
 
     // 跳过单元格标识类型
-    struct cell_skip_t{};
+    struct skip_cell_t{};
 
     // 写入单元格 const char*
     void _set_cell(size_t row, size_t col, const char* val){ _set_cell(row, col, ::std::string(val)); }
@@ -63,9 +63,9 @@ private:
         ss << ::std::forward<T>(val);
         _set_cell(row, col, ss.str());
     }
-    void _set_cell(size_t row, size_t col, cell_skip_t&){}
-    void _set_cell(size_t row, size_t col, const cell_skip_t&){}
-    void _set_cell(size_t row, size_t col, cell_skip_t&&){}
+    void _set_cell(size_t row, size_t col, skip_cell_t&){}
+    void _set_cell(size_t row, size_t col, const skip_cell_t&){}
+    void _set_cell(size_t row, size_t col, skip_cell_t&&){}
 
     template<class T, class A> // 读取单元格 string&
     void _get_cell(size_t row, size_t col, ::std::basic_string<char, T, A>& val)
@@ -95,9 +95,9 @@ private:
         ::std::stringstream ss(::std::move(val_raw));
         ss >> val;
     }
-    void _get_cell(size_t row, size_t col, cell_skip_t&){}
-    void _get_cell(size_t row, size_t col, const cell_skip_t&){}
-    void _get_cell(size_t row, size_t col, cell_skip_t&&){}
+    void _get_cell(size_t row, size_t col, skip_cell_t&){}
+    void _get_cell(size_t row, size_t col, const skip_cell_t&){}
+    void _get_cell(size_t row, size_t col, skip_cell_t&&){}
     template<class T> void _get_cell(size_t row, size_t col, T&&)
     {
         static_assert(false, "T must be a l-value reference.");
@@ -187,5 +187,5 @@ public:
     template<class... Args> // 从begin_row行开始读取一列
     void get_col_begin(size_t col, size_t begin_row, Args&&... args){ _get_col(begin_row, col, ::std::forward<Args>(args)...); }
 
-    SYSCONAPI static cell_skip_t cell_skip;
+    SYSCONAPI static skip_cell_t skip_cell;
 };

@@ -3,7 +3,7 @@
 * 支持平台：Windows; Linux
 * 编译环境：VS2013+; g++ -std=c++11
 * 创建时间：2015-05-07 （宋万鹏）
-* 最后修改：2015-05-07 （宋万鹏）
+* 最后修改：2015-05-08 （宋万鹏）
 ***********************************************************/
 
 #include "csvstream.h"
@@ -19,7 +19,7 @@ static const string g_csv_replace_to(R"_(")_");
 static const string g_csv_replace_first_of(R"_(",)_");
 
 // 跳过变量标识
-csvstream::cell_skip_t csvstream::cell_skip;
+csvstream::skip_cell_t csvstream::skip_cell;
 
 bool csvstream::_read(fstream&& svcstream)
 {
