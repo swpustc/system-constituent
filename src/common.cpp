@@ -26,5 +26,5 @@ SYSCONAPI wstring_convert<codecvt_utf8<wchar_t>, wchar_t> convert_utf8_unicode("
 SYSCONAPI const uint32_t system_version = (uint32_t)(
     ((uint32_t)((uint8_t)(FILE_VERSION_MAJOR & 0xff))) << 24 |
     ((uint32_t)((uint8_t)(FILE_VERSION_MINOR & 0xff))) << 16 |
-    ((uint32_t)((uint8_t)(FILE_VERSION_POINT & 0xff))) << 8 |
-    ((uint32_t)((uint8_t)(FILE_VERSION_POINT2 & 0xff))));
+    ((uint32_t)((uint8_t)(FILE_VERSION_POINT > 0xff ? 0xff : FILE_VERSION_POINT))) << 8 |
+    ((uint32_t)((uint8_t)(FILE_VERSION_POINT2 > 0xff ? 0xff : FILE_VERSION_POINT2))));
