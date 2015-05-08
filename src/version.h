@@ -3,13 +3,13 @@
 * 支持平台：Windows; Linux
 * 编译环境：VS2010+; g++
 * 创建时间：2015-04-25 （宋万鹏）
-* 最后修改：2015-05-02 （宋万鹏）
+* 最后修改：2015-05-08 （宋万鹏）
 ***********************************************************/
 
 #define FILE_VERSION_MAJOR  1
 #define FILE_VERSION_MINOR  2
-#define FILE_VERSION_POINT  0
-#define FILE_VERSION_POINT2 1
+#define FILE_VERSION_POINT  1
+#define FILE_VERSION_POINT2 0
 
 #define INTERAL_NAME        _T("system")
 #define PRODUCT_NAME        _T("系统组件")
