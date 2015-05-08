@@ -102,11 +102,11 @@ private:
     void _get_cell(size_t row, size_t col, skip_cell_t&&) const{}
     template<class T> void _get_cell(size_t row, size_t col, T&&) const
     {
-        static_assert(false, "T must be a l-value reference.");
+        static_assert(false, "T must not be a r-value reference.");
     }
     template<class T> void _get_cell(size_t row, size_t col, const T&) const
     {
-        static_assert(false, "T must not be a const type");
+        static_assert(false, "T must not be a const reference.");
     }
 
     // 读取、写入单元格
@@ -131,20 +131,20 @@ private:
     }
     void _get_row(size_t row, size_t col) const{}
     // 读取一行
-    template<class Arg, class... Args> void _get_row(size_t row, size_t col, Arg& arg, Args&... args) const
+    template<class Arg, class... Args> void _get_row(size_t row, size_t col, Arg&& arg, Args&&... args) const
     {
-        _get_cell(row, col, arg);
-        _get_row(row, col + 1, args...);
+        _get_cell(row, col, ::std::forward<Arg>(arg));
+        _get_row(row, col + 1, ::std::forward<Args>(args)...);
     }
 
     // 读取、写入一行
-    template<class... Args> void _sync_row(sync_set_t&, size_t row, size_t col, Args&... args){ _set_row(row, col, ::std::forward<Args>(args)...); }
-    template<class... Args> void _sync_row(const sync_set_t&, size_t row, size_t col, Args&... args){ _set_row(row, col, ::std::forward<Args>(args)...); }
-    template<class... Args> void _sync_row(sync_set_t&&, size_t row, size_t col, Args&... args){ _set_row(row, col, ::std::forward<Args>(args)...); }
-    template<class... Args> void _sync_row(sync_get_t&, size_t row, size_t col, Args&... args){ _get_row(row, col, ::std::forward<Args>(args)...); }
-    template<class... Args> void _sync_row(const sync_get_t&, size_t row, size_t col, Args&... args){ _get_row(row, col, ::std::forward<Args>(args)...); }
-    template<class... Args> void _sync_row(sync_get_t&&, size_t row, size_t col, Args&... args){ _get_row(row, col, ::std::forward<Args>(args)...); }
-    template<class Sync, class... Args> void _sync_row(Sync&&, size_t row, size_t col, Args&... args)
+    template<class... Args> void _sync_row(sync_set_t&, size_t row, size_t col, Args&&... args){ _set_row(row, col, ::std::forward<Args>(args)...); }
+    template<class... Args> void _sync_row(const sync_set_t&, size_t row, size_t col, Args&&... args){ _set_row(row, col, ::std::forward<Args>(args)...); }
+    template<class... Args> void _sync_row(sync_set_t&&, size_t row, size_t col, Args&&... args){ _set_row(row, col, ::std::forward<Args>(args)...); }
+    template<class... Args> void _sync_row(sync_get_t&, size_t row, size_t col, Args&&... args){ _get_row(row, col, ::std::forward<Args>(args)...); }
+    template<class... Args> void _sync_row(const sync_get_t&, size_t row, size_t col, Args&&... args){ _get_row(row, col, ::std::forward<Args>(args)...); }
+    template<class... Args> void _sync_row(sync_get_t&&, size_t row, size_t col, Args&&... args){ _get_row(row, col, ::std::forward<Args>(args)...); }
+    template<class Sync, class... Args> void _sync_row(Sync&&, size_t row, size_t col, Args&&... args)
     {
         static_assert(false, "Sync must be csvstream::sync_set or csvstream::sync_get.");
     }
@@ -159,20 +159,20 @@ private:
     }
     void _get_col(size_t row, size_t col) const{}
     // 读取一列
-    template<class Arg, class... Args> void _get_col(size_t row, size_t col, Arg& arg, Args&... args) const
+    template<class Arg, class... Args> void _get_col(size_t row, size_t col, Arg&& arg, Args&&... args) const
     {
-        _get_cell(row, col, arg);
-        _get_col(row + 1, col, args...);
+        _get_cell(row, col, ::std::forward<Arg>(arg));
+        _get_col(row + 1, col, ::std::forward<Args>(args)...);
     }
 
     // 读取、写入一列
-    template<class... Args> void _sync_col(sync_set_t&, size_t row, size_t col, Args&... args){ _set_col(row, col, ::std::forward<Args>(args)...); }
-    template<class... Args> void _sync_col(const sync_set_t&, size_t row, size_t col, Args&... args){ _set_col(row, col, ::std::forward<Args>(args)...); }
-    template<class... Args> void _sync_col(sync_set_t&&, size_t row, size_t col, Args&... args){ _set_col(row, col, ::std::forward<Args>(args)...); }
-    template<class... Args> void _sync_col(sync_get_t&, size_t row, size_t col, Args&... args){ _get_col(row, col, ::std::forward<Args>(args)...); }
-    template<class... Args> void _sync_col(const sync_get_t&, size_t row, size_t col, Args&... args){ _get_col(row, col, ::std::forward<Args>(args)...); }
-    template<class... Args> void _sync_col(sync_get_t&&, size_t row, size_t col, Args&... args){ _get_col(row, col, ::std::forward<Args>(args)...); }
-    template<class Sync, class... Args> void _sync_col(Sync&&, size_t row, size_t col, Args&... args)
+    template<class... Args> void _sync_col(sync_set_t&, size_t row, size_t col, Args&&... args){ _set_col(row, col, ::std::forward<Args>(args)...); }
+    template<class... Args> void _sync_col(const sync_set_t&, size_t row, size_t col, Args&&... args){ _set_col(row, col, ::std::forward<Args>(args)...); }
+    template<class... Args> void _sync_col(sync_set_t&&, size_t row, size_t col, Args&&... args){ _set_col(row, col, ::std::forward<Args>(args)...); }
+    template<class... Args> void _sync_col(sync_get_t&, size_t row, size_t col, Args&&... args){ _get_col(row, col, ::std::forward<Args>(args)...); }
+    template<class... Args> void _sync_col(const sync_get_t&, size_t row, size_t col, Args&&... args){ _get_col(row, col, ::std::forward<Args>(args)...); }
+    template<class... Args> void _sync_col(sync_get_t&&, size_t row, size_t col, Args&&... args){ _get_col(row, col, ::std::forward<Args>(args)...); }
+    template<class Sync, class... Args> void _sync_col(Sync&&, size_t row, size_t col, Args&&... args)
     {
         static_assert(false, "Sync must be csvstream::sync_set or csvstream::sync_get.");
     }
