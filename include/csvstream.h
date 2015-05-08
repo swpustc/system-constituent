@@ -170,24 +170,24 @@ public:
     void get_cell(size_t row, size_t col, T&& val){ _get_cell(row, col, ::std::forward<T>(val)); }
 
     template<class... Args> // 写入一行
-    void set_row(size_t row, Args&&... args){ _set_row(row, 0, ::std::forward<Args>(args)...); }
+    void set_row(size_t row, Args&&... args){ ::std::lock_guard<spin_mutex> lck(m_lock); _set_row(row, 0, ::std::forward<Args>(args)...); }
     template<class... Args> // 写入一列
-    void set_col(size_t col, Args&&... args){ _set_col(0, col, ::std::forward<Args>(args)...); }
+    void set_col(size_t col, Args&&... args){ ::std::lock_guard<spin_mutex> lck(m_lock); _set_col(0, col, ::std::forward<Args>(args)...); }
 
     template<class... Args> // 从begin_col列开始写入一行
-    void set_row_begin(size_t row, size_t begin_col, Args&&... args){ _set_row(row, begin_col, ::std::forward<Args>(args)...); }
+    void set_row_begin(size_t row, size_t begin_col, Args&&... args){ ::std::lock_guard<spin_mutex> lck(m_lock); _set_row(row, begin_col, ::std::forward<Args>(args)...); }
     template<class... Args> // 从begin_row行开始写入一列
-    void set_col_begin(size_t col, size_t begin_row, Args&&... args){ _set_col(begin_row, col, ::std::forward<Args>(args)...); }
+    void set_col_begin(size_t col, size_t begin_row, Args&&... args){ ::std::lock_guard<spin_mutex> lck(m_lock); _set_col(begin_row, col, ::std::forward<Args>(args)...); }
 
     template<class... Args> // 读取一行
-    void get_row(size_t row, Args&&... args){ _get_row(row, 0, ::std::forward<Args>(args)...); }
+    void get_row(size_t row, Args&&... args){ ::std::lock_guard<spin_mutex> lck(m_lock); _get_row(row, 0, ::std::forward<Args>(args)...); }
     template<class... Args> // 读取一列
-    void get_col(size_t col, Args&&... args){ _get_col(0, col, ::std::forward<Args>(args)...); }
+    void get_col(size_t col, Args&&... args){ ::std::lock_guard<spin_mutex> lck(m_lock); _get_col(0, col, ::std::forward<Args>(args)...); }
 
     template<class... Args> // 从begin_col列开始读取一行
-    void get_row_begin(size_t row, size_t begin_col, Args&&... args){ _get_row(row, begin_col, ::std::forward<Args>(args)...); }
+    void get_row_begin(size_t row, size_t begin_col, Args&&... args){ ::std::lock_guard<spin_mutex> lck(m_lock); _get_row(row, begin_col, ::std::forward<Args>(args)...); }
     template<class... Args> // 从begin_row行开始读取一列
-    void get_col_begin(size_t col, size_t begin_row, Args&&... args){ _get_col(begin_row, col, ::std::forward<Args>(args)...); }
+    void get_col_begin(size_t col, size_t begin_row, Args&&... args){ ::std::lock_guard<spin_mutex> lck(m_lock); _get_col(begin_row, col, ::std::forward<Args>(args)...); }
 
     SYSCONAPI static skip_cell_t skip_cell;
 };
