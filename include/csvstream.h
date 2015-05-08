@@ -29,8 +29,8 @@ private:
     struct cell_skip_t{};
 
     // 写入单元格 const char*
-    SYSCONAPI void _set_cell(size_t row, size_t col, const char* val);
-    void _set_cell(size_t row, size_t col, char* val){ _set_cell(row, col, (const char*)(val)); }
+    void _set_cell(size_t row, size_t col, const char* val){ _set_cell(row, col, ::std::string(val)); }
+    void _set_cell(size_t row, size_t col, char* val){ _set_cell(row, col, ::std::string(val)); }
     void _set_cell(size_t row, size_t col, volatile char* val){ _set_cell(row, col, (const char*)(val)); }
     void _set_cell(size_t row, size_t col, const volatile char* val){ _set_cell(row, col, (const char*)(val)); }
     // 写入单元格 const string&
@@ -40,14 +40,14 @@ private:
     // 写入单元格 string&&
     SYSCONAPI void _set_cell(size_t row, size_t col, ::std::string&& val);
     template<class T, class A> // 写入单元格 const string&
-    void _set_cell(size_t row, size_t col, const ::std::basic_string<char, T, A>& val){ _set_cell(row, col, val.c_str()); }
+    void _set_cell(size_t row, size_t col, const ::std::basic_string<char, T, A>& val){ _set_cell(row, col, ::std::string(val)); }
     template<class T, class A> // 写入单元格 string&
-    void _set_cell(size_t row, size_t col, ::std::basic_string<char, T, A>& val){ _set_cell(row, col, val.c_str()); }
+    void _set_cell(size_t row, size_t col, ::std::basic_string<char, T, A>& val){ _set_cell(row, col, ::std::string(val)); }
     template<class T, class A> // 写入单元格 string&&
-    void _set_cell(size_t row, size_t col, ::std::basic_string<char, T, A>&& val){ _set_cell(row, col, val.c_str()); }
+    void _set_cell(size_t row, size_t col, ::std::basic_string<char, T, A>&& val){ _set_cell(row, col, ::std::string(val)); }
     // 写入单元格 const wchar_t*
     void _set_cell(size_t row, size_t col, const wchar_t* val){ _set_cell(row, col, convert_default_unicode.to_bytes(val)); }
-    void _set_cell(size_t row, size_t col, wchar_t* val){ _set_cell(row, col, (const wchar_t*)(val)); }
+    void _set_cell(size_t row, size_t col, wchar_t* val){ _set_cell(row, col, convert_default_unicode.to_bytes(val)); }
     void _set_cell(size_t row, size_t col, volatile wchar_t* val){ _set_cell(row, col, (const wchar_t*)(val)); }
     void _set_cell(size_t row, size_t col, const volatile wchar_t* val){ _set_cell(row, col, (const wchar_t*)(val)); }
     template<class T, class A> // 写入单元格 const wstring&
