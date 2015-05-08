@@ -27,6 +27,10 @@ private:
 
     // 跳过单元格标识类型
     struct skip_cell_t{};
+    // 同步单元格操作标识类型：set
+    struct sync_set_t{};
+    // 同步单元格操作标识类型：get
+    struct sync_get_t{};
 
     // 写入单元格 const char*
     void _set_cell(size_t row, size_t col, const char* val){ _set_cell(row, col, ::std::string(val)); }
@@ -103,6 +107,18 @@ private:
     template<class T> void _get_cell(size_t row, size_t col, const T&) const
     {
         static_assert(false, "T must not be a const type");
+    }
+
+    // 读、写单元格
+    template<class S, class T> void _sync_cell(sync_set_t&, size_t row, size_t col, T&& val){ _set_cell(row, col, ::std::forward<T>(val)); }
+    template<class S, class T> void _sync_cell(const sync_set_t&, size_t row, size_t col, T&& val){ _set_cell(row, col, ::std::forward<T>(val)); }
+    template<class S, class T> void _sync_cell(sync_set_t&&, size_t row, size_t col, T&& val){ _set_cell(row, col, ::std::forward<T>(val)); }
+    template<class S, class T> void _sync_cell(sync_get_t&, size_t row, size_t col, T&& val){ _get_cell(row, col, ::std::forward<T>(val)); }
+    template<class S, class T> void _sync_cell(const sync_get_t&, size_t row, size_t col, T&& val){ _get_cell(row, col, ::std::forward<T>(val)); }
+    template<class S, class T> void _sync_cell(sync_get_t&&, size_t row, size_t col, T&& val){ _get_cell(row, col, ::std::forward<T>(val)); }
+    template<class S, class T> void _sync_cell(S, size_t row, size_t col, T&& val)
+    {
+        static_assert(false, "S must be csvstream::sync_set or csvstream::sync_get.");
     }
 
     void _set_row(size_t row, size_t col){}
@@ -187,6 +203,12 @@ public:
     {
         ::std::lock_guard<spin_mutex> lck(m_lock);
         _get_cell(row, col, ::std::forward<T>(val));
+    }
+    // 读、写单元格，通过传入S[csvstream::sync_set|svstream::sync_get]控制读和写操作
+    template<class S, class T> void sync_cell(S&& s, size_t row, size_t col, T&& val)
+    {
+        ::std::lock_guard<spin_mutex> lck(m_lock);
+        _sync_cell(::std::forward<S>(s), row, col, ::std::forward<T>(val));
     }
 
     // 写入一行
@@ -332,4 +354,6 @@ public:
     SYSCONAPI void swap_col(size_t col1, size_t col2);
 
     SYSCONAPI static skip_cell_t skip_cell;
+    SYSCONAPI static sync_set_t sync_set;
+    SYSCONAPI static sync_get_t sync_get;
 };
