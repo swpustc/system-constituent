@@ -22,15 +22,15 @@ public:
     void get_cell(size_t row, size_t col, T&& val);
 
     void set_row(size_t row, Args&&... args);
-    void set_col(size_t col, Args&&... args);
+    void get_row(size_t row, Args&&... args);
 
     void set_row_begin(size_t row, size_t begin_col, Args&&... args);
-    void set_col_begin(size_t col, size_t begin_row, Args&&... args);
+    void get_row_begin(size_t row, size_t begin_col, Args&&... args);
 
-    void get_row(size_t row, Args&&... args);
+    void set_col(size_t col, Args&&... args);
     void get_col(size_t col, Args&&... args);
 
-    void get_row_begin(size_t row, size_t begin_col, Args&&... args);
+    void set_col_begin(size_t col, size_t begin_row, Args&&... args);
     void get_col_begin(size_t col, size_t begin_row, Args&&... args);
 
     void clear();
@@ -90,29 +90,29 @@ public:
 
     设置一行数据，行号为`row`（从0开始），`args`为从第0列开始的按顺序的连续的单元格的数据。遇到`csvstream::skip_cell`则跳过此单元格。
 
-- ##### `void set_col(size_t col, Args&&... args)`
+- ##### `void get_row(size_t row, Args&&... args)`
 
-    设置一列数据，列号为`col`（从0开始），`args`为从第0列开始的按顺序的连续的单元格的数据。遇到`csvstream::skip_cell`则跳过此单元格。
+    获取一行数据，行号为`row`（从0开始），`args`为从第0列开始的按顺序的连续的单元格的数据。遇到`csvstream::skip_cell`则跳过此单元格。
 
 - ##### `void set_row_begin(size_t row, size_t begin_col, Args&&... args)`
 
     和**set_row**相同，区别是从`begin_col`列开始。
 
-- ##### `void set_col_begin(size_t col, size_t begin_row, Args&&... args)`
+- ##### `void get_row_begin(size_t row, size_t begin_col, Args&&... args)`
 
-    和**set_col**相同，区别是从`begin_row`行开始。
+    和**get_row**相同，区别是从`begin_col`列开始。
 
-- ##### `void get_row(size_t row, Args&&... args)`
+- ##### `void set_col(size_t col, Args&&... args)`
 
-    获取一行数据，行号为`row`（从0开始），`args`为从第0列开始的按顺序的连续的单元格的数据。遇到`csvstream::skip_cell`则跳过此单元格。
+    设置一列数据，列号为`col`（从0开始），`args`为从第0列开始的按顺序的连续的单元格的数据。遇到`csvstream::skip_cell`则跳过此单元格。
 
 - ##### `void get_col(size_t col, Args&&... args)`
 
     获取一列数据，列号为`col`（从0开始），`args`为从第0列开始的按顺序的连续的单元格的数据。遇到`csvstream::skip_cell`则跳过此单元格。
 
-- ##### `void get_row_begin(size_t row, size_t begin_col, Args&&... args)`
+- ##### `void set_col_begin(size_t col, size_t begin_row, Args&&... args)`
 
-    和**get_row**相同，区别是从`begin_col`列开始。
+    和**set_col**相同，区别是从`begin_row`行开始。
 
 - ##### `void get_col_begin(size_t col, size_t begin_row, Args&&... args)`
 

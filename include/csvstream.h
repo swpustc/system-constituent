@@ -121,12 +121,20 @@ private:
         static_assert(false, "S must be csvstream::sync_set or csvstream::sync_get.");
     }
 
+
     void _set_row(size_t row, size_t col){}
     // 写入一行
     template<class Arg, class... Args> void _set_row(size_t row, size_t col, Arg&& arg, Args&&... args)
     {
         _set_cell(row, col, ::std::forward<Arg>(arg));
         _set_row(row, col + 1, ::std::forward<Args>(args)...);
+    }
+    void _get_row(size_t row, size_t col) const{}
+    // 读取一行
+    template<class Arg, class... Args> void _get_row(size_t row, size_t col, Arg& arg, Args&... args) const
+    {
+        _get_cell(row, col, arg);
+        _get_row(row, col + 1, args...);
     }
 
     void _set_col(size_t row, size_t col){}
@@ -136,15 +144,6 @@ private:
         _set_cell(row, col, ::std::forward<Arg>(arg));
         _set_col(row + 1, col, ::std::forward<Args>(args)...);
     }
-
-    void _get_row(size_t row, size_t col) const{}
-    // 读取一行
-    template<class Arg, class... Args> void _get_row(size_t row, size_t col, Arg& arg, Args&... args) const
-    {
-        _get_cell(row, col, arg);
-        _get_row(row, col + 1, args...);
-    }
-
     void _get_col(size_t row, size_t col) const{}
     // 读取一列
     template<class Arg, class... Args> void _get_col(size_t row, size_t col, Arg& arg, Args&... args) const
@@ -152,6 +151,7 @@ private:
         _get_cell(row, col, arg);
         _get_col(row + 1, col, args...);
     }
+
 
     ::std::fstream _open(const char* filename, ::std::ios::openmode mode){ return ::std::fstream(filename, mode); } const
         ::std::fstream _open(const ::std::string& filename, ::std::ios::openmode mode){ return ::std::fstream(filename, mode); } const
@@ -217,11 +217,11 @@ public:
         ::std::lock_guard<spin_mutex> lck(m_lock);
         _set_row(row, 0, ::std::forward<Args>(args)...);
     }
-    // 写入一列
-    template<class... Args> void set_col(size_t col, Args&&... args)
+    // 读取一行
+    template<class... Args> void get_row(size_t row, Args&&... args) const
     {
         ::std::lock_guard<spin_mutex> lck(m_lock);
-        _set_col(0, col, ::std::forward<Args>(args)...);
+        _get_row(row, 0, ::std::forward<Args>(args)...);
     }
 
     // 从begin_col列开始写入一行
@@ -230,18 +230,18 @@ public:
         ::std::lock_guard<spin_mutex> lck(m_lock);
         _set_row(row, begin_col, ::std::forward<Args>(args)...);
     }
-    // 从begin_row行开始写入一列
-    template<class... Args> void set_col_begin(size_t col, size_t begin_row, Args&&... args)
+    // 从begin_col列开始读取一行
+    template<class... Args> void get_row_begin(size_t row, size_t begin_col, Args&&... args) const
     {
         ::std::lock_guard<spin_mutex> lck(m_lock);
-        _set_col(begin_row, col, ::std::forward<Args>(args)...);
+        _get_row(row, begin_col, ::std::forward<Args>(args)...);
     }
 
-    // 读取一行
-    template<class... Args> void get_row(size_t row, Args&&... args) const
+    // 写入一列
+    template<class... Args> void set_col(size_t col, Args&&... args)
     {
         ::std::lock_guard<spin_mutex> lck(m_lock);
-        _get_row(row, 0, ::std::forward<Args>(args)...);
+        _set_col(0, col, ::std::forward<Args>(args)...);
     }
     // 读取一列
     template<class... Args> void get_col(size_t col, Args&&... args) const
@@ -250,11 +250,11 @@ public:
         _get_col(0, col, ::std::forward<Args>(args)...);
     }
 
-    // 从begin_col列开始读取一行
-    template<class... Args> void get_row_begin(size_t row, size_t begin_col, Args&&... args) const
+    // 从begin_row行开始写入一列
+    template<class... Args> void set_col_begin(size_t col, size_t begin_row, Args&&... args)
     {
         ::std::lock_guard<spin_mutex> lck(m_lock);
-        _get_row(row, begin_col, ::std::forward<Args>(args)...);
+        _set_col(begin_row, col, ::std::forward<Args>(args)...);
     }
     // 从begin_row行开始读取一列
     template<class... Args> void get_col_begin(size_t col, size_t begin_row, Args&&... args) const
