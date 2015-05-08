@@ -32,6 +32,19 @@ public:
 
     void get_row_begin(size_t row, size_t begin_col, Args&&... args);
     void get_col_begin(size_t col, size_t begin_row, Args&&... args);
+
+    void clear();
+    void clear_row(size_t row);
+    void clear_col(size_t col);
+
+    void erase_row(size_t row);
+    void erase_col(size_t col);
+
+    void insert_row(size_t row, Args&&... args);
+    void insert_col(size_t col, Args&&... args);
+
+    void insert_row_begin(size_t row, size_t begin_col, Args&&... args);
+    void insert_col_begin(size_t col, size_t begin_row, Args&&... args);
 };
 ```
 
@@ -100,6 +113,42 @@ public:
 - ##### `void get_col_begin(size_t col, size_t begin_row, Args&&... args)`
 
     和**get_col**相同，区别是从`begin_row`行开始。
+
+- ##### `void clear()`
+
+    清除整个工作表。
+
+- ##### `void clear_row(size_t row)`
+
+    清除表格一行的内容。
+
+- ##### `void clear_col(size_t col)`
+
+    清除表格一列的内容。
+
+- ##### `void erase_row(size_t row)`
+
+    删除表格一行。
+
+- ##### `void erase_col(size_t col)`
+
+    删除表格一列。
+
+- ##### `void insert_row(size_t row, Args&&... args)`
+
+    在第row行前插入新行，args为插入新行的内容，可以为空。遇到`csvstream::skip_cell`则跳过此单元格。
+
+- ##### `void insert_col(size_t col, Args&&... args)`
+
+    在第col列左插入新列，args为插入新行的内容，可以为空。遇到`csvstream::skip_cell`则跳过此单元格。
+
+- ##### `void insert_row_begin(size_t row, size_t begin_col, Args&&... args)`
+
+    和**insert_row**相同，区别是从`begin_col`列开始。
+
+- ##### `void insert_col_begin(size_t col, size_t begin_row, Args&&... args)`
+
+    和**insert_col**相同，区别是从`begin_row`行开始。
 
 
 ## 示例代码
