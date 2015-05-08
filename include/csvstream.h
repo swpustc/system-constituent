@@ -187,5 +187,23 @@ public:
     template<class... Args> // 从begin_row行开始读取一列
     void get_col_begin(size_t col, size_t begin_row, Args&&... args){ ::std::lock_guard<spin_mutex> lck(m_lock); _get_col(begin_row, col, ::std::forward<Args>(args)...); }
 
+    // 清除整个数据表
+    void clear() { ::std::lock_guard<spin_mutex> lck(m_lock); m_data.clear(); }
+    // 清除一行
+    void clear_row(size_t row)
+    {
+        ::std::lock_guard<spin_mutex> lck(m_lock);
+        if (m_data.size() >= row + 1)
+            m_data.at(row).clear();
+    }
+    // 清除一列
+    void clear_col(size_t col)
+    {
+        ::std::lock_guard<spin_mutex> lck(m_lock);
+        for (auto& line_data : m_data)
+            if (line_data.size() >= col + 1)
+                line_data.at(col).clear();
+    }
+
     SYSCONAPI static skip_cell_t skip_cell;
 };
