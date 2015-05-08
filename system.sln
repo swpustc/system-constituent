@@ -7,7 +7,15 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{80CD017A-2411-47E3-86F4-071B2ED74C0D}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "csvstream", "vstudio\csvstream.vcxproj", "{13BE564E-1C7F-4C4B-9A97-F4345F38D36D}"
+	ProjectSection(ProjectDependencies) = postProject
+		{25538A7E-3EAC-4AB2-A112-0762D6C3157E} = {25538A7E-3EAC-4AB2-A112-0762D6C3157E}
+	EndProjectSection
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "threadpool", "vstudio\threadpool.vcxproj", "{4A0D4611-1162-4BE9-83AC-E633C9478F97}"
+	ProjectSection(ProjectDependencies) = postProject
+		{25538A7E-3EAC-4AB2-A112-0762D6C3157E} = {25538A7E-3EAC-4AB2-A112-0762D6C3157E}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -46,5 +54,7 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{25538A7E-3EAC-4AB2-A112-0762D6C3157E} = {854AEFA0-5A04-4CAB-957A-5A12C7551850}
+		{13BE564E-1C7F-4C4B-9A97-F4345F38D36D} = {80CD017A-2411-47E3-86F4-071B2ED74C0D}
+		{4A0D4611-1162-4BE9-83AC-E633C9478F97} = {80CD017A-2411-47E3-86F4-071B2ED74C0D}
 	EndGlobalSection
 EndGlobal
