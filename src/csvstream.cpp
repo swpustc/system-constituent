@@ -8,6 +8,8 @@
 
 #include "csvstream.h"
 #include <cassert>
+#include <algorithm>
+#include <functional>
 
 using namespace std;
 
@@ -21,6 +23,62 @@ static const string g_csv_replace_first_of(R"_(",)_");
 // 跳过变量标识
 csvstream::skip_cell_t csvstream::skip_cell;
 
+unique_lock<decltype(csvstream::m_lock)> csvstream::align_bound()
+{
+    // 最优列宽
+    size_t col_number = 0;
+    // IO读写锁
+    unique_lock<spin_mutex> lck(m_lock);
+    // 获取最大是列宽
+    for (auto& line_data : m_data)
+    {
+        size_t line_size = line_data.size();
+        if (line_size > col_number)
+        {   // 最后非空的单元格
+            size_t line_not_empty = line_size - 1;
+            // 对于超出最大列宽的部分，验证是否为空
+            for (; line_not_empty >= col_number; line_not_empty--)
+            {
+                if (!line_data.at(line_not_empty).empty())
+                    break;
+            }
+            col_number = auto_max(col_number, line_not_empty + 1);
+        }
+    }
+    // 结尾空白行数
+    size_t row_number = 0;
+    // 是否结尾连续空白行
+    bool row_end = true;
+    for_each(rbegin(m_data), rend(m_data), [&](vector<string>& line_data)
+    {
+        size_t line_size = line_data.size();
+        // 如果列超出最优列宽，缩减到最优列宽
+        if (line_size > col_number)
+            line_data.resize(col_number);
+        // 如果是结尾连续的空白行
+        if (row_end)
+        {   // 所有单元格均为空
+            if (all_of(begin(line_data), end(line_data), mem_fn(&string::empty)))
+            {
+                row_number++;
+                return; // 需要删除的行不更新列宽
+            }
+            else
+                row_end = false;
+        }
+        // 如果列不足最优列宽，增加到最优列宽
+        if (line_size < col_number)
+            line_data.resize(col_number);
+    });
+    if (row_number)
+    {   // 总行数
+        size_t row_size = m_data.size();
+        assert(row_number <= row_size);
+        m_data.resize(row_size - row_number);
+    }
+    return move(lck);
+}
+
 bool csvstream::_read(fstream&& svcstream)
 {
     if (!svcstream.is_open())
@@ -28,10 +86,8 @@ bool csvstream::_read(fstream&& svcstream)
     string line;
     // 捕获结果match_results
     cmatch match_result;
-    // IO读写锁
-    lock_guard<spin_mutex> lck(m_lock);
-    // 清空数据
-    m_data.clear();
+    // 读入的数据
+    decltype(m_data) data;
     // 读取一行
     while (getline(svcstream, line))
     {
@@ -70,8 +126,12 @@ bool csvstream::_read(fstream&& svcstream)
             // 下一个替换字符串
             first = match_result.suffix().first;
         }
-        m_data.push_back(move(data_line));
+        data.push_back(move(data_line));
     }
+    // IO读写锁
+    lock_guard<spin_mutex> lck(m_lock);
+    // 写入数据
+    m_data = move(data);
     return true;
 }
 
@@ -79,29 +139,13 @@ bool csvstream::_write(fstream&& svcstream)
 {
     if (!svcstream.is_open())
         return false;
-    size_t row_number = 0;
+    // 输出数据流
+    stringstream ss;
     // IO读写锁
-    lock_guard<spin_mutex> lck(m_lock);
-    // 获取最大是列宽
-    for (auto& line_data : m_data)
-    {
-        size_t line_size = line_data.size();
-        if (line_size > row_number)
-        {   // 最后非空的单元格
-            size_t line_not_empty = line_size - 1;
-            // 对于超出最大列宽的部分，验证是否为空
-            for (; line_not_empty >= row_number; line_not_empty--)
-            {
-                if (!line_data.at(line_not_empty).empty())
-                    break;
-            }
-            row_number = auto_max(row_number, line_not_empty + 1);
-        }
-    }
+    auto&& lck = align_bound();
     // 每一行数据
     for (auto& line_data : m_data)
     {
-        line_data.resize(row_number);
         string line_string;
         for (auto line : line_data)
         {
@@ -120,43 +164,45 @@ bool csvstream::_write(fstream&& svcstream)
         }
         if (line_string.size())
             *line_string.rbegin() = '\n';
-        svcstream << line_string;
+        ss << line_string;
     }
+    lck.unlock();
+    // 写入文件
+    svcstream << ss.str();
     return true;
 }
 
 void csvstream::_set_cell(size_t row, size_t col, const string& val)
 {
-    // IO读写锁
-    lock_guard<spin_mutex> lck(m_lock);
-    if (val.empty())
-    {    /* val为空，清空已有单元格 */
+    if (val.empty()) /* val为空，清空已有单元格 */
+    {   // IO读写锁
+        lock_guard<spin_mutex> lck(m_lock);
         if (m_data.size() < row + 1)
             return;
         auto& data_line = m_data.at(row);
         if (data_line.size() < col + 1)
             return;
         auto& cell = data_line.at(col);
-        cell = move(val);
+        cell = val;
     }
     else /* val非空，设置新单元格 */
-    {
+    {   // IO读写锁
+        lock_guard<spin_mutex> lck(m_lock);
         if (m_data.size() < row + 1)
             m_data.resize(row + 1);
         auto& data_line = m_data.at(row);
         if (data_line.size() < col + 1)
             data_line.resize(col + 1);
         auto& cell = data_line.at(col);
-        cell = move(val);
+        cell = val;
     }
 }
 
 void csvstream::_set_cell(size_t row, size_t col, string&& val)
 {
-    // IO读写锁
-    lock_guard<spin_mutex> lck(m_lock);
-    if (val.empty())
-    {    /* val为空，清空已有单元格 */
+    if (val.empty()) /* val为空，清空已有单元格 */
+    {   // IO读写锁
+        lock_guard<spin_mutex> lck(m_lock);
         if (m_data.size() < row + 1)
             return;
         auto& data_line = m_data.at(row);
@@ -166,7 +212,8 @@ void csvstream::_set_cell(size_t row, size_t col, string&& val)
         cell = move(val);
     }
     else /* val非空，设置新单元格 */
-    {
+    {   // IO读写锁
+        lock_guard<spin_mutex> lck(m_lock);
         if (m_data.size() < row + 1)
             m_data.resize(row + 1);
         auto& data_line = m_data.at(row);

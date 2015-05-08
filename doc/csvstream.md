@@ -13,6 +13,8 @@ class csvstream
 public:
     static struct skip_cell_t skip_cell;
 
+    std::unique_lock<spin_mutex> align_bound();
+
     bool read(T&& filename);
     bool write(T&& filename);
 
@@ -42,6 +44,10 @@ public:
 
 
 ## 成员函数
+
+- ##### `std::unique_lock<spin_mutex> align_bound()`
+
+    对齐数据边界，移除空白行和空白列。获取返回值可以延长锁定对象生命周期，以继续后续操作。
 
 - ##### `bool read(T&& filename)`
 

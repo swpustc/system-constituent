@@ -157,6 +157,8 @@ public:
     csvstream(const csvstream&) = delete;
     csvstream& operator=(const csvstream&) = delete;
 
+    SYSCONAPI ::std::unique_lock<decltype(m_lock)> align_bound();
+
     template<class T> // 读取CSV文件
     bool read(T&& filename){ return _read(_open(::std::forward<T>(filename), ::std::ios::in)); }
     template<class T> // 写入CSV文件
