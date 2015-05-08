@@ -71,8 +71,6 @@ private:
     void _get_cell(size_t row, size_t col, ::std::basic_string<char, T, A>& val)
     {
         val.clear();
-        // IO读写锁
-        lock_guard<spin_mutex> lck(m_lock);
         if (m_data.size() < row)
             return;
         auto& data_line = m_data.at(row);
@@ -165,9 +163,9 @@ public:
     bool write(T&& filename){ return _write(_open(::std::forward<T>(filename), ::std::ios::out | ::std::ios::trunc)); }
 
     template<class T> // 写入单元格
-    void set_cell(size_t row, size_t col, T&& val){ _set_cell(row, col, ::std::forward<T>(val)); }
+    void set_cell(size_t row, size_t col, T&& val){ ::std::lock_guard<spin_mutex> lck(m_lock); _set_cell(row, col, ::std::forward<T>(val)); }
     template<class T> // 读取单元格
-    void get_cell(size_t row, size_t col, T&& val){ _get_cell(row, col, ::std::forward<T>(val)); }
+    void get_cell(size_t row, size_t col, T&& val){ ::std::lock_guard<spin_mutex> lck(m_lock); _get_cell(row, col, ::std::forward<T>(val)); }
 
     template<class... Args> // 写入一行
     void set_row(size_t row, Args&&... args){ ::std::lock_guard<spin_mutex> lck(m_lock); _set_row(row, 0, ::std::forward<Args>(args)...); }

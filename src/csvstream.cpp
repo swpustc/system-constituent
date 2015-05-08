@@ -175,8 +175,7 @@ bool csvstream::_write(fstream&& svcstream)
 void csvstream::_set_cell(size_t row, size_t col, const string& val)
 {
     if (val.empty()) /* val为空，清空已有单元格 */
-    {   // IO读写锁
-        lock_guard<spin_mutex> lck(m_lock);
+    {
         if (m_data.size() < row + 1)
             return;
         auto& data_line = m_data.at(row);
@@ -186,8 +185,7 @@ void csvstream::_set_cell(size_t row, size_t col, const string& val)
         cell = val;
     }
     else /* val非空，设置新单元格 */
-    {   // IO读写锁
-        lock_guard<spin_mutex> lck(m_lock);
+    {
         if (m_data.size() < row + 1)
             m_data.resize(row + 1);
         auto& data_line = m_data.at(row);
@@ -201,8 +199,7 @@ void csvstream::_set_cell(size_t row, size_t col, const string& val)
 void csvstream::_set_cell(size_t row, size_t col, string&& val)
 {
     if (val.empty()) /* val为空，清空已有单元格 */
-    {   // IO读写锁
-        lock_guard<spin_mutex> lck(m_lock);
+    {
         if (m_data.size() < row + 1)
             return;
         auto& data_line = m_data.at(row);
@@ -212,8 +209,7 @@ void csvstream::_set_cell(size_t row, size_t col, string&& val)
         cell = move(val);
     }
     else /* val非空，设置新单元格 */
-    {   // IO读写锁
-        lock_guard<spin_mutex> lck(m_lock);
+    {
         if (m_data.size() < row + 1)
             m_data.resize(row + 1);
         auto& data_line = m_data.at(row);
