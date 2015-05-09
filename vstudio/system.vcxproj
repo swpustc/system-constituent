@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Label="Globals">
     <ProjectGuid>{25538A7E-3EAC-4AB2-A112-0762D6C3157E}</ProjectGuid>
@@ -10,7 +10,11 @@
     <ClCompile Include="$(SolutionDir)src\csvstream.cpp" />
     <ClCompile Include="$(SolutionDir)src\threadpool.cpp" />
     <ClInclude Include="$(SolutionDir)src\version.h" />
-    <ClInclude Include="$(SolutionDir)include\*" />
+    <ClInclude Include="$(SolutionDir)include\common.h" />
+    <ClInclude Include="$(SolutionDir)include\csvstream.h" />
+    <ClInclude Include="$(SolutionDir)include\link_system_constituent.h" />
+    <ClInclude Include="$(SolutionDir)include\safe_object.h" />
+    <ClInclude Include="$(SolutionDir)include\threadpool.h" />
     <ResourceCompile Include="$(SolutionDir)src\system.rc" />
   </ItemGroup>
   <ItemGroup Label="ProjectConfigurations">
