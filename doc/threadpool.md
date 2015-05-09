@@ -263,7 +263,7 @@ ABCFEDBCAFDEBACFEDBCAFEDBGCFEHCGIFJHIGKLHJIGKLJHIKMLHJIMKLNOIKMLONPMLNOPONPNOPO
 :--------- |:---------
 支持的平台 | Windows
 编译器版本 | VS2013+
-头文件     | threadpool.h
+头文件     | threadpool.h (include system_constituent.h)
 库文件     | system.lib
 DLL        | system.dll
 
