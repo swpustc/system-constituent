@@ -189,7 +189,8 @@ public:
 
 SYSCONAPI_EXTERN ::std::mutex g_log_lock;
 SYSCONAPI_EXTERN ::std::ofstream g_log_ofstream;
-SYSCONAPI_EXTERN const uint32_t system_version;
+SYSCONAPI_EXTERN const uint32_t system_constituent_version;
+SYSCONAPI_EXTERN const char* system_constituent_version_string;
 
 SYSCONAPI_EXTERN ::std::wstring_convert<::std::codecvt_utf8<wchar_t>, wchar_t> convert_utf8_unicode;
 #ifdef _MSC_VER

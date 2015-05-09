@@ -21,8 +21,13 @@ SYSCONAPI convert_cp_unicode_t<CP_ACP, wchar_t> convert_default_unicode("bad con
 #endif  /* _MSC_VER */
 
 
-SYSCONAPI const uint32_t system_version = (uint32_t)(
+SYSCONAPI const uint32_t system_constituent_version = (uint32_t)(
     ((uint32_t)((uint8_t)(FILE_VERSION_MAJOR & 0xff))) << 24 |
     ((uint32_t)((uint8_t)(FILE_VERSION_MINOR & 0xff))) << 16 |
     ((uint32_t)((uint8_t)(FILE_VERSION_POINT > 0xff ? 0xff : FILE_VERSION_POINT))) << 8 |
     ((uint32_t)((uint8_t)(FILE_VERSION_POINT2 > 0xff ? 0xff : FILE_VERSION_POINT2))));
+
+SYSCONAPI const char* system_constituent_version_string = (
+    _CRT_STRINGIZE(FILE_VERSION_MAJOR)  \
+    _CRT_STRINGIZE(FILE_VERSION_MINOR)  \
+    _CRT_STRINGIZE(FILE_VERSION_POINT));
