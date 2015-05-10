@@ -3,7 +3,7 @@
 * 支持平台：Windows
 * 编译环境：VS2010+
 * 创建时间：2015-04-05 （宋万鹏）
-* 最后修改：2015-05-02 （宋万鹏）
+* 最后修改：2015-05-10 （宋万鹏）
 ***********************************************************/
 
 #pragma once
@@ -59,7 +59,7 @@ public:
         }
     }
     // 是否存储有句柄
-    bool is_open()
+    bool is_open() const
     {
         return !!m_handle && m_handle != INVALID_HANDLE_VALUE;
     }
