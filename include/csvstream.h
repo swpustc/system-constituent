@@ -178,14 +178,14 @@ private:
     }
 
 
-    ::std::fstream _open(const char* filename, ::std::ios::openmode mode){ return ::std::fstream(filename, mode); } const
-        ::std::fstream _open(const ::std::string& filename, ::std::ios::openmode mode){ return ::std::fstream(filename, mode); } const
+    ::std::fstream _open(const char* filename, ::std::ios::openmode mode) const{ return ::std::fstream(filename, mode); }
+    ::std::fstream _open(const ::std::string& filename, ::std::ios::openmode mode) const{ return ::std::fstream(filename, mode); }
 #ifdef _WIN32
-    ::std::fstream _open(const wchar_t* filename, ::std::ios::openmode mode){ return ::std::fstream(filename, mode); }
-    ::std::fstream _open(const ::std::wstring& filename, ::std::ios::openmode mode){ return ::std::fstream(filename, mode); }
+    ::std::fstream _open(const wchar_t* filename, ::std::ios::openmode mode) const{ return ::std::fstream(filename, mode); }
+    ::std::fstream _open(const ::std::wstring& filename, ::std::ios::openmode mode) const{ return ::std::fstream(filename, mode); }
 #else  /* UNIX */
-    ::std::fstream _open(const wchar_t* filename, ::std::ios::openmode mode){ return ::std::fstream(convert_utf8_unicode.to_bytes(filename), mode); }
-    ::std::fstream _open(const ::std::wstring& filename, ::std::ios::openmode mode){ return ::std::fstream(convert_utf8_unicode.to_bytes(filename), mode); }
+    ::std::fstream _open(const wchar_t* filename, ::std::ios::openmode mode) const{ return ::std::fstream(convert_utf8_unicode.to_bytes(filename), mode); }
+    ::std::fstream _open(const ::std::wstring& filename, ::std::ios::openmode mode) const{ return ::std::fstream(convert_utf8_unicode.to_bytes(filename), mode); }
 #endif  /* _WIN32 */
 
     SYSCONAPI bool _read(::std::fstream&& svcstream);
