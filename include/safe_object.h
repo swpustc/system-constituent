@@ -17,15 +17,6 @@ class SAFE_HANDLE_OBJECT
 private:
     HANDLE m_handle;
 
-    void close_handle()
-    {
-        if (m_handle && m_handle != INVALID_HANDLE_VALUE)
-        {
-            ::CloseHandle(m_handle);
-            m_handle = INVALID_HANDLE_VALUE;
-        }
-    }
-
 public:
     // 默认构造函数
     SAFE_HANDLE_OBJECT() : m_handle(INVALID_HANDLE_VALUE)
@@ -34,7 +25,7 @@ public:
     // 默认析构函数
     ~SAFE_HANDLE_OBJECT()
     {
-        close_handle();
+        close();
     }
 
     // 复制构造函数
@@ -58,6 +49,16 @@ public:
     {
     }
 
+    // 关闭句柄
+    void close()
+    {
+        if (m_handle && m_handle != INVALID_HANDLE_VALUE)
+        {
+            ::CloseHandle(m_handle);
+            m_handle = INVALID_HANDLE_VALUE;
+        }
+    }
+
     // 关闭句柄并添加新句柄
     SAFE_HANDLE_OBJECT& operator=(HANDLE handle)
     {
@@ -66,7 +67,7 @@ public:
     }
     void attach(HANDLE handle)
     {
-        close_handle();
+        close();
         m_handle = handle;
     }
 

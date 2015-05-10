@@ -26,9 +26,9 @@
 #  endif
 #else               /* NDEBUG */
 #  ifdef _M_X64     /* _M_X64 */
-#    pragma comment(lib, "x64/system _CRT_STRINGIZE(_SYSTEM_CONSTITUENT_VERSION_) .lib")
+#    pragma comment(lib, "x64/system" _CRT_STRINGIZE(_SYSTEM_CONSTITUENT_VERSION_) ".lib")
 #  else             /* _M_X86 */
-#    pragma comment(lib, "system _CRT_STRINGIZE(_SYSTEM_CONSTITUENT_VERSION_) .lib")
+#    pragma comment(lib, "system" _CRT_STRINGIZE(_SYSTEM_CONSTITUENT_VERSION_) ".lib")
 #  endif
 #endif
 
