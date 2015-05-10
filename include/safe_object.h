@@ -52,11 +52,16 @@ public:
     // 关闭句柄
     void close()
     {
-        if (m_handle && m_handle != INVALID_HANDLE_VALUE)
+        if (!!m_handle && m_handle != INVALID_HANDLE_VALUE)
         {
             ::CloseHandle(m_handle);
             m_handle = INVALID_HANDLE_VALUE;
         }
+    }
+    // 是否存储有句柄
+    bool is_open()
+    {
+        return !!m_handle && m_handle != INVALID_HANDLE_VALUE;
     }
 
     // 关闭句柄并添加新句柄
