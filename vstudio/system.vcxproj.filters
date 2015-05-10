@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="sources">
+    <Filter Include="source">
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
@@ -16,13 +16,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)src\common.cpp">
-      <Filter>sources</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)src\csvstream.cpp">
-      <Filter>sources</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)src\threadpool.cpp">
-      <Filter>sources</Filter>
+      <Filter>source</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
