@@ -76,7 +76,7 @@ DCB serial_port::_get_option() const
     DCB dcb = { 0 };
     dcb.DCBlength = sizeof(dcb);
     if (is_open())
-        GetCommState(m_comm, &dcb);                 /* 获取DCB串口配置数据结构             */
+        GetCommState(m_comm, &dcb);                 /* 获取DCB串口配置数据结构              */
     else
     {
         dcb.BaudRate        = CBR_9600;             /* Baudrate at which running            */
@@ -122,7 +122,7 @@ bool serial_port::_set_option(const DCB& dcb)
 
 
 // 从串口读数据
-bool serial_port::read(void* data, size_t size)
+bool serial_port::read(void* data, size_t& size)
 {
     if (!this)
         return (DWORD)E_POINTER;

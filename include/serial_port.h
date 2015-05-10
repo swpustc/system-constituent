@@ -13,6 +13,7 @@
 #include <array>
 #include <vector>
 #include <string>
+#include <cstdint>
 #include <Windows.h>
 
 
@@ -65,38 +66,38 @@ private:
     template<class... Args> bool _set_option(DCB& dcb, const _option<_baud_rate_t>& arg, const _option<Args>&... args)
     {
         dcb.BaudRate = arg.elem;
-        return _set_option(dcb, args);
+        return _set_option(dcb, args...);
     }
     // 数据位
     template<class... Args> bool _set_option(DCB& dcb, const _option<_byte_size>& arg, const _option<Args>&... args)
     {
         dcb.ByteSize = arg.elem;
-        return _set_option(dcb, args);
+        return _set_option(dcb, args...);
     }
     // 停止位
     template<class... Args> bool _set_option(DCB& dcb, const _option<_stop_bits>& arg, const _option<Args>&... args)
     {
         dcb.StopBits = arg.elem;
-        return _set_option(dcb, args);
+        return _set_option(dcb, args...);
     }
     // 校验位
     template<class... Args> bool _set_option(DCB& dcb, const _option<_parity>& arg, const _option<Args>&... args)
     {
         dcb.fParity = arg.elem ? 0 : 1;
         dcb.Parity = arg.elem;
-        return _set_option(dcb, args);
+        return _set_option(dcb, args...);
     }
     // DTR
     template<class... Args> bool _set_option(DCB& dcb, const _option<_Dtr>& arg, const _option<Args>&... args)
     {
         dcb.fDtrControl = arg.elem;
-        return _set_option(dcb, args);
+        return _set_option(dcb, args...);
     }
     // RTS
     template<class... Args> bool _set_option(DCB& dcb, const _option<_Rts>& arg, const _option<Args>&... args)
     {
         dcb.fRtsControl = arg.elem;
-        return _set_option(dcb, args);
+        return _set_option(dcb, args...);
     }
 
 public:
@@ -138,12 +139,28 @@ public:
     }
 
     // 从串口读数据
-    SYSCONAPI bool read(void* data, size_t size);
-    template<class T, class A> bool read(const ::std::basic_string<char, T, A>& data, size_t size){ return write(data.c_str(), data.length()); }
-    bool read(const ::std::vector<unsigned char>& data, size_t size){ return write(data.data(), data.size()); }
-    bool read(const ::std::vector<char>& data, size_t size){ return write(data.data(), data.size()); }
-    template<size_t size> bool read(const ::std::array<unsigned char, size>& data){ return write(data.data(), data.size()); }
-    template<size_t size> bool read(const ::std::array<char, size>& data){ return write(data.data(), data.size()); }
+    SYSCONAPI bool read(void* data, size_t& size);
+    template<class T, class A> bool read(::std::basic_string<char, T, A>& data, size_t size = INT16_MAX)
+    {
+        data.resize(size = auto_min(size, INT16_MAX));
+        bool result = read(const_cast<char*>(data.c_str()), size);
+        data.resize(size);
+        return result;
+    }
+    bool read(::std::vector<unsigned char>& data, size_t size = INT16_MAX)
+    {
+        data.resize(size = auto_min(size, INT16_MAX));
+        bool result = read(const_cast<unsigned char*>(data.data()), size);
+        data.resize(size);
+        return result;
+    }
+    bool read(::std::vector<char>& data, size_t size = INT16_MAX)
+    {
+        data.resize(size = auto_min(size, INT16_MAX));
+        bool result = read(const_cast<char*>(data.data()), size);
+        data.resize(size);
+        return result;
+    }
 
     // 写数据到串口
     SYSCONAPI bool write(const void* data, size_t size);
