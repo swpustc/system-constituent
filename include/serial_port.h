@@ -30,6 +30,19 @@ private:
     SYSCONAPI bool _open(int port_number);
     bool _open(unsigned int port_number){ return _open((int)(port_number)); }
 
+    // 获取默认选项类型
+    SYSCONAPI DCB _get_option_template() const;
+
+
+    enum class _baud_rate_t : DWORD;
+
+    // 选项类型
+    template<class Elem> struct _option{ Elem elem; _option(const Elem& val) : elem(val){} };
+
+    typedef _option<_baud_rate_t> _baud_rate;
+
+
+
 
 public:
     serial_port() = default;
@@ -39,7 +52,7 @@ public:
     // 打开串口：portname可以为串口名(string|pointer)或串口序号(int 1,2,3...)
     template<class T> bool open(T&& portname){ return _open(::std::forward<T>(portname)); }
     // 串口是否已打开
-    bool is_open()
+    bool is_open() const
     {
         return m_comm.is_open();
     }
@@ -54,4 +67,22 @@ public:
         else
             return false;
     }
+
+    bool set_option(){}
+
+    SYSCONAPI static const _baud_rate baud_rate_110;
+    SYSCONAPI static const _baud_rate baud_rate_300;
+    SYSCONAPI static const _baud_rate baud_rate_600;
+    SYSCONAPI static const _baud_rate baud_rate_1200;
+    SYSCONAPI static const _baud_rate baud_rate_2400;
+    SYSCONAPI static const _baud_rate baud_rate_4800;
+    SYSCONAPI static const _baud_rate baud_rate_9600;
+    SYSCONAPI static const _baud_rate baud_rate_14400;
+    SYSCONAPI static const _baud_rate baud_rate_19200;
+    SYSCONAPI static const _baud_rate baud_rate_38400;
+    SYSCONAPI static const _baud_rate baud_rate_56000;
+    SYSCONAPI static const _baud_rate baud_rate_57600;
+    SYSCONAPI static const _baud_rate baud_rate_115200;
+    SYSCONAPI static const _baud_rate baud_rate_128000;
+    SYSCONAPI static const _baud_rate baud_rate_256000;
 };
