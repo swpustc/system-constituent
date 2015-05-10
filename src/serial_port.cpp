@@ -75,11 +75,11 @@ bool serial_port::_open(int port_number)
 DCB serial_port::_get_option() const
 {
     DCB dcb = { 0 };
+    dcb.DCBlength = sizeof(dcb);
     if (is_open())
         GetCommState(m_comm, &dcb);                 /* 获取DCB串口配置数据结构             */
     else
     {
-        dcb.DCBlength = sizeof(dcb);
         dcb.BaudRate        = CBR_9600;             /* Baudrate at which running            */
         dcb.fBinary         = 1;                    /* Binary Mode (skip EOF check)         */
         dcb.fParity         = 1;                    /* Enable parity checking               */
@@ -224,12 +224,12 @@ const serial_port::_parity serial_port::parity_even = { _parity_t::parity_even }
 const serial_port::_parity serial_port::parity_mark = { _parity_t::parity_mark };
 const serial_port::_parity serial_port::parity_space = { _parity_t::parity_space };
 
-// Dtr
+// DTR
 const serial_port::_Dtr serial_port::Dtr_disable = { _Dtr_t::Dtr_disable };
 const serial_port::_Dtr serial_port::Dtr_enable = { _Dtr_t::Dtr_enable };
 const serial_port::_Dtr serial_port::Dtr_handshake = { _Dtr_t::Dtr_handshake };
 
-// Rts
+// RTS
 const serial_port::_Rts serial_port::Rts_disable = { _Rts_t::Rts_disbale };
 const serial_port::_Rts serial_port::Rts_enable = { _Rts_t::Rts_enable };
 const serial_port::_Rts serial_port::Rts_handshake = { _Rts_t::Rts_handshake };

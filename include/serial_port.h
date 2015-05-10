@@ -82,13 +82,13 @@ private:
         dcb.Parity = arg.elem;
         return _set_option(dcb, args);
     }
-    // Dtr
+    // DTR
     template<class... Args> bool _set_option(DCB& dcb, const _option<_Dtr>& arg, const _option<Args>&... args)
     {
         dcb.fDtrControl = arg.elem;
         return _set_option(dcb, args);
     }
-    // Rts
+    // RTS
     template<class... Args> bool _set_option(DCB& dcb, const _option<_Rts>& arg, const _option<Args>&... args)
     {
         dcb.fRtsControl = arg.elem;
@@ -165,11 +165,11 @@ public:
     SYSCONAPI static const _parity parity_even;
     SYSCONAPI static const _parity parity_mark;
     SYSCONAPI static const _parity parity_space;
-    // Dtr
+    // DTR
     SYSCONAPI static const _Dtr Dtr_disable;
     SYSCONAPI static const _Dtr Dtr_enable;
     SYSCONAPI static const _Dtr Dtr_handshake;
-    // Rts
+    // RTS
     SYSCONAPI static const _Rts Rts_disable;
     SYSCONAPI static const _Rts Rts_enable;
     SYSCONAPI static const _Rts Rts_handshake;
