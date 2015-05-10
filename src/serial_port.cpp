@@ -9,7 +9,6 @@
 #include "common.h"
 #include "serial_port.h"
 #include <tchar.h>
-#include <Windows.h>
 
 using namespace std;
 
@@ -119,6 +118,214 @@ bool serial_port::_set_option(const DCB& dcb)
     if (!SetCommState(m_comm, (LPDCB)&dcb))
         return false;
     return true;
+}
+
+
+// 从串口读数据
+bool serial_port::read(void* data, size_t size)
+{
+    if (!this)
+        return (DWORD)E_POINTER;
+    DWORD dwEvtMask = 0;
+    DWORD dwTrans;
+    struct AUTO_OVERLAPPED : public OVERLAPPED
+    {
+        LPBYTE pData;
+        AUTO_OVERLAPPED(size_t dwSize = 0)
+        {
+            pData = NULL;
+            clear(dwSize);
+            hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+        }
+        ~AUTO_OVERLAPPED()
+        {
+            clear();
+            CloseHandle(hEvent);
+            hEvent = NULL;
+        }
+        void clear(size_t dwSize = 0)
+        {
+            Internal = 0;
+            InternalHigh = 0;
+            Offset = 0;
+            OffsetHigh = 0;
+            if (pData)
+                delete[] pData;
+            if (dwSize)
+                pData = new BYTE[dwSize];
+            else
+                pData = NULL;
+        }
+    } os;
+    for (;;)
+    {
+        os.clear();
+        if (!::WaitCommEvent(m_hCom, &dwEvtMask, &os))
+        {
+            DWORD dwErr = GetLastError();
+            switch (dwErr)
+            {
+            case ERROR_SUCCESS:
+            case ERROR_IO_PENDING:
+                break;
+            default:
+                if (!::PurgeComm(m_hCom, PURGE_TXABORT | PURGE_RXABORT | PURGE_TXCLEAR | PURGE_RXCLEAR))
+                    return (DWORD)E_HANDLE;
+                else
+                    continue;
+            }
+        }
+        GetOverlappedResult(m_hCom, &os, &dwTrans, TRUE);
+        if (!::GetCommMask(m_hCom, &dwEvtMask))
+            return (DWORD)E_HANDLE;
+        if (dwEvtMask & EV_RXCHAR)           // Any Character received
+        {                                   // 接收字符
+            DWORD dwErr;
+            COMSTAT ComStat;
+            if (!::ClearCommError(m_hCom, &dwErr, &ComStat))
+                return (DWORD)E_HANDLE;
+            if (ComStat.cbInQue == 0)
+                continue;
+            DWORD dwBytesRead;
+            os.clear(ComStat.cbInQue);
+            if (!ReadFile(m_hCom, os.pData, ComStat.cbInQue, &dwBytesRead, &os))
+            {
+                DWORD dwErr = GetLastError();
+                switch (dwErr)
+                {
+                case ERROR_SUCCESS:
+                case ERROR_IO_PENDING:
+                    break;
+                default:
+                    if (!::PurgeComm(m_hCom, PURGE_TXABORT | PURGE_RXABORT | PURGE_TXCLEAR | PURGE_RXCLEAR))
+                        return (DWORD)E_HANDLE;
+                    else
+                        continue;
+                }
+            }
+            while (!GetOverlappedResult(m_hCom, &os, &dwBytesRead, TRUE))
+            {
+                DWORD dwErr = GetLastError();
+                switch (dwErr)
+                {
+                case ERROR_SUCCESS:
+                    break;
+                case ERROR_IO_PENDING:
+                    continue;
+                default:
+                    if (!::PurgeComm(m_hCom, PURGE_TXABORT | PURGE_RXABORT | PURGE_TXCLEAR | PURGE_RXCLEAR))
+                        return (DWORD)E_HANDLE;
+                    else
+                        break;
+                }
+            }
+            if (dwBytesRead == 0)
+                continue;
+            WaitForSingleObject(m_hLock, INFINITE);
+            m_ReadData.push(std::vector<BYTE>(os.pData, os.pData + min(dwBytesRead, ComStat.cbInQue)));
+            SetEvent(m_hLock);
+        }
+        else if (dwEvtMask & EV_RXFLAG)      // Received certain character
+        {                                   // 接收特殊字符
+            continue;
+        }
+        else if (dwEvtMask & EV_TXEMPTY)     // Transmitt Queue Empty
+        {                                   // 数据已发送
+            continue;
+        }
+        else if (dwEvtMask & EV_CTS)         // CTS changed state
+        {                                   // CTS信号变化
+            continue;
+        }
+        else if (dwEvtMask & EV_DSR)         // DSR changed state
+        {                                   // 端口状态
+            continue;
+        }
+        // else if(dwEvtMask & EV_RLSD)     // RLSD changed state
+        else if (dwEvtMask & EV_BREAK)       // BREAK received
+        {                                   // 端口中断
+            continue;
+        }
+        else if (dwEvtMask & EV_ERR)         // Line status error occurred
+        {                                   // 端口错误
+            if (!::PurgeComm(m_hCom, PURGE_TXABORT | PURGE_RXABORT | PURGE_TXCLEAR | PURGE_RXCLEAR))
+                return (DWORD)E_HANDLE;
+            else
+                continue;
+        }
+        // else if(dwEvtMask & EV_RING)     // Ring signal detected
+        // else if(dwEvtMask & EV_PERR)     // Printer error occured
+        // else if(dwEvtMask & EV_RX80FULL) // Receive buffer is 80 percent full
+        // else if(dwEvtMask & EV_EVENT1)   // Provider specific event 1
+        // else if(dwEvtMask & EV_EVENT2)   // Provider specific event 2
+        else                                // default
+            return (DWORD)E_UNEXPECTED;
+    }
+}
+
+// 写数据到串口
+bool serial_port::write(const void* data, size_t size)
+{
+    if (!this)
+        return E_POINTER;
+    if (m_hCom == INVALID_HANDLE_VALUE ||
+        m_hCom == NULL)
+        return E_HANDLE;
+    if (dwSize == 0 || dwSize >= 32768)
+        return E_OUTOFMEMORY;
+    struct AUTO_OVERLAPPED : public OVERLAPPED
+    {
+        AUTO_OVERLAPPED()
+        {
+            clear();
+            hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+        }
+        ~AUTO_OVERLAPPED()
+        {
+            CloseHandle(hEvent);
+            hEvent = NULL;
+        }
+        void clear()
+        {
+            Internal = 0;
+            InternalHigh = 0;
+            Offset = 0;
+            OffsetHigh = 0;
+        }
+    } os;
+    DWORD dwBytesWritten;
+    if (!WriteFile(m_hCom, pData, dwSize, &dwBytesWritten, &os))
+    {
+        DWORD dwErr = GetLastError();
+        switch (dwErr)
+        {
+        case ERROR_SUCCESS:
+        case ERROR_IO_PENDING:
+            break;
+        default:
+            if (!::PurgeComm(m_hCom, PURGE_TXABORT | PURGE_RXABORT | PURGE_TXCLEAR | PURGE_RXCLEAR))
+                return E_HANDLE;
+            else
+                return E_UNEXPECTED;
+        }
+    }
+    while (!GetOverlappedResult(m_hCom, &os, &dwBytesWritten, TRUE))
+    {
+        DWORD dwErr = GetLastError();
+        switch (dwErr)
+        {
+        case ERROR_SUCCESS:
+            break;
+        case ERROR_IO_INCOMPLETE:
+            continue;
+        default:
+            if (!::PurgeComm(m_hCom, PURGE_TXABORT | PURGE_RXABORT | PURGE_TXCLEAR | PURGE_RXCLEAR))
+                return E_HANDLE;
+            else
+                return E_UNEXPECTED;
+        }
+    }
+    return S_OK;
 }
 
 

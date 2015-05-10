@@ -10,6 +10,10 @@
 
 #include "common.h"
 #include "safe_object.h"
+#include <array>
+#include <vector>
+#include <string>
+#include <Windows.h>
 
 
 class serial_port
@@ -132,6 +136,22 @@ public:
     {
         return _set_option(dcb);
     }
+
+    // 从串口读数据
+    SYSCONAPI bool read(void* data, size_t size);
+    template<class T, class A> bool read(const ::std::basic_string<char, T, A>& data, size_t size){ return write(data.c_str(), data.length()); }
+    bool read(const ::std::vector<unsigned char>& data, size_t size){ return write(data.data(), data.size()); }
+    bool read(const ::std::vector<char>& data, size_t size){ return write(data.data(), data.size()); }
+    template<size_t size> bool read(const ::std::array<unsigned char, size>& data){ return write(data.data(), data.size()); }
+    template<size_t size> bool read(const ::std::array<char, size>& data){ return write(data.data(), data.size()); }
+
+    // 写数据到串口
+    SYSCONAPI bool write(const void* data, size_t size);
+    template<class T, class A> bool write(const ::std::basic_string<char, T, A>& data){ return write(data.c_str(), data.length()); }
+    bool write(const ::std::vector<unsigned char>& data){ return write(data.data(), data.size()); }
+    bool write(const ::std::vector<char>& data){ return write(data.data(), data.size()); }
+    template<size_t size> bool write(const ::std::array<unsigned char, size>& data){ return write(data.data(), data.size()); }
+    template<size_t size> bool write(const ::std::array<char, size>& data){ return write(data.data(), data.size()); }
 
     // 波特率选项
     SYSCONAPI static const _baud_rate baud_rate_110;
