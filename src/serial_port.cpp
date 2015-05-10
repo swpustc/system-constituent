@@ -72,7 +72,7 @@ bool serial_port::_open(int port_number)
 
 
 // 获取默认选项类型
-DCB serial_port::_get_option_template() const
+DCB serial_port::_get_option() const
 {
     DCB dcb = { 0 };
     if (is_open())
@@ -111,6 +111,16 @@ DCB serial_port::_get_option_template() const
     return move(dcb);
 }
 
+// 设置选项
+bool serial_port::_set_option(const DCB& dcb)
+{
+    if (!is_open())
+        return false;
+    if (!SetCommState(m_comm, (LPDCB)&dcb))
+        return false;
+    return true;
+}
+
 
 // 波特率：枚举类
 enum class serial_port::_baud_rate_t : DWORD
@@ -132,6 +142,52 @@ enum class serial_port::_baud_rate_t : DWORD
     baud_rate_256000 = CBR_256000,
 };
 
+// 数据位：枚举类
+enum class serial_port::_byte_size_t : BYTE
+{
+    byte_size_4 = 4,
+    byte_size_5 = 5,
+    byte_size_6 = 6,
+    byte_size_7 = 7,
+    byte_size_8 = 8,
+};
+
+// 停止位：枚举类
+enum class serial_port::_stop_bits_t : BYTE
+{
+    stop_bits_1 = ONESTOPBIT,
+    stop_bits_1_5 = ONE5STOPBITS,
+    stop_bits_2 = TWOSTOPBITS,
+};
+
+// 校验位：枚举类
+enum class serial_port::_parity_t : BYTE
+{
+    parity_none = NOPARITY,
+    parity_odd = ODDPARITY,
+    parity_even = EVENPARITY,
+    parity_mark = MARKPARITY,
+    parity_space = SPACEPARITY,
+};
+
+// Dtr
+enum class serial_port::_Dtr_t : DWORD
+{
+    Dtr_disable = DTR_CONTROL_DISABLE,
+    Dtr_enable = DTR_CONTROL_ENABLE,
+    Dtr_handshake = DTR_CONTROL_HANDSHAKE,
+};
+
+// Rts
+enum class serial_port::_Rts_t : DWORD
+{
+    Rts_disbale = RTS_CONTROL_DISABLE,
+    Rts_enable = RTS_CONTROL_ENABLE,
+    Rts_handshake = RTS_CONTROL_HANDSHAKE,
+    Rts_toggle = RTS_CONTROL_TOGGLE,
+};
+
+
 // 导出的波特率选项
 const serial_port::_baud_rate serial_port::baud_rate_110 = { _baud_rate_t::baud_rate_110 };
 const serial_port::_baud_rate serial_port::baud_rate_300 = { _baud_rate_t::baud_rate_300 };
@@ -148,3 +204,33 @@ const serial_port::_baud_rate serial_port::baud_rate_57600 = { _baud_rate_t::bau
 const serial_port::_baud_rate serial_port::baud_rate_115200 = { _baud_rate_t::baud_rate_115200 };
 const serial_port::_baud_rate serial_port::baud_rate_128000 = { _baud_rate_t::baud_rate_128000 };
 const serial_port::_baud_rate serial_port::baud_rate_256000 = { _baud_rate_t::baud_rate_256000 };
+
+// 数据位
+const serial_port::_byte_size serial_port::byte_size_4 = { _byte_size_t::byte_size_4 };
+const serial_port::_byte_size serial_port::byte_size_5 = { _byte_size_t::byte_size_5 };
+const serial_port::_byte_size serial_port::byte_size_6 = { _byte_size_t::byte_size_6 };
+const serial_port::_byte_size serial_port::byte_size_7 = { _byte_size_t::byte_size_7 };
+const serial_port::_byte_size serial_port::byte_size_8 = { _byte_size_t::byte_size_8 };
+
+// 停止位
+const serial_port::_stop_bits serial_port::stop_bits_1 = { _stop_bits_t::stop_bits_1 };
+const serial_port::_stop_bits serial_port::stop_bits_1_5 = { _stop_bits_t::stop_bits_1_5 };
+const serial_port::_stop_bits serial_port::stop_bits_2 = { _stop_bits_t::stop_bits_2 };
+
+// 校验位
+const serial_port::_parity serial_port::parity_none = { _parity_t::parity_none };
+const serial_port::_parity serial_port::parity_odd = { _parity_t::parity_odd };
+const serial_port::_parity serial_port::parity_even = { _parity_t::parity_even };
+const serial_port::_parity serial_port::parity_mark = { _parity_t::parity_mark };
+const serial_port::_parity serial_port::parity_space = { _parity_t::parity_space };
+
+// Dtr
+const serial_port::_Dtr serial_port::Dtr_disable = { _Dtr_t::Dtr_disable };
+const serial_port::_Dtr serial_port::Dtr_enable = { _Dtr_t::Dtr_enable };
+const serial_port::_Dtr serial_port::Dtr_handshake = { _Dtr_t::Dtr_handshake };
+
+// Rts
+const serial_port::_Rts serial_port::Rts_disable = { _Rts_t::Rts_disbale };
+const serial_port::_Rts serial_port::Rts_enable = { _Rts_t::Rts_enable };
+const serial_port::_Rts serial_port::Rts_handshake = { _Rts_t::Rts_handshake };
+const serial_port::_Rts serial_port::Rts_toggle = { _Rts_t::Rts_toggle };

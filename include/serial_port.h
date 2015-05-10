@@ -30,19 +30,70 @@ private:
     SYSCONAPI bool _open(int port_number);
     bool _open(unsigned int port_number){ return _open((int)(port_number)); }
 
-    // 获取默认选项类型
-    SYSCONAPI DCB _get_option_template() const;
-
-
     enum class _baud_rate_t : DWORD;
+    enum class _byte_size_t : BYTE;
+    enum class _stop_bits_t : BYTE;
+    enum class _parity_t : BYTE;
+    enum class _Dtr_t : DWORD;
+    enum class _Rts_t : DWORD;
 
     // 选项类型
     template<class Elem> struct _option{ Elem elem; _option(const Elem& val) : elem(val){} };
-
     typedef _option<_baud_rate_t> _baud_rate;
+    typedef _option<_byte_size_t> _byte_size;
+    typedef _option<_stop_bits_t> _stop_bits;
+    typedef _option<_parity_t> _parity;
+    typedef _option<_Dtr_t> _Dtr;
+    typedef _option<_Rts_t> _Rts;
 
+    // 获取当前选项
+    SYSCONAPI DCB _get_option() const;
 
-
+    // 设置选项
+    SYSCONAPI bool _set_option(const DCB& dcb);
+    // default templete
+    template<class Arg, class... Args> bool _set_option(DCB& dcb, const _option<Arg>& arg, const _option<Args>&... args)
+    {
+        static_assert(false, "Arg must be one of _baud_rate, _byte_size, _stop_bits, _parity, _Dtr, _Rts.");
+        return false;
+    }
+    // 波特率
+    template<class... Args> bool _set_option(DCB& dcb, const _option<_baud_rate_t>& arg, const _option<Args>&... args)
+    {
+        dcb.BaudRate = arg.elem;
+        return _set_option(dcb, args);
+    }
+    // 数据位
+    template<class... Args> bool _set_option(DCB& dcb, const _option<_byte_size>& arg, const _option<Args>&... args)
+    {
+        dcb.ByteSize = arg.elem;
+        return _set_option(dcb, args);
+    }
+    // 停止位
+    template<class... Args> bool _set_option(DCB& dcb, const _option<_stop_bits>& arg, const _option<Args>&... args)
+    {
+        dcb.StopBits = arg.elem;
+        return _set_option(dcb, args);
+    }
+    // 校验位
+    template<class... Args> bool _set_option(DCB& dcb, const _option<_parity>& arg, const _option<Args>&... args)
+    {
+        dcb.fParity = arg.elem ? 0 : 1;
+        dcb.Parity = arg.elem;
+        return _set_option(dcb, args);
+    }
+    // Dtr
+    template<class... Args> bool _set_option(DCB& dcb, const _option<_Dtr>& arg, const _option<Args>&... args)
+    {
+        dcb.fDtrControl = arg.elem;
+        return _set_option(dcb, args);
+    }
+    // Rts
+    template<class... Args> bool _set_option(DCB& dcb, const _option<_Rts>& arg, const _option<Args>&... args)
+    {
+        dcb.fRtsControl = arg.elem;
+        return _set_option(dcb, args);
+    }
 
 public:
     serial_port() = default;
@@ -68,8 +119,21 @@ public:
             return false;
     }
 
-    bool set_option(){}
+    // 获取当前选项
+    DCB get_option() const{ return _get_option(); }
+    // 设置串口选项，参数必须是_option<Arg>类型，如果有相同类型的参数，以后一个为准
+    template<class... Args> bool set_option(const _option<Args>&... args)
+    {
+        auto&& dcb = _get_option();
+        return _set_option(dcb, args...);
+    }
+    // 从DCB数据结构设置串口选项
+    bool set_option(const DCB& dcb)
+    {
+        return _set_option(dcb);
+    }
 
+    // 波特率选项
     SYSCONAPI static const _baud_rate baud_rate_110;
     SYSCONAPI static const _baud_rate baud_rate_300;
     SYSCONAPI static const _baud_rate baud_rate_600;
@@ -85,4 +149,29 @@ public:
     SYSCONAPI static const _baud_rate baud_rate_115200;
     SYSCONAPI static const _baud_rate baud_rate_128000;
     SYSCONAPI static const _baud_rate baud_rate_256000;
+    // 数据位
+    SYSCONAPI static const _byte_size byte_size_4;
+    SYSCONAPI static const _byte_size byte_size_5;
+    SYSCONAPI static const _byte_size byte_size_6;
+    SYSCONAPI static const _byte_size byte_size_7;
+    SYSCONAPI static const _byte_size byte_size_8;
+    // 停止位
+    SYSCONAPI static const _stop_bits stop_bits_1;
+    SYSCONAPI static const _stop_bits stop_bits_1_5;
+    SYSCONAPI static const _stop_bits stop_bits_2;
+    // 校验位
+    SYSCONAPI static const _parity parity_none;
+    SYSCONAPI static const _parity parity_odd;
+    SYSCONAPI static const _parity parity_even;
+    SYSCONAPI static const _parity parity_mark;
+    SYSCONAPI static const _parity parity_space;
+    // Dtr
+    SYSCONAPI static const _Dtr Dtr_disable;
+    SYSCONAPI static const _Dtr Dtr_enable;
+    SYSCONAPI static const _Dtr Dtr_handshake;
+    // Rts
+    SYSCONAPI static const _Rts Rts_disable;
+    SYSCONAPI static const _Rts Rts_enable;
+    SYSCONAPI static const _Rts Rts_handshake;
+    SYSCONAPI static const _Rts Rts_toggle;
 };
