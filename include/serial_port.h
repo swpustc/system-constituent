@@ -142,7 +142,7 @@ public:
     SYSCONAPI bool read(void* data, size_t& size);
     template<class T, class A> bool read(::std::basic_string<char, T, A>& data)
     {
-        size_t size = INT16_MAX;
+        size_t size = (size_t)INT16_MAX;
         data.resize(size);
         bool result = read(const_cast<char*>(data.c_str()), size);
         data.resize(size);
@@ -150,7 +150,7 @@ public:
     }
     bool read(::std::vector<unsigned char>& data)
     {
-        size_t size = INT16_MAX;
+        size_t size = (size_t)INT16_MAX;
         data.resize(size);
         bool result = read(const_cast<unsigned char*>(data.data()), size);
         data.resize(size);
@@ -158,7 +158,7 @@ public:
     }
     bool read(::std::vector<char>& data)
     {
-        size_t size = INT16_MAX;
+        size_t size = (size_t)INT16_MAX;
         data.resize(size);
         bool result = read(const_cast<char*>(data.data()), size);
         data.resize(size);

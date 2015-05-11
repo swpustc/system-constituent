@@ -128,7 +128,7 @@ bool serial_port::read(void* data, size_t& size)
         return false;
     if (!is_open())
         return false;
-    size = auto_min(size, INT16_MAX);
+    size = auto_min(size, (size_t)INT16_MAX);
     while (true)
     {
         DWORD dwEvtMask = 0;
@@ -208,7 +208,7 @@ size_t serial_port::write(const void* data, size_t size)
         return 0;
     if (!is_open())
         return 0;
-    if (size > INT_MAX)
+    if (size > (size_t)INT_MAX)
         return 0;
     if (size == 0)
         return 0;
