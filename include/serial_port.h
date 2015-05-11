@@ -138,37 +138,40 @@ public:
         return _set_option(dcb);
     }
 
-    // 从串口读数据
+    // 从串口读数据，size为缓冲区长度，返回已读取的长度
     SYSCONAPI bool read(void* data, size_t& size);
-    template<class T, class A> bool read(::std::basic_string<char, T, A>& data, size_t size = INT16_MAX)
+    template<class T, class A> bool read(::std::basic_string<char, T, A>& data)
     {
-        data.resize(size = auto_min(size, INT16_MAX));
+        size_t size = INT16_MAX;
+        data.resize(size);
         bool result = read(const_cast<char*>(data.c_str()), size);
         data.resize(size);
         return result;
     }
-    bool read(::std::vector<unsigned char>& data, size_t size = INT16_MAX)
+    bool read(::std::vector<unsigned char>& data)
     {
-        data.resize(size = auto_min(size, INT16_MAX));
+        size_t size = INT16_MAX;
+        data.resize(size);
         bool result = read(const_cast<unsigned char*>(data.data()), size);
         data.resize(size);
         return result;
     }
-    bool read(::std::vector<char>& data, size_t size = INT16_MAX)
+    bool read(::std::vector<char>& data)
     {
-        data.resize(size = auto_min(size, INT16_MAX));
+        size_t size = INT16_MAX;
+        data.resize(size);
         bool result = read(const_cast<char*>(data.data()), size);
         data.resize(size);
         return result;
     }
 
-    // 写数据到串口
-    SYSCONAPI bool write(const void* data, size_t size);
-    template<class T, class A> bool write(const ::std::basic_string<char, T, A>& data){ return write(data.c_str(), data.length()); }
-    bool write(const ::std::vector<unsigned char>& data){ return write(data.data(), data.size()); }
-    bool write(const ::std::vector<char>& data){ return write(data.data(), data.size()); }
-    template<size_t size> bool write(const ::std::array<unsigned char, size>& data){ return write(data.data(), data.size()); }
-    template<size_t size> bool write(const ::std::array<char, size>& data){ return write(data.data(), data.size()); }
+    // 写数据到串口，返回值为已写入的长度
+    SYSCONAPI size_t write(const void* data, size_t size);
+    template<class T, class A> size_t write(const ::std::basic_string<char, T, A>& data){ return write(data.c_str(), data.length()); }
+    size_t write(const ::std::vector<unsigned char>& data){ return write(data.data(), data.size()); }
+    size_t write(const ::std::vector<char>& data){ return write(data.data(), data.size()); }
+    template<size_t size> size_t write(const ::std::array<unsigned char, size>& data){ return write(data.data(), data.size()); }
+    template<size_t size> size_t write(const ::std::array<char, size>& data){ return write(data.data(), data.size()); }
 
     // 波特率选项
     SYSCONAPI static const _baud_rate baud_rate_110;

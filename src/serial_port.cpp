@@ -124,71 +124,27 @@ bool serial_port::_set_option(const DCB& dcb)
 // 从串口读数据
 bool serial_port::read(void* data, size_t& size)
 {
-    if (!this)
-        return (DWORD)E_POINTER;
-    DWORD dwEvtMask = 0;
-    DWORD dwTrans;
-    struct AUTO_OVERLAPPED : public OVERLAPPED
+    if (!data)
+        return false;
+    if (!is_open())
+        return false;
+    size = auto_min(size, INT16_MAX);
+    while (true)
     {
-        LPBYTE pData;
-        AUTO_OVERLAPPED(size_t dwSize = 0)
-        {
-            pData = NULL;
-            clear(dwSize);
-            hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
-        }
-        ~AUTO_OVERLAPPED()
-        {
-            clear();
-            CloseHandle(hEvent);
-            hEvent = NULL;
-        }
-        void clear(size_t dwSize = 0)
-        {
-            Internal = 0;
-            InternalHigh = 0;
-            Offset = 0;
-            OffsetHigh = 0;
-            if (pData)
-                delete[] pData;
-            if (dwSize)
-                pData = new BYTE[dwSize];
-            else
-                pData = NULL;
-        }
-    } os;
-    for (;;)
-    {
-        os.clear();
-        if (!::WaitCommEvent(m_hCom, &dwEvtMask, &os))
-        {
-            DWORD dwErr = GetLastError();
-            switch (dwErr)
-            {
-            case ERROR_SUCCESS:
-            case ERROR_IO_PENDING:
-                break;
-            default:
-                if (!::PurgeComm(m_hCom, PURGE_TXABORT | PURGE_RXABORT | PURGE_TXCLEAR | PURGE_RXCLEAR))
-                    return (DWORD)E_HANDLE;
-                else
-                    continue;
-            }
-        }
-        GetOverlappedResult(m_hCom, &os, &dwTrans, TRUE);
-        if (!::GetCommMask(m_hCom, &dwEvtMask))
-            return (DWORD)E_HANDLE;
-        if (dwEvtMask & EV_RXCHAR)           // Any Character received
-        {                                   // 接收字符
+        DWORD dwEvtMask = 0;
+        if (!GetCommMask(m_comm, &dwEvtMask))   // 获取端口状态位
+            return false;
+        if (dwEvtMask & EV_RXCHAR)              // Any Character received
+        {                                       // 接收字符
             DWORD dwErr;
-            COMSTAT ComStat;
-            if (!::ClearCommError(m_hCom, &dwErr, &ComStat))
-                return (DWORD)E_HANDLE;
-            if (ComStat.cbInQue == 0)
-                continue;
-            DWORD dwBytesRead;
-            os.clear(ComStat.cbInQue);
-            if (!ReadFile(m_hCom, os.pData, ComStat.cbInQue, &dwBytesRead, &os))
+            COMSTAT ComStat;                    // 获取缓冲长度
+            if (!ClearCommError(m_comm, &dwErr, &ComStat))
+                return false;
+            size = auto_min(size, ComStat.cbInQue);
+            if (size == 0)
+                return true;
+            DWORD read_bytes;
+            if (!ReadFile(m_comm, data, (DWORD)size, &read_bytes, nullptr))
             {
                 DWORD dwErr = GetLastError();
                 switch (dwErr)
@@ -197,104 +153,67 @@ bool serial_port::read(void* data, size_t& size)
                 case ERROR_IO_PENDING:
                     break;
                 default:
-                    if (!::PurgeComm(m_hCom, PURGE_TXABORT | PURGE_RXABORT | PURGE_TXCLEAR | PURGE_RXCLEAR))
-                        return (DWORD)E_HANDLE;
-                    else
-                        continue;
+                    PurgeComm(m_comm, PURGE_TXABORT | PURGE_RXABORT | PURGE_TXCLEAR | PURGE_RXCLEAR);
+                    return false;
                 }
             }
-            while (!GetOverlappedResult(m_hCom, &os, &dwBytesRead, TRUE))
-            {
-                DWORD dwErr = GetLastError();
-                switch (dwErr)
-                {
-                case ERROR_SUCCESS:
-                    break;
-                case ERROR_IO_PENDING:
-                    continue;
-                default:
-                    if (!::PurgeComm(m_hCom, PURGE_TXABORT | PURGE_RXABORT | PURGE_TXCLEAR | PURGE_RXCLEAR))
-                        return (DWORD)E_HANDLE;
-                    else
-                        break;
-                }
-            }
-            if (dwBytesRead == 0)
-                continue;
-            WaitForSingleObject(m_hLock, INFINITE);
-            m_ReadData.push(std::vector<BYTE>(os.pData, os.pData + min(dwBytesRead, ComStat.cbInQue)));
-            SetEvent(m_hLock);
+            assert(read_bytes <= (DWORD)size);
+            size = auto_min(read_bytes, size);  // 已读取到的字符
+            if (size == 0)
+                return false;
+            return true;
         }
-        else if (dwEvtMask & EV_RXFLAG)      // Received certain character
-        {                                   // 接收特殊字符
+        else if (dwEvtMask & EV_RXFLAG)         // Received certain character
+        {                                       // 接收特殊字符
             continue;
         }
-        else if (dwEvtMask & EV_TXEMPTY)     // Transmitt Queue Empty
-        {                                   // 数据已发送
+        else if (dwEvtMask & EV_TXEMPTY)        // Transmitt Queue Empty
+        {                                       // 数据已发送
             continue;
         }
-        else if (dwEvtMask & EV_CTS)         // CTS changed state
-        {                                   // CTS信号变化
+        else if (dwEvtMask & EV_CTS)            // CTS changed state
+        {                                       // CTS信号变化
             continue;
         }
-        else if (dwEvtMask & EV_DSR)         // DSR changed state
-        {                                   // 端口状态
+        else if (dwEvtMask & EV_DSR)            // DSR changed state
+        {                                       // 端口状态
             continue;
         }
-        // else if(dwEvtMask & EV_RLSD)     // RLSD changed state
-        else if (dwEvtMask & EV_BREAK)       // BREAK received
-        {                                   // 端口中断
+        // else if(dwEvtMask & EV_RLSD)         // RLSD changed state
+        else if (dwEvtMask & EV_BREAK)          // BREAK received
+        {                                       // 端口中断
             continue;
         }
-        else if (dwEvtMask & EV_ERR)         // Line status error occurred
-        {                                   // 端口错误
-            if (!::PurgeComm(m_hCom, PURGE_TXABORT | PURGE_RXABORT | PURGE_TXCLEAR | PURGE_RXCLEAR))
-                return (DWORD)E_HANDLE;
+        else if (dwEvtMask & EV_ERR)            // Line status error occurred
+        {                                       // 端口错误
+            if (!PurgeComm(m_comm, PURGE_TXABORT | PURGE_RXABORT | PURGE_TXCLEAR | PURGE_RXCLEAR))
+                return false;
             else
                 continue;
         }
-        // else if(dwEvtMask & EV_RING)     // Ring signal detected
-        // else if(dwEvtMask & EV_PERR)     // Printer error occured
-        // else if(dwEvtMask & EV_RX80FULL) // Receive buffer is 80 percent full
-        // else if(dwEvtMask & EV_EVENT1)   // Provider specific event 1
-        // else if(dwEvtMask & EV_EVENT2)   // Provider specific event 2
-        else                                // default
-            return (DWORD)E_UNEXPECTED;
+        // else if(dwEvtMask & EV_RING)         // Ring signal detected
+        // else if(dwEvtMask & EV_PERR)         // Printer error occured
+        // else if(dwEvtMask & EV_RX80FULL)     // Receive buffer is 80 percent full
+        // else if(dwEvtMask & EV_EVENT1)       // Provider specific event 1
+        // else if(dwEvtMask & EV_EVENT2)       // Provider specific event 2
+        else                                    // default
+            return false;
     }
 }
 
 // 写数据到串口
-bool serial_port::write(const void* data, size_t size)
+size_t serial_port::write(const void* data, size_t size)
 {
-    if (!this)
-        return E_POINTER;
-    if (m_hCom == INVALID_HANDLE_VALUE ||
-        m_hCom == NULL)
-        return E_HANDLE;
-    if (dwSize == 0 || dwSize >= 32768)
-        return E_OUTOFMEMORY;
-    struct AUTO_OVERLAPPED : public OVERLAPPED
-    {
-        AUTO_OVERLAPPED()
-        {
-            clear();
-            hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
-        }
-        ~AUTO_OVERLAPPED()
-        {
-            CloseHandle(hEvent);
-            hEvent = NULL;
-        }
-        void clear()
-        {
-            Internal = 0;
-            InternalHigh = 0;
-            Offset = 0;
-            OffsetHigh = 0;
-        }
-    } os;
-    DWORD dwBytesWritten;
-    if (!WriteFile(m_hCom, pData, dwSize, &dwBytesWritten, &os))
+    if (!data)
+        return 0;
+    if (!is_open())
+        return 0;
+    if (size > INT_MAX)
+        return 0;
+    if (size == 0)
+        return 0;
+    DWORD write_bytes;
+    if (!WriteFile(m_comm, data, (DWORD)size, &write_bytes, nullptr))
     {
         DWORD dwErr = GetLastError();
         switch (dwErr)
@@ -303,29 +222,12 @@ bool serial_port::write(const void* data, size_t size)
         case ERROR_IO_PENDING:
             break;
         default:
-            if (!::PurgeComm(m_hCom, PURGE_TXABORT | PURGE_RXABORT | PURGE_TXCLEAR | PURGE_RXCLEAR))
-                return E_HANDLE;
-            else
-                return E_UNEXPECTED;
+            PurgeComm(m_comm, PURGE_TXABORT | PURGE_RXABORT | PURGE_TXCLEAR | PURGE_RXCLEAR);
+            return 0;
         }
     }
-    while (!GetOverlappedResult(m_hCom, &os, &dwBytesWritten, TRUE))
-    {
-        DWORD dwErr = GetLastError();
-        switch (dwErr)
-        {
-        case ERROR_SUCCESS:
-            break;
-        case ERROR_IO_INCOMPLETE:
-            continue;
-        default:
-            if (!::PurgeComm(m_hCom, PURGE_TXABORT | PURGE_RXABORT | PURGE_TXCLEAR | PURGE_RXCLEAR))
-                return E_HANDLE;
-            else
-                return E_UNEXPECTED;
-        }
-    }
-    return S_OK;
+    assert(write_bytes <= (DWORD)size); // 已写入到的字符
+    return write_bytes;
 }
 
 
