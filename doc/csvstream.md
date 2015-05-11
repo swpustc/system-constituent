@@ -239,8 +239,8 @@ int main()
 支持的平台 | Windows
 编译器版本 | VS2013+
 头文件     | csvstream.h (include system_constituent.h)
-库文件     | system.lib
-DLL        | system.dll
+库文件     | system130.lib
+DLL        | system130.dll
 
 
 ## 参见
