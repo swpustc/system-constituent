@@ -9,7 +9,7 @@
 #define FILE_VERSION_POINT  0
 #define FILE_VERSION_POINT2 1
 
-#define INTERAL_NAME        _T("system")
+#define INTERAL_NAME        _T("system130")
 #define PRODUCT_NAME        _T("系统组件")
 #define SUPPORT_AUTHOR      _T("宋万鹏")
 #define EMAIL_ADDRESS       _T("swpustc@mail.ustc.edu.cn")
