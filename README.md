@@ -6,6 +6,10 @@
 
 - [使用文档](doc/threadpool.md)
 
+### 串口
+
+- [使用文档](doc/serial_port.md)
+
 
 ## 文档操作
 

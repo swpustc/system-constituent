@@ -125,7 +125,7 @@ public:
 
 设置选项函数`set_option`的参数为以下值之一：
 
-···cpp
+```cpp
 /* 波特率 */
 serial_port::baud_rate_110;
 serial_port::baud_rate_300;
@@ -167,7 +167,7 @@ serial_port::Rts_disable;
 serial_port::Rts_enable;
 serial_port::Rts_handshake;
 serial_port::Rts_toggle;
-···
+```
 
 
 ## 示例代码
