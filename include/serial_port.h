@@ -148,7 +148,7 @@ public:
         data.resize(size);
         return result;
     }
-    bool read(::std::vector<unsigned char>& data)
+    template<class A> bool read(::std::vector<unsigned char, A>& data)
     {
         size_t size = (size_t)INT16_MAX;
         data.resize(size);
@@ -156,7 +156,7 @@ public:
         data.resize(size);
         return result;
     }
-    bool read(::std::vector<char>& data)
+    template<class A> bool read(::std::vector<char, A>& data)
     {
         size_t size = (size_t)INT16_MAX;
         data.resize(size);
@@ -168,8 +168,8 @@ public:
     // 写数据到串口，返回值为已写入的长度
     SYSCONAPI size_t write(const void* data, size_t size);
     template<class T, class A> size_t write(const ::std::basic_string<char, T, A>& data){ return write(data.c_str(), data.length()); }
-    size_t write(const ::std::vector<unsigned char>& data){ return write(data.data(), data.size()); }
-    size_t write(const ::std::vector<char>& data){ return write(data.data(), data.size()); }
+    template<class A> size_t write(const ::std::vector<unsigned char, A>& data){ return write(data.data(), data.size()); }
+    template<class A> size_t write(const ::std::vector<char, A>& data){ return write(data.data(), data.size()); }
     template<size_t size> size_t write(const ::std::array<unsigned char, size>& data){ return write(data.data(), data.size()); }
     template<size_t size> size_t write(const ::std::array<char, size>& data){ return write(data.data(), data.size()); }
 
