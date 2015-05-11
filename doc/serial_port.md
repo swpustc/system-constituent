@@ -38,13 +38,6 @@ public:
 ```
 
 
-## 成员变量
-
-- ##### `static const size_t success_code = 0x00001000`
-
-    标准退出代码。
-
-
 ## 成员函数
 
 - ##### `serial_port()`
