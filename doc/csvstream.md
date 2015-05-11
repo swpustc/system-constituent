@@ -19,23 +19,23 @@ public:
     bool write(T&& filename);
 
     void set_cell(size_t row, size_t col, T&& val);
-    void get_cell(size_t row, size_t col, T&& val);
+    void get_cell(size_t row, size_t col, T&& val) const;
     void sync_cell(Sync&& sync, size_t row, size_t col, T&& val);
 
     void set_row(size_t row, Args&&... args);
-    void get_row(size_t row, Args&&... args);
+    void get_row(size_t row, Args&&... args) const;
     void sync_row(Sync&& sync, size_t row, Args&&... args);
 
     void set_row_begin(size_t row, size_t begin_col, Args&&... args);
-    void get_row_begin(size_t row, size_t begin_col, Args&&... args);
+    void get_row_begin(size_t row, size_t begin_col, Args&&... args) const;
     void sync_row_begin(Sync&& sync, size_t row, size_t begin_col, Args&&... args);
 
     void set_col(size_t col, Args&&... args);
-    void get_col(size_t col, Args&&... args);
+    void get_col(size_t col, Args&&... args) const;
     void sync_col(Sync&& sync, size_t col, Args&&... args);
 
     void set_col_begin(size_t col, size_t begin_row, Args&&... args);
-    void get_col_begin(size_t col, size_t begin_row, Args&&... args);
+    void get_col_begin(size_t col, size_t begin_row, Args&&... args) const;
     void sync_col_begin(Sync&& sync, size_t col, size_t begin_row, Args&&... args);
 
     void clear();

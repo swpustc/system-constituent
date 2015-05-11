@@ -34,14 +34,14 @@ public:
     bool detach();
     bool detach(int thread_number_new);
 
-    int get_thread_number();
-    int get_free_thread_number();
-    size_t get_tasks_number();
-    size_t get_tasks_completed_number();
-    size_t get_tasks_total_number();
+    int get_thread_number() const;
+    int get_free_thread_number() const;
+    size_t get_tasks_number() const;
+    size_t get_tasks_completed_number() const;
+    size_t get_tasks_total_number() const;
 
     std::deque<std::function<void()>> get_exception_tasks();
-    int get_default_thread_number();
+    int get_default_thread_number() const;
     static const type_info& this_type();
 
     bool set_thread_number(int thread_number);

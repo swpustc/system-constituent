@@ -43,7 +43,7 @@ private:
     ::std::atomic<size_t> m_task_completed{ 0 };
     ::std::atomic<size_t> m_task_all{ 0 };
     // 任务队列读写锁
-    ::std::mutex m_task_lock;
+    mutable ::std::mutex m_task_lock;
     // 线程创建、销毁事件锁
     ::std::mutex m_thread_lock;
     // 通知事件
@@ -384,12 +384,12 @@ public:
     SYSCONAPI bool detach(int thread_number_new);
 
     // 获取线程数量
-    int get_thread_number()
+    int get_thread_number() const
     {
         return m_thread_started.load();
     }
     // 获取空闲线程数
-    int get_free_thread_number()
+    int get_free_thread_number() const
     {
         if (get_tasks_number())
             return 0;
@@ -401,18 +401,18 @@ public:
         }
     }
     // 获取任务队列数量
-    size_t get_tasks_number()
+    size_t get_tasks_number() const
     {
         ::std::lock_guard<::std::mutex> lck(m_task_lock); // 任务队列读写锁
         return m_push_tasks->size();
     }
     // 获取已完成任务数
-    size_t get_tasks_completed_number()
+    size_t get_tasks_completed_number() const
     {
         return m_task_completed.load();
     }
     // 获取已添加任务总数
-    size_t get_tasks_total_number()
+    size_t get_tasks_total_number() const
     {
         return m_task_all.load();
     }
@@ -424,7 +424,7 @@ public:
         return ::std::move(exception_tasks);
     }
     // 获取初始化线程数
-    int get_default_thread_number()
+    int get_default_thread_number() const
     {
         return m_thread_number.load();
     }
