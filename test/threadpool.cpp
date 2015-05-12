@@ -25,8 +25,8 @@ int main()
 {
     set_log_location("threadpool.log"); // 设置日志文件存储路径为当前目录
 
-    threadpool<> thpool1; // 未初始化的线程池
-    threadpool<> thpool2(4); // 创建同时初始化线程池
+    threadpool<true> thpool1; // 未初始化的线程池，处理异常
+    threadpool<false> thpool2(4); // 创建同时初始化线程池，不处理异常
 
     char c = 'a';
     for (int i = 0; i < 16; i++)
@@ -70,7 +70,7 @@ int main()
     thpool1.set_new_thread_number(thread_number + 1);
     auto&& new_thread_number = thpool1.get_thread_number();
 
-    auto fut_res = thpool1.push_multi_future(4, foo, 1, '9', 100); // push_multi_future
+    // 暂停线程池
     thpool1.pause();
 
     debug_output<true>(_T("thread_number: "), thread_number, _T("\nfree_thread_number: "), free_thread_number,
@@ -78,14 +78,11 @@ int main()
         _T("\ntasks_total_number: "), tasks_total_number, _T("\ndefault_thread_number: "), default_thread_number,
         _T("\nthreadpool_type: "), threadpool_type.name(), _T("\nnew_thread_number: "), new_thread_number);
 
-    thpool1.detach(4);
+    auto fut_res = thpool1.detach_future(4);
     thpool1.start();
 
     // 同步线程池分离的任务
-    if (fut_res.second)
-        for (auto& fut : fut_res.first)
-            fut.get();
+    debug_output<true>(_T("detach thread result: "), fut_res.get());
 
-    this_thread::sleep_for(seconds(3));
     return 0;
 }
