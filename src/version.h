@@ -4,12 +4,9 @@
 * 编译环境：VS2010+; g++
 ***********************************************************/
 
-#define FILE_VERSION_MAJOR  1
-#define FILE_VERSION_MINOR  3
-#define FILE_VERSION_POINT  0
-#define FILE_VERSION_POINT2 1
+#include "system_constituent_version.h"
 
-#define INTERAL_NAME        _T("system130")
+#define INTERAL_NAME        _T("system") _T(_CRT_STRINGIZE(SYSTEM_CONSTITUENT_VERSION))
 #define PRODUCT_NAME        _T("系统组件")
 #define SUPPORT_AUTHOR      _T("宋万鹏")
 #define EMAIL_ADDRESS       _T("swpustc@mail.ustc.edu.cn")

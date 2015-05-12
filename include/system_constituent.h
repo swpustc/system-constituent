@@ -6,6 +6,8 @@
 
 #pragma once
 
+// Version
+#include "system_constituent_version.h"
 // 公共头文件
 #include "common.h"
 // CSV文档

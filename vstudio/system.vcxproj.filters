@@ -53,6 +53,9 @@
     <ClInclude Include="$(SolutionDir)include\system_constituent.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="$(SolutionDir)include\system_constituent_version.h">
+      <Filter>include</Filter>
+    </ClInclude>
     <ClInclude Include="$(SolutionDir)include\threadpool.h">
       <Filter>include</Filter>
     </ClInclude>

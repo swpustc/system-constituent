@@ -20,6 +20,7 @@
     <ClInclude Include="$(SolutionDir)include\safe_object.h" />
     <ClInclude Include="$(SolutionDir)include\serial_port.h" />
     <ClInclude Include="$(SolutionDir)include\system_constituent.h" />
+    <ClInclude Include="$(SolutionDir)include\system_constituent_version.h" />
     <ClInclude Include="$(SolutionDir)include\threadpool.h" />
     <ResourceCompile Include="$(SolutionDir)src\system.rc" />
   </ItemGroup>

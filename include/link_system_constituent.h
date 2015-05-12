@@ -6,27 +6,22 @@
 
 #pragma once
 
-#define _SYSTEM_CONSTITUENT_VERSION_   130
+#include "system_constituent_version.h"
 
-
-#ifndef _CRT_STRINGIZE
-#define __CRT_STRINGIZE(_Value) #_Value
-#define _CRT_STRINGIZE(_Value) __CRT_STRINGIZE(_Value)
-#endif  /* _CRT_STRINGIZE */
 
 #ifdef _MSC_VER
 
 #ifdef _DEBUG       /* _DEBUG */
 #  ifdef _M_X64     /* _M_X64 */
-#    pragma comment(lib, "Debug/x64/system" _CRT_STRINGIZE(_SYSTEM_CONSTITUENT_VERSION_) ".lib")
+#    pragma comment(lib, "Debug/x64/system" _CRT_STRINGIZE(SYSTEM_CONSTITUENT_VERSION) ".lib")
 #  else             /* _M_X86 */
-#    pragma comment(lib, "Debug/system" _CRT_STRINGIZE(_SYSTEM_CONSTITUENT_VERSION_) ".lib")
+#    pragma comment(lib, "Debug/system" _CRT_STRINGIZE(SYSTEM_CONSTITUENT_VERSION) ".lib")
 #  endif
 #else               /* NDEBUG */
 #  ifdef _M_X64     /* _M_X64 */
-#    pragma comment(lib, "x64/system" _CRT_STRINGIZE(_SYSTEM_CONSTITUENT_VERSION_) ".lib")
+#    pragma comment(lib, "x64/system" _CRT_STRINGIZE(SYSTEM_CONSTITUENT_VERSION) ".lib")
 #  else             /* _M_X86 */
-#    pragma comment(lib, "system" _CRT_STRINGIZE(_SYSTEM_CONSTITUENT_VERSION_) ".lib")
+#    pragma comment(lib, "system" _CRT_STRINGIZE(SYSTEM_CONSTITUENT_VERSION) ".lib")
 #  endif
 #endif
 
