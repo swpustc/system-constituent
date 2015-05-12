@@ -66,50 +66,7 @@ private:
     * 返回值 >= success_code 表示正常退出，< success_code 为非正常退出
     * run函数体本身堆栈中没有对象，移动ebp/rbp寄存器安全，可以不处理异常
     **/
-    size_t run(HANDLE exit_event)
-    {
-        // 线程通知事件
-        HANDLE handle_notify[] = { exit_event, m_stop_thread, m_notify_task };
-        while (true)
-        {
-            // 监听线程通知事件
-            switch (WaitForMultipleObjects(sizeof(handle_notify) / sizeof(HANDLE), handle_notify, FALSE, INFINITE))
-            {
-            case WAIT_OBJECT_0:     // 退出当前线程
-                return success_code + 0;
-            case WAIT_OBJECT_0 + 1: // 正常退出事件
-                switch (m_exit_event.load())
-                {
-                case exit_event_t::INITIALIZATION:      // 线程池对象未准备好
-                    return success_code - 0xff;
-                case exit_event_t::NORMAL:              // 未设置退出事件
-                    return success_code + 1;
-                case exit_event_t::PAUSE:               // 线程暂停中
-                    return success_code + 2;
-                case exit_event_t::STOP_IMMEDIATELY:    // 立即退出
-                    return success_code + 3;
-                case exit_event_t::WAIT_TASK_COMPLETE:  // 等待任务队列清空
-                default:
-                    break;
-                }
-            case WAIT_OBJECT_0 + 2: // 当前线程激活
-                while (true)
-                {
-                    if (!run_task(get_task())) // 任务队列中没有任务
-                    {
-                        if (m_exit_event == exit_event_t::WAIT_TASK_COMPLETE)
-                            return success_code + 4;
-                        break;
-                    }
-                }
-                break;
-            case WAIT_FAILED:       // 错误
-                return success_code - 3;
-            default:
-                return success_code - 4;
-            }
-        }
-    }
+    size_t run(HANDLE exit_event);
 
     // 新任务添加通知
     void notify()
@@ -440,40 +397,3 @@ public:
         return set_new_thread_number(get_default_thread_number());
     }
 };
-
-
-template<> inline // 运行一条任务，返回任务队列中是否还有任务[true:有任务; false:没任务]，捕获异常
-bool threadpool<true>::run_task(::std::pair<::std::function<void()>, size_t>&& task_val)
-{
-    // 任务队列中有任务未处理，发送线程启动通知
-    if (task_val.second > 1)
-        notify();
-    if (task_val.second)
-    {
-        try
-        {
-            task_val.first();
-        }
-        catch (...)
-        {
-            throw ::std::move(task_val.first);
-            return false;
-        }
-        m_task_completed++;
-    }
-    return task_val.second > 1;
-}
-
-template<> inline // 运行一条任务，返回任务队列中是否还有任务[true:有任务; false:没任务]，不捕获异常
-bool threadpool<false>::run_task(::std::pair<::std::function<void()>, size_t>&& task_val)
-{
-    // 任务队列中有任务未处理，发送线程启动通知
-    if (task_val.second > 1)
-        notify();
-    if (task_val.second)
-    {
-        task_val.first();
-        m_task_completed++;
-    }
-    return task_val.second > 1;
-}

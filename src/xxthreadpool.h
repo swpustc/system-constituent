@@ -39,6 +39,53 @@ template<> size_t threadpool<HANDLE_EXCEPTION>::thread_entry(threadpool* object,
     return result;
 }
 
+// 任务运行主体函数
+template<> inline size_t threadpool<HANDLE_EXCEPTION>::run(HANDLE exit_event)
+{
+    // 线程通知事件
+    HANDLE handle_notify[] = { exit_event, m_stop_thread, m_notify_task };
+    while (true)
+    {
+        // 监听线程通知事件
+        switch (WaitForMultipleObjects(sizeof(handle_notify) / sizeof(HANDLE), handle_notify, FALSE, INFINITE))
+        {
+        case WAIT_OBJECT_0:     // 退出当前线程
+            return success_code + 0;
+        case WAIT_OBJECT_0 + 1: // 正常退出事件
+            switch (m_exit_event.load())
+            {
+            case exit_event_t::INITIALIZATION:      // 线程池对象未准备好
+                return success_code - 0xff;
+            case exit_event_t::NORMAL:              // 未设置退出事件
+                return success_code + 1;
+            case exit_event_t::PAUSE:               // 线程暂停中
+                return success_code + 2;
+            case exit_event_t::STOP_IMMEDIATELY:    // 立即退出
+                return success_code + 3;
+            case exit_event_t::WAIT_TASK_COMPLETE:  // 等待任务队列清空
+            default:
+                break;
+            }
+        case WAIT_OBJECT_0 + 2: // 当前线程激活
+            while (true)
+            {
+                if (!run_task(get_task())) // 任务队列中没有任务
+                {
+                    if (m_exit_event == exit_event_t::WAIT_TASK_COMPLETE)
+                        return success_code + 4;
+                    break;
+                }
+            }
+            break;
+        case WAIT_FAILED:       // 错误
+            return success_code - 3;
+        default:
+            return success_code - 4;
+        }
+    }
+}
+
+
 // 分离任务
 template<> bool threadpool<HANDLE_EXCEPTION>::detach(int thread_number_new)
 {
