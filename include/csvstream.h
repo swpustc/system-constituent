@@ -195,15 +195,15 @@ public:
     csvstream& operator=(const csvstream&) = delete;
     csvstream(csvstream&& right)
     {
-        ::std::lock_guard<spin_mutex> lck(right.m_lock);
+        ::std::lock_guard<decltype(m_lock)> lck(right.m_lock);
         m_data = ::std::move(right.m_data);
     }
     csvstream& operator=(csvstream&& right)
     {
         if (this == &right)
             return *this;
-        ::std::lock_guard<spin_mutex> lck1(m_lock);
-        ::std::lock_guard<spin_mutex> lck2(right.m_lock);
+        ::std::lock_guard<decltype(m_lock)> lck1(m_lock);
+        ::std::lock_guard<decltype(m_lock)> lck2(right.m_lock);
         m_data = ::std::move(right.m_data);
         return *this;
     };
@@ -218,115 +218,115 @@ public:
     // 写入单元格
     template<class T> void set_cell(size_t row, size_t col, T&& val)
     {
-        ::std::lock_guard<spin_mutex> lck(m_lock);
+        ::std::lock_guard<decltype(m_lock)> lck(m_lock);
         _set_cell(row, col, ::std::forward<T>(val));
     }
     // 读取单元格
     template<class T> void get_cell(size_t row, size_t col, T&& val) const
     {
-        ::std::lock_guard<spin_mutex> lck(m_lock);
+        ::std::lock_guard<decltype(m_lock)> lck(m_lock);
         _get_cell(row, col, ::std::forward<T>(val));
     }
     // 读取、写入单元格，通过传入Sync[csvstream::sync_set|svstream::sync_get]控制读和写操作
     template<class Sync, class T> void sync_cell(Sync&& sync, size_t row, size_t col, T&& val)
     {
-        ::std::lock_guard<spin_mutex> lck(m_lock);
+        ::std::lock_guard<decltype(m_lock)> lck(m_lock);
         _sync_cell(::std::forward<Sync>(sync), row, col, ::std::forward<T>(val));
     }
 
     // 写入一行
     template<class... Args> void set_row(size_t row, Args&&... args)
     {
-        ::std::lock_guard<spin_mutex> lck(m_lock);
+        ::std::lock_guard<decltype(m_lock)> lck(m_lock);
         _set_row(row, 0, ::std::forward<Args>(args)...);
     }
     // 读取一行
     template<class... Args> void get_row(size_t row, Args&&... args) const
     {
-        ::std::lock_guard<spin_mutex> lck(m_lock);
+        ::std::lock_guard<decltype(m_lock)> lck(m_lock);
         _get_row(row, 0, ::std::forward<Args>(args)...);
     }
     // 读取、写入一行，通过传入Sync[csvstream::sync_set|svstream::sync_get]控制读和写操作
     template<class Sync, class... Args> void sync_row(Sync&& sync, size_t row, Args&&... args)
     {
-        ::std::lock_guard<spin_mutex> lck(m_lock);
+        ::std::lock_guard<decltype(m_lock)> lck(m_lock);
         _sync_row(::std::forward<Sync>(sync), row, 0, ::std::forward<Args>(args)...);
     }
 
     // 从begin_col列开始写入一行
     template<class... Args> void set_row_begin(size_t row, size_t begin_col, Args&&... args)
     {
-        ::std::lock_guard<spin_mutex> lck(m_lock);
+        ::std::lock_guard<decltype(m_lock)> lck(m_lock);
         _set_row(row, begin_col, ::std::forward<Args>(args)...);
     }
     // 从begin_col列开始读取一行
     template<class... Args> void get_row_begin(size_t row, size_t begin_col, Args&&... args) const
     {
-        ::std::lock_guard<spin_mutex> lck(m_lock);
+        ::std::lock_guard<decltype(m_lock)> lck(m_lock);
         _get_row(row, begin_col, ::std::forward<Args>(args)...);
     }
     // 从begin_col列开始读取、写入一行，通过传入Sync[csvstream::sync_set|svstream::sync_get]控制读和写操作
     template<class Sync, class... Args> void sync_row_begin(Sync&& sync, size_t row, size_t begin_col, Args&&... args)
     {
-        ::std::lock_guard<spin_mutex> lck(m_lock);
+        ::std::lock_guard<decltype(m_lock)> lck(m_lock);
         _sync_row(::std::forward<Sync>(sync), row, begin_col, ::std::forward<Args>(args)...);
     }
 
     // 写入一列
     template<class... Args> void set_col(size_t col, Args&&... args)
     {
-        ::std::lock_guard<spin_mutex> lck(m_lock);
+        ::std::lock_guard<decltype(m_lock)> lck(m_lock);
         _set_col(0, col, ::std::forward<Args>(args)...);
     }
     // 读取一列
     template<class... Args> void get_col(size_t col, Args&&... args) const
     {
-        ::std::lock_guard<spin_mutex> lck(m_lock);
+        ::std::lock_guard<decltype(m_lock)> lck(m_lock);
         _get_col(0, col, ::std::forward<Args>(args)...);
     }
     // 读取、写入一列，通过传入Sync[csvstream::sync_set|svstream::sync_get]控制读和写操作
     template<class Sync, class... Args> void sync_col(Sync&& sync, size_t col, Args&&... args)
     {
-        ::std::lock_guard<spin_mutex> lck(m_lock);
+        ::std::lock_guard<decltype(m_lock)> lck(m_lock);
         _sync_row(::std::forward<Sync>(sync), 0, col, ::std::forward<Args>(args)...);
     }
 
     // 从begin_row行开始写入一列
     template<class... Args> void set_col_begin(size_t col, size_t begin_row, Args&&... args)
     {
-        ::std::lock_guard<spin_mutex> lck(m_lock);
+        ::std::lock_guard<decltype(m_lock)> lck(m_lock);
         _set_col(begin_row, col, ::std::forward<Args>(args)...);
     }
     // 从begin_row行开始读取一列
     template<class... Args> void get_col_begin(size_t col, size_t begin_row, Args&&... args) const
     {
-        ::std::lock_guard<spin_mutex> lck(m_lock);
+        ::std::lock_guard<decltype(m_lock)> lck(m_lock);
         _get_col(begin_row, col, ::std::forward<Args>(args)...);
     }
     // 从begin_row列开始读取、写入一列，通过传入Sync[csvstream::sync_set|svstream::sync_get]控制读和写操作
     template<class Sync, class... Args> void sync_col_begin(Sync&& sync, size_t col, size_t begin_row, Args&&... args)
     {
-        ::std::lock_guard<spin_mutex> lck(m_lock);
+        ::std::lock_guard<decltype(m_lock)> lck(m_lock);
         _sync_col(::std::forward<Sync>(sync), begin_row, col, ::std::forward<Args>(args)...);
     }
 
     // 清除整个数据表
     void clear()
     {
-        ::std::lock_guard<spin_mutex> lck(m_lock);
+        ::std::lock_guard<decltype(m_lock)> lck(m_lock);
         m_data.clear();
     }
     // 清除一行
     void clear_row(size_t row)
     {
-        ::std::lock_guard<spin_mutex> lck(m_lock);
+        ::std::lock_guard<decltype(m_lock)> lck(m_lock);
         if (m_data.size() >= row + 1)
             m_data.at(row).clear();
     }
     // 清除一列
     void clear_col(size_t col)
     {
-        ::std::lock_guard<spin_mutex> lck(m_lock);
+        ::std::lock_guard<decltype(m_lock)> lck(m_lock);
         for (auto& line_data : m_data)
             if (line_data.size() >= col + 1)
                 line_data.at(col).clear();
@@ -335,14 +335,14 @@ public:
     // 删除一行，下边的行上移
     void erase_row(size_t row)
     {
-        ::std::lock_guard<spin_mutex> lck(m_lock);
+        ::std::lock_guard<decltype(m_lock)> lck(m_lock);
         if (m_data.size() >= row + 1)
             m_data.erase(m_data.cbegin() + row);
     }
     // 删除一列，右边的列左移
     void erase_col(size_t col)
     {
-        ::std::lock_guard<spin_mutex> lck(m_lock);
+        ::std::lock_guard<decltype(m_lock)> lck(m_lock);
         for (auto& line_data : m_data)
             if (line_data.size() >= col + 1)
                 line_data.erase(line_data.cbegin() + col);
@@ -351,7 +351,7 @@ public:
     // 在row行上边插入一行
     template<class... Args> void insert_row(size_t row, Args&&... args)
     {
-        ::std::lock_guard<spin_mutex> lck(m_lock);
+        ::std::lock_guard<decltype(m_lock)> lck(m_lock);
         // 如果插入的行已存在
         if (m_data.size() >= row + 1)
             m_data.insert(m_data.cbegin() + row, ::std::vector<::std::string>());
@@ -360,7 +360,7 @@ public:
     // 在col列左边插入一列
     template<class... Args> void insert_col(size_t col, Args&&... args)
     {
-        ::std::lock_guard<spin_mutex> lck(m_lock);
+        ::std::lock_guard<decltype(m_lock)> lck(m_lock);
         for (auto& line_data : m_data)
             if (line_data.size() >= col + 1) // 如果插入的列已存在
                 line_data.insert(line_data.cbegin() + col, ::std::string());
@@ -370,7 +370,7 @@ public:
     // 在row行上边插入一行，写入数据从begin_col列开始
     template<class... Args> void insert_row_begin(size_t row, size_t begin_col, Args&&... args)
     {
-        ::std::lock_guard<spin_mutex> lck(m_lock);
+        ::std::lock_guard<decltype(m_lock)> lck(m_lock);
         // 如果插入的行已存在
         if (m_data.size() >= row + 1)
             m_data.insert(m_data.cbegin() + row, ::std::vector<::std::string>(begin_col));
@@ -379,7 +379,7 @@ public:
     // 在col列左边插入一列，写入数据从begin_row行开始
     template<class... Args> void insert_col_begin(size_t col, size_t begin_row, Args&&... args)
     {
-        ::std::lock_guard<spin_mutex> lck(m_lock);
+        ::std::lock_guard<decltype(m_lock)> lck(m_lock);
         for (auto& line_data : m_data)
             if (line_data.size() >= col + 1) // 如果插入的列已存在
                 line_data.insert(line_data.cbegin() + col, ::std::string());
@@ -391,8 +391,8 @@ public:
     {
         if (this == &right)
             return;
-        ::std::lock_guard<spin_mutex> lck1(m_lock);
-        ::std::lock_guard<spin_mutex> lck2(right.m_lock);
+        ::std::lock_guard<decltype(m_lock)> lck1(m_lock);
+        ::std::lock_guard<decltype(m_lock)> lck2(right.m_lock);
         ::std::swap(m_data, right.m_data);
     }
     // 交换两行

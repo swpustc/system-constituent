@@ -466,7 +466,7 @@ template<class T, class A, class... Args> inline void _debug_output(::std::basic
 // Debug下，无论output为何值总是输出。Release下，output为true时输出
 template<bool output = false, class... Args> inline void debug_output(Args&&... args)
 {
-    ::std::lock_guard<::std::mutex> lck(g_log_lock);
+    ::std::lock_guard<decltype(g_log_lock)> lck(g_log_lock);
     _debug_output(decay_type(::std::forward<Args>(args))...);
 }
 
@@ -476,7 +476,7 @@ template<bool output = false, class... Args> inline void debug_output(Args&&... 
 {
     if (output)
     {
-        ::std::lock_guard<::std::mutex> lck(g_log_lock);
+        ::std::lock_guard<decltype(g_log_lock)> lck(g_log_lock);
         _debug_output(decay_type(::std::forward<Args>(args))...);
     }
 }

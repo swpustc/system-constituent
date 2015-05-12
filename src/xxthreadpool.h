@@ -110,7 +110,7 @@ template<> bool threadpool<HANDLE_EXCEPTION>::set_new_thread_number(int thread_n
     if (m_thread_started.load() != thread_number_new)
     {
         // 线程创建、销毁事件锁
-        unique_lock<mutex> lck(m_thread_lock);
+        unique_lock<decltype(m_thread_lock)> lck(m_thread_lock);
         for (register int i = m_thread_started.load(); i < thread_number_new; i++)
         {
             HANDLE thread_exit_event = ::CreateEventW(nullptr, FALSE, FALSE, nullptr); // 自动复位，无信号

@@ -353,7 +353,7 @@ public:
                 // 生成任务（仿函数）
                 ::std::function<void()> bind_function(::std::bind(function_wapper(), ::std::move(task_obj)));
                 // 任务队列读写锁
-                ::std::lock_guard<::std::mutex> lck(m_task_lock);
+                ::std::lock_guard<decltype(m_task_lock)> lck(m_task_lock);
                 m_push_tasks->push_back(::std::move(bind_function));
             }
             m_task_all += count;
