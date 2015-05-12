@@ -13,7 +13,7 @@
 
 
 #define INTERAL_NAME        _T("system") _T(_CRT_STRINGIZE(SYSTEM_CONSTITUENT_VERSION))
-#define PRODUCT_NAME        _T("system constituent")
+#define PRODUCT_NAME        _T("System Constituent")
 #define SUPPORT_AUTHOR      _T("宋万鹏")
 #define EMAIL_ADDRESS       _T("swpustc@mail.ustc.edu.cn")
 #define COMPANY_NAME        _T("杭州赤霄科技有限公司")
