@@ -27,4 +27,14 @@
 #define _CRT_APPEND(_Value1, _Value2) __CRT_APPEND(_Value1, _Value2)
 #endif  /* _CRT_APPEND */
 
+#ifndef _T
+#ifdef _UNICODE
+#define __TXT(x)    L ## x
+#else  /* _UNICODE */
+#define __TXT(x)    x
+#endif  /* _UNICODE */
+#define _T(x)       __TXT(x)
+#endif  /* _T */
+
+
 #define SYSTEM_CONSTITUENT_VERSION _CRT_APPEND(FILE_VERSION_MAJOR, _CRT_APPEND(FILE_VERSION_MINOR, FILE_VERSION_POINT))
