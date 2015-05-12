@@ -59,18 +59,7 @@ private:
     ::std::atomic<exit_event_t> m_exit_event{ exit_event_t::INITIALIZATION };
 
     // 线程入口函数
-    size_t thread_entry(HANDLE exit_event)
-    {
-        debug_output(_T("Thread Start: ["), this_type().name(), _T("](0x"), this, _T(')'));
-        size_t result = pre_run(exit_event);
-        debug_output(_T("Thread Result: ["), (void*)result, _T("] ["), this_type().name(), _T("](0x"), this, _T(')'));
-#if _MSC_VER <= 1800 // Fix std::thread deadlock bug on VS2012,VS2013 (when call join on exit)
-        ::ExitThread((DWORD)result);
-#endif // #if _MSC_VER <= 1800
-        return result;
-    }
-    // 线程运行前准备
-    size_t pre_run(HANDLE exit_event);
+    SYSCONAPI static size_t thread_entry(threadpool* object, HANDLE exit_event);
     /* 线程任务调度函数
     * 返回值 >= success_code 表示正常退出，< success_code 为非正常退出
     * run函数体本身堆栈中没有对象，移动ebp/rbp寄存器安全，可以不处理异常
@@ -449,30 +438,6 @@ public:
         return set_new_thread_number(get_default_thread_number());
     }
 };
-
-
-template<> inline // 线程运行前准备，捕获异常
-size_t threadpool<true>::pre_run(HANDLE exit_event)
-{
-    while (true)
-    {
-        try
-        {
-            return run(exit_event);
-        }
-        catch (::std::function<void()>& function_object)
-        {
-            debug_output<true>(_T(__FILE__), _T('('), __LINE__, _T("): "), function_object.target_type().name());
-            m_exception_tasks.push_back(::std::move(function_object));
-        }
-    }
-}
-
-template<> inline // 线程运行前准备，不捕获异常
-size_t threadpool<false>::pre_run(HANDLE exit_event)
-{
-    return run(exit_event);
-}
 
 
 template<> inline // 运行一条任务，返回任务队列中是否还有任务[true:有任务; false:没任务]，捕获异常

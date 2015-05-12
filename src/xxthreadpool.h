@@ -113,7 +113,7 @@ template<> bool threadpool<HANDLE_EXCEPTION>::set_new_thread_number(int thread_n
         {
             HANDLE thread_exit_event = ::CreateEventW(nullptr, FALSE, FALSE, nullptr); // 自动复位，无信号
             auto iter = m_thread_object.insert(m_thread_object.end(), make_pair(
-                thread(&threadpool::thread_entry, this, thread_exit_event), SAFE_HANDLE_OBJECT(thread_exit_event)));
+                thread(thread_entry, this, thread_exit_event), SAFE_HANDLE_OBJECT(thread_exit_event)));
             m_thread_started++;
         }
         for (register int i = m_thread_started.load(); i > thread_number_new; i--)
