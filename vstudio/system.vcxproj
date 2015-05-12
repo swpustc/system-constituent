@@ -9,11 +9,9 @@
     <ClCompile Include="$(SolutionDir)src\common.cpp" />
     <ClCompile Include="$(SolutionDir)src\csvstream.cpp" />
     <ClCompile Include="$(SolutionDir)src\serial_port.cpp" />
-    <ClCompile Include="$(SolutionDir)src\threadpool.cpp">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)src\threadpoolxx.cpp" />
+    <ClCompile Include="$(SolutionDir)src\threadpool.cpp" />
     <ClInclude Include="$(SolutionDir)src\version.h" />
+    <ClInclude Include="$(SolutionDir)src\xxthreadpool.h" />
     <ClInclude Include="$(SolutionDir)include\common.h" />
     <ClInclude Include="$(SolutionDir)include\csvstream.h" />
     <ClInclude Include="$(SolutionDir)include\link_system_constituent.h" />
