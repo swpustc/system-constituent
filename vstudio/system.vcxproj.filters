@@ -27,6 +27,9 @@
     <ClCompile Include="$(SolutionDir)src\threadpool.cpp">
       <Filter>source</Filter>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\threadpoolxx.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(SolutionDir)src\version.h">

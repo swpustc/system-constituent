@@ -380,6 +380,13 @@ public:
     }
     // 分离所有任务，设置分离的线程池对象线程数为thread_number_new
     SYSCONAPI bool detach(int thread_number_new);
+    // 分离任务，并得到分离任务执行情况的future
+    ::std::future<size_t> detach_future()
+    {
+        return detach_future(m_thread_started);
+    }
+    // 分离任务，设置分离的线程池对象线程数为thread_number_new，并得到分离任务执行情况的future
+    SYSCONAPI ::std::future<size_t> detach_future(int thread_number_new);
 
     // 获取线程数量
     int get_thread_number() const
