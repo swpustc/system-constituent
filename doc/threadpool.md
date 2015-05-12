@@ -33,6 +33,8 @@ public:
 
     bool detach();
     bool detach(int thread_number_new);
+    std::future<size_t> detach_future();
+    std::future<size_t> detach_future(int thread_number_new);
 
     int get_thread_number() const;
     int get_free_thread_number() const;
@@ -144,6 +146,18 @@ public:
     分离所有任务，设置分离的线程池对象线程数为`thread_number_new`。
 
     如果任务队列为空，返回`false`，否则返回`true`。如果`thread_number_new==0`，未完成的任务不会被执行而是立即销毁。
+
+- ##### `std::future<size_t> detach_future()`
+
+    分离所有任务，分离的线程池对象线程数和当前线程池正在运行的线程数相同。
+
+    返回值为分离的线程池返回情况。如果当前线程池线程数量为0，未完成的任务不会被执行而是立即销毁。
+
+- ##### `std::future<size_t> detach_future(int thread_number_new)`
+
+    分离所有任务，设置分离的线程池对象线程数为`thread_number_new`。
+
+    返回值为分离的线程池返回情况。如果`thread_number_new==0`，未完成的任务不会被执行而是立即销毁。
 
 - ##### `int get_thread_number()`
 
