@@ -30,12 +30,12 @@ template<> threadpool<HANDLE_EXCEPTION>::~threadpool()
 // 分离任务
 template<> bool threadpool<HANDLE_EXCEPTION>::detach(int thread_number_new)
 {
-    lock_guard<mutex> lck(m_task_lock); // 当前线程池任务队列读写锁
-    if (!m_push_tasks->size())
-        return false;
     auto detach_threadpool = new threadpool(thread_number_new);
-    lock_guard<mutex> lck_new(detach_threadpool->m_task_lock); // 新线程池任务队列读写锁
+    unique_lock<decltype(m_task_lock)> lck(m_task_lock); // 当前线程池任务队列读写锁
+    unique_lock<decltype(m_task_lock)> lck_new(detach_threadpool->m_task_lock); // 新线程池任务队列读写锁
     swap(*m_push_tasks, detach_threadpool->m_tasks); // 交换任务队列
+    lck_new.unlock();
+    lck.unlock();
     // 通知分离的线程对象运行
     detach_threadpool->notify(detach_threadpool->m_tasks.size());
     async([](decltype(detach_threadpool) pClass){
@@ -51,10 +51,12 @@ template<> bool threadpool<HANDLE_EXCEPTION>::detach(int thread_number_new)
 template<> future<size_t> threadpool<HANDLE_EXCEPTION>::detach_future(int thread_number_new)
 {
     future<size_t> future_obj;
-    lock_guard<mutex> lck(m_task_lock); // 当前线程池任务队列读写锁
     auto detach_threadpool = new threadpool(thread_number_new);
-    lock_guard<mutex> lck_new(detach_threadpool->m_task_lock); // 新线程池任务队列读写锁
+    unique_lock<decltype(m_task_lock)> lck(m_task_lock); // 当前线程池任务队列读写锁
+    unique_lock<decltype(m_task_lock)> lck_new(detach_threadpool->m_task_lock); // 新线程池任务队列读写锁
     swap(*m_push_tasks, detach_threadpool->m_tasks); // 交换任务队列
+    lck_new.unlock();
+    lck.unlock();
     // 通知分离的线程对象运行
     detach_threadpool->notify(detach_threadpool->m_tasks.size());
     // 绑定函数

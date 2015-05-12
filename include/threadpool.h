@@ -41,7 +41,7 @@ private:
     ::std::atomic<size_t> m_task_completed{ 0 };
     ::std::atomic<size_t> m_task_all{ 0 };
     // 任务队列读写锁
-    mutable ::std::mutex m_task_lock;
+    mutable spin_mutex m_task_lock;
     // 线程创建、销毁事件锁
     ::std::mutex m_thread_lock;
     // 通知事件
@@ -125,7 +125,7 @@ private:
     ::std::pair<::std::function<void()>, size_t> get_task()
     {
         ::std::function<void()> task;
-        ::std::unique_lock<::std::mutex> lck(m_task_lock); // 任务队列读写锁
+        ::std::unique_lock<decltype(m_task_lock)> lck(m_task_lock); // 任务队列读写锁
         size_t task_num = m_tasks.size();
         if (task_num)
         {
@@ -163,7 +163,7 @@ public:
     bool start()
     {
         // 任务队列读写锁
-        ::std::unique_lock<::std::mutex> lck(m_task_lock);
+        ::std::unique_lock<decltype(m_task_lock)> lck(m_task_lock);
         switch (m_exit_event.load())
         {
         case exit_event_t::PAUSE:
@@ -185,7 +185,7 @@ public:
     bool pause()
     {
         // 任务队列读写锁
-        ::std::unique_lock<::std::mutex> lck(m_task_lock);
+        ::std::unique_lock<decltype(m_task_lock)> lck(m_task_lock);
         switch (m_exit_event.load())
         {
         case exit_event_t::NORMAL:
@@ -259,7 +259,7 @@ public:
         // 生成任务（仿函数）
         ::std::function<void()> bind_function(::std::bind(function_wapper(), ::std::move(task_obj)));
         // 任务队列读写锁
-        ::std::unique_lock<::std::mutex> lck(m_task_lock);
+        ::std::unique_lock<decltype(m_task_lock)> lck(m_task_lock);
         m_push_tasks->push_back(::std::move(bind_function));
         lck.unlock();
         m_task_all++;
@@ -288,7 +288,7 @@ public:
         // 生成任务（仿函数）
         ::std::function<void()> bind_function(::std::bind(function_wapper(), ::std::move(task_obj)));
         // 任务队列读写锁
-        ::std::unique_lock<::std::mutex> lck(m_task_lock);
+        ::std::unique_lock<decltype(m_task_lock)> lck(m_task_lock);
         m_push_tasks->push_back(::std::move(bind_function));
         lck.unlock();
         m_task_all++;
@@ -317,7 +317,7 @@ public:
             // 生成任务（仿函数）
             ::std::function<void()> bind_function(::std::bind(function_wapper(), ::std::move(task_obj)));
             // 任务队列读写锁
-            ::std::unique_lock<::std::mutex> lck(m_task_lock);
+            ::std::unique_lock<decltype(m_task_lock)> lck(m_task_lock);
             m_push_tasks->insert(m_push_tasks->end(), count, ::std::move(bind_function));
             lck.unlock();
             m_task_all += count;
@@ -397,7 +397,7 @@ public:
     // 获取任务队列数量
     size_t get_tasks_number() const
     {
-        ::std::lock_guard<::std::mutex> lck(m_task_lock); // 任务队列读写锁
+        ::std::lock_guard<decltype(m_task_lock)> lck(m_task_lock); // 任务队列读写锁
         return m_push_tasks->size();
     }
     // 获取已完成任务数
