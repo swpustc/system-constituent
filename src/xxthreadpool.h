@@ -27,6 +27,18 @@ template<> threadpool<HANDLE_EXCEPTION>::~threadpool()
     }
 }
 
+// 线程入口函数
+template<> size_t threadpool<HANDLE_EXCEPTION>::thread_entry(threadpool* object, HANDLE exit_event)
+{
+    debug_output(_T("Thread Start: ["), this_type().name(), _T("](0x"), object, _T(')'));
+    size_t result = object->pre_run(exit_event);
+    debug_output(_T("Thread Result: ["), (void*)result, _T("] ["), this_type().name(), _T("](0x"), object, _T(')'));
+#if _MSC_VER <= 1800 // Fix std::thread deadlock bug on VS2012,VS2013 (when call join on exit)
+    ::ExitThread((DWORD)result);
+#endif // #if _MSC_VER <= 1800
+    return result;
+}
+
 // 分离任务
 template<> bool threadpool<HANDLE_EXCEPTION>::detach(int thread_number_new)
 {

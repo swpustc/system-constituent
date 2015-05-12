@@ -60,6 +60,8 @@ private:
 
     // 线程入口函数
     static size_t thread_entry(threadpool* object, HANDLE exit_event);
+    // 线程运行前准备
+    size_t pre_run(HANDLE exit_event);
     /* 线程任务调度函数
     * 返回值 >= success_code 表示正常退出，< success_code 为非正常退出
     * run函数体本身堆栈中没有对象，移动ebp/rbp寄存器安全，可以不处理异常
