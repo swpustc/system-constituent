@@ -6,6 +6,12 @@
 
 #include "system_constituent_version.h"
 
+#define FILE_VERSION_MAJOR  SYSTEM_CONSTITUENT_VERSION_MAJOR
+#define FILE_VERSION_MINOR  SYSTEM_CONSTITUENT_VERSION_MINOR
+#define FILE_VERSION_POINT  SYSTEM_CONSTITUENT_VERSION_POINT
+#define FILE_VERSION_POINT2 SYSTEM_CONSTITUENT_VERSION_POINT2
+
+
 #define INTERAL_NAME        _T("system") _T(_CRT_STRINGIZE(SYSTEM_CONSTITUENT_VERSION))
 #define PRODUCT_NAME        _T("system constituent")
 #define SUPPORT_AUTHOR      _T("宋万鹏")
@@ -13,4 +19,7 @@
 #define COMPANY_NAME        _T("杭州赤霄科技有限公司")
 #define LEGAL_COPYRIGHT     _T("Copyright (C) 2015-2015 ") COMPANY_NAME
 
-#define FILE_VERSION        _T(_CRT_STRINGIZE(FILE_VERSION_MAJOR)) _T(".") _T(_CRT_STRINGIZE(FILE_VERSION_MINOR)) _T(".") _T(_CRT_STRINGIZE(FILE_VERSION_POINT)) _T(".") _T(_CRT_STRINGIZE(FILE_VERSION_POINT2))
+#define FILE_VERSION        _T(_CRT_STRINGIZE(FILE_VERSION_MAJOR)) _T(".")    \
+                            _T(_CRT_STRINGIZE(FILE_VERSION_MINOR)) _T(".")    \
+                            _T(_CRT_STRINGIZE(FILE_VERSION_POINT)) _T(".")    \
+                            _T(_CRT_STRINGIZE(FILE_VERSION_POINT2))
