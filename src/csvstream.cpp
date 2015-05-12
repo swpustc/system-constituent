@@ -173,20 +173,20 @@ void csvstream::_set_cell(size_t row, size_t col, const string& val)
 {
     if (val.empty()) /* val为空，清空已有单元格 */
     {
-        if (m_data.size() < row + 1)
+        if (m_data.size() <= row)
             return;
         auto& data_line = m_data.at(row);
-        if (data_line.size() < col + 1)
+        if (data_line.size() <= col)
             return;
         auto& cell = data_line.at(col);
         cell = val;
     }
     else /* val非空，设置新单元格 */
     {
-        if (m_data.size() < row + 1)
+        if (m_data.size() <= row)
             m_data.resize(row + 1);
         auto& data_line = m_data.at(row);
-        if (data_line.size() < col + 1)
+        if (data_line.size() <= col)
             data_line.resize(col + 1);
         auto& cell = data_line.at(col);
         cell = val;
@@ -197,20 +197,20 @@ void csvstream::_set_cell(size_t row, size_t col, string&& val)
 {
     if (val.empty()) /* val为空，清空已有单元格 */
     {
-        if (m_data.size() < row + 1)
+        if (m_data.size() <= row)
             return;
         auto& data_line = m_data.at(row);
-        if (data_line.size() < col + 1)
+        if (data_line.size() <= col)
             return;
         auto& cell = data_line.at(col);
         cell = move(val);
     }
     else /* val非空，设置新单元格 */
     {
-        if (m_data.size() < row + 1)
+        if (m_data.size() <= row)
             m_data.resize(row + 1);
         auto& data_line = m_data.at(row);
-        if (data_line.size() < col + 1)
+        if (data_line.size() <= col)
             data_line.resize(col + 1);
         auto& cell = data_line.at(col);
         cell = move(val);
@@ -222,23 +222,23 @@ void csvstream::swap_row(size_t row1, size_t row2)
 {
     ::std::lock_guard<decltype(m_lock)> lck(m_lock);
     size_t row_number = m_data.size();
-    if (row_number >= row1 + 1)
+    if (row_number > row1)
     {
-        if (row_number >= row2 + 1)
+        if (row_number > row2)
             ::std::swap(m_data.at(row1), m_data.at(row2));
-        else /* row_number < row2 + 1 */
+        else /* row_number <= row2 */
         {
             m_data.resize(row2 + 1);
             ::std::swap(m_data.at(row1), *rbegin(m_data));
         }
     }
-    else /* row_number < row1 + 1 */
+    else /* row_number <= row1 */
     {
-        if (row_number >= row2 + 1)
+        if (row_number > row2)
         {
             m_data.resize(row1 + 1);
             ::std::swap(*rbegin(m_data), m_data.at(row2));
-        } /* row_number < row2 + 1 */
+        } /* row_number <= row2 */
     } /* 两行均不存在，无需交换动作 */
 }
 
@@ -248,23 +248,23 @@ void csvstream::swap_col(size_t col1, size_t col2)
     for (auto& line_data : m_data)
     {
         size_t col_number = line_data.size();
-        if (col_number >= col1 + 1)
+        if (col_number > col1)
         {
-            if (col_number >= col2 + 1)
+            if (col_number > col2)
                 ::std::swap(line_data.at(col1), line_data.at(col2));
-            else /* col_number < col2 + 1 */
+            else /* col_number <= col2 */
             {
                 line_data.resize(col2 + 1);
                 ::std::swap(line_data.at(col1), *rbegin(line_data));
             }
         }
-        else /* col_number < col1 + 1 */
+        else /* col_number <= col1 */
         {
-            if (col_number >= col2 + 1)
+            if (col_number > col2)
             {
                 line_data.resize(col1 + 1);
                 ::std::swap(*rbegin(line_data), line_data.at(col2));
-            } /* col_number < col2 + 1 */
+            } /* col_number <= col2 */
         } /* 两列均不存在，无需交换动作 */
     }
 }

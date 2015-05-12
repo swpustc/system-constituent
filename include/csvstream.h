@@ -73,10 +73,10 @@ private:
     template<class T, class A> void _get_cell(size_t row, size_t col, ::std::basic_string<char, T, A>& val) const
     {
         val.clear();
-        if (m_data.size() < row)
+        if (m_data.size() <= row)
             return;
         auto& data_line = m_data.at(row);
-        if (data_line.size() < col)
+        if (data_line.size() <= col)
             return;
         val = data_line.at(col);
     }
@@ -320,7 +320,7 @@ public:
     void clear_row(size_t row)
     {
         ::std::lock_guard<decltype(m_lock)> lck(m_lock);
-        if (m_data.size() >= row + 1)
+        if (m_data.size() > row)
             m_data.at(row).clear();
     }
     // 清除一列
@@ -328,7 +328,7 @@ public:
     {
         ::std::lock_guard<decltype(m_lock)> lck(m_lock);
         for (auto& line_data : m_data)
-            if (line_data.size() >= col + 1)
+            if (line_data.size() > col)
                 line_data.at(col).clear();
     }
 
@@ -336,7 +336,7 @@ public:
     void erase_row(size_t row)
     {
         ::std::lock_guard<decltype(m_lock)> lck(m_lock);
-        if (m_data.size() >= row + 1)
+        if (m_data.size() > row)
             m_data.erase(m_data.cbegin() + row);
     }
     // 删除一列，右边的列左移
@@ -344,7 +344,7 @@ public:
     {
         ::std::lock_guard<decltype(m_lock)> lck(m_lock);
         for (auto& line_data : m_data)
-            if (line_data.size() >= col + 1)
+            if (line_data.size() > col)
                 line_data.erase(line_data.cbegin() + col);
     }
 
@@ -353,7 +353,7 @@ public:
     {
         ::std::lock_guard<decltype(m_lock)> lck(m_lock);
         // 如果插入的行已存在
-        if (m_data.size() >= row + 1)
+        if (m_data.size() > row)
             m_data.insert(m_data.cbegin() + row, ::std::vector<::std::string>());
         _set_row(row, 0, ::std::forward<Args>(args)...);
     }
@@ -362,7 +362,7 @@ public:
     {
         ::std::lock_guard<decltype(m_lock)> lck(m_lock);
         for (auto& line_data : m_data)
-            if (line_data.size() >= col + 1) // 如果插入的列已存在
+            if (line_data.size() > col) // 如果插入的列已存在
                 line_data.insert(line_data.cbegin() + col, ::std::string());
         _set_col(0, col, ::std::forward<Args>(args)...);
     }
@@ -372,7 +372,7 @@ public:
     {
         ::std::lock_guard<decltype(m_lock)> lck(m_lock);
         // 如果插入的行已存在
-        if (m_data.size() >= row + 1)
+        if (m_data.size() > row)
             m_data.insert(m_data.cbegin() + row, ::std::vector<::std::string>(begin_col));
         _set_row(row, begin_col, ::std::forward<Args>(args)...);
     }
@@ -381,7 +381,7 @@ public:
     {
         ::std::lock_guard<decltype(m_lock)> lck(m_lock);
         for (auto& line_data : m_data)
-            if (line_data.size() >= col + 1) // 如果插入的列已存在
+            if (line_data.size() > col) // 如果插入的列已存在
                 line_data.insert(line_data.cbegin() + col, ::std::string());
         _set_col(begin_row, col, ::std::forward<Args>(args)...);
     }
