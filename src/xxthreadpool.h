@@ -50,7 +50,7 @@ template<> inline size_t threadpool<HANDLE_EXCEPTION>::run(HANDLE pause_event, H
         // 监听线程通知事件
         switch (WaitForMultipleObjects(sizeof(handle_notify) / sizeof(HANDLE), handle_notify, FALSE, INFINITE))
         {
-        case WAIT_OBJECT_0:     // 挂起当前线程
+        case WAIT_OBJECT_0:         // 挂起当前线程
             switch (WaitForMultipleObjects(sizeof(handle_resume) / sizeof(HANDLE), handle_resume, FALSE, INFINITE))
             {
             case WAIT_OBJECT_0:     // 恢复当前线程
@@ -63,7 +63,7 @@ template<> inline size_t threadpool<HANDLE_EXCEPTION>::run(HANDLE pause_event, H
                 return success_code - 2;
             }
             break;
-        case WAIT_OBJECT_0 + 1: // 正常退出事件
+        case WAIT_OBJECT_0 + 1:     // 正常退出事件
             switch (m_exit_event.load())
             {
             case exit_event_t::INITIALIZATION:      // 线程池对象未准备好
@@ -78,7 +78,7 @@ template<> inline size_t threadpool<HANDLE_EXCEPTION>::run(HANDLE pause_event, H
             default:
                 break;
             }
-        case WAIT_OBJECT_0 + 2: // 当前线程激活
+        case WAIT_OBJECT_0 + 2:     // 当前线程激活
             while (true)
             {
                 if (!run_task(get_task())) // 任务队列中没有任务
@@ -89,7 +89,7 @@ template<> inline size_t threadpool<HANDLE_EXCEPTION>::run(HANDLE pause_event, H
                 }
             }
             break;
-        case WAIT_FAILED:       // 错误
+        case WAIT_FAILED:           // 错误
             return success_code - 3;
         default:
             return success_code - 4;
@@ -186,7 +186,8 @@ template<> bool threadpool<HANDLE_EXCEPTION>::set_new_thread_number(int thread_n
             if (m_thread_destroy.size())
             {
                 auto iter = m_thread_destroy.begin();
-                SetEvent(get<2>(*iter));
+                ResetEvent(get<1>(*iter));  // 取消线程暂停事件
+                SetEvent(get<2>(*iter));    // 如果线程已暂停则恢复
                 m_thread_object.push_back(move(*iter));
                 m_thread_destroy.erase(iter);
             }
@@ -204,7 +205,8 @@ template<> bool threadpool<HANDLE_EXCEPTION>::set_new_thread_number(int thread_n
         for (register int i = m_thread_started.load(); i > thread_number_new; i--)
         {
             auto iter = m_thread_object.begin();
-            SetEvent(get<1>(*iter));
+            ResetEvent(get<2>(*iter));  // 取消线程恢复事件
+            SetEvent(get<1>(*iter));    // 如果线程在运行则暂停
             m_thread_destroy.push_back(move(*iter));
             m_thread_object.erase(iter);
             m_thread_started--;
