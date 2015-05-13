@@ -9,13 +9,13 @@
 using namespace std;
 
 // 线程运行前准备，捕获异常
-template<> inline size_t threadpool<true>::pre_run(HANDLE exit_event)
+template<> inline size_t threadpool<true>::pre_run(HANDLE pause_event, HANDLE resume_event)
 {
     while (true)
     {
         try
         {
-            return run(exit_event);
+            return run(pause_event, resume_event);
         }
         catch (::std::function<void()>& function_object)
         {
@@ -26,9 +26,9 @@ template<> inline size_t threadpool<true>::pre_run(HANDLE exit_event)
 }
 
 // 线程运行前准备，不捕获异常
-template<> inline size_t threadpool<false>::pre_run(HANDLE exit_event)
+template<> inline size_t threadpool<false>::pre_run(HANDLE pause_event, HANDLE resume_event)
 {
-    return run(exit_event);
+    return run(pause_event, resume_event);
 }
 
 

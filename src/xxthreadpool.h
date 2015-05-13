@@ -10,28 +10,28 @@ template<> threadpool<HANDLE_EXCEPTION>::~threadpool()
     for (auto& handle_obj : m_thread_object)
     {
 #if _MSC_VER <= 1800 // Fix std::thread deadlock bug on VS2012,VS2013 (when call join on exit)
-        WaitForSingleObject((HANDLE)handle_obj.first.native_handle(), INFINITE);
-        handle_obj.first.detach();
+        WaitForSingleObject((HANDLE)get<0>(handle_obj).native_handle(), INFINITE);
+        get<0>(handle_obj).detach();
 #else // Other platform
-        handle_obj.first.join(); // 等待所有打开的线程退出
+        get<0>(handle_obj).join(); // 等待所有打开的线程退出
 #endif // #if _MSC_VER <= 1800
     }
     for (auto& handle_obj : m_thread_destroy)
     {
 #if _MSC_VER <= 1800 // Fix std::thread deadlock bug on VS2012,VS2013 (when call join on exit)
-        WaitForSingleObject((HANDLE)handle_obj.first.native_handle(), INFINITE);
-        handle_obj.first.detach();
+        WaitForSingleObject((HANDLE)get<0>(handle_obj).native_handle(), INFINITE);
+        get<0>(handle_obj).detach();
 #else // Other platform
-        handle_obj.first.join(); // 等待所有已销毁分离的线程退出
+        get<0>(handle_obj).join(); // 等待所有已销毁分离的线程退出
 #endif // #if _MSC_VER <= 1800
     }
 }
 
 // 线程入口函数
-template<> size_t threadpool<HANDLE_EXCEPTION>::thread_entry(threadpool* object, HANDLE exit_event)
+template<> size_t threadpool<HANDLE_EXCEPTION>::thread_entry(threadpool* object, HANDLE pause_event, HANDLE resume_event)
 {
     debug_output(_T("Thread Start: ["), this_type().name(), _T("](0x"), object, _T(')'));
-    size_t result = object->pre_run(exit_event);
+    size_t result = object->pre_run(pause_event, resume_event);
     debug_output(_T("Thread Result: ["), (void*)result, _T("] ["), this_type().name(), _T("](0x"), object, _T(')'));
 #if _MSC_VER <= 1800 // Fix std::thread deadlock bug on VS2012,VS2013 (when call join on exit)
     ExitThread((DWORD)result);
@@ -40,17 +40,28 @@ template<> size_t threadpool<HANDLE_EXCEPTION>::thread_entry(threadpool* object,
 }
 
 // 任务运行主体函数
-template<> inline size_t threadpool<HANDLE_EXCEPTION>::run(HANDLE exit_event)
+template<> inline size_t threadpool<HANDLE_EXCEPTION>::run(HANDLE pause_event, HANDLE resume_event)
 {
     // 线程通知事件
-    HANDLE handle_notify[] = { exit_event, m_stop_thread, m_notify_task };
+    HANDLE handle_notify[] = { pause_event, m_stop_thread, m_notify_task };
+    HANDLE handle_resume[] = { resume_event, m_stop_thread };
     while (true)
     {
         // 监听线程通知事件
         switch (WaitForMultipleObjects(sizeof(handle_notify) / sizeof(HANDLE), handle_notify, FALSE, INFINITE))
         {
-        case WAIT_OBJECT_0:     // 退出当前线程
-            return success_code + 0;
+        case WAIT_OBJECT_0:     // 挂起当前线程
+            switch (WaitForMultipleObjects(sizeof(handle_resume) / sizeof(HANDLE), handle_resume, FALSE, INFINITE))
+            {
+            case WAIT_OBJECT_0:     // 恢复当前线程
+                break;
+            case WAIT_OBJECT_0 + 1: // 正常退出事件
+                return success_code + 0;
+            case WAIT_FAILED:       // 错误
+                return success_code - 1;
+            default:                // 其他
+                return success_code - 2;
+            }
         case WAIT_OBJECT_0 + 1: // 正常退出事件
             switch (m_exit_event.load())
             {
@@ -172,14 +183,17 @@ template<> bool threadpool<HANDLE_EXCEPTION>::set_new_thread_number(int thread_n
         for (register int i = m_thread_started.load(); i < thread_number_new; i++)
         {
             HANDLE thread_exit_event = CreateEventW(nullptr, FALSE, FALSE, nullptr); // 自动复位，无信号
-            auto iter = m_thread_object.insert(m_thread_object.end(), make_pair(
-                thread(thread_entry, this, thread_exit_event), SAFE_HANDLE_OBJECT(thread_exit_event)));
+            HANDLE thread_resume_event = CreateEventW(nullptr, FALSE, FALSE, nullptr); // 自动复位，无信号
+            auto iter = m_thread_object.insert(m_thread_object.end(), make_tuple(
+                thread(thread_entry, this, thread_exit_event, thread_resume_event),
+                SAFE_HANDLE_OBJECT(thread_exit_event),
+                SAFE_HANDLE_OBJECT(thread_resume_event)));
             m_thread_started++;
         }
         for (register int i = m_thread_started.load(); i > thread_number_new; i--)
         {
             auto iter = m_thread_object.begin();
-            SetEvent(iter->second);
+            SetEvent(get<1>(*iter));
             m_thread_destroy.push_back(move(*iter));
             m_thread_object.erase(iter);
             m_thread_started--;

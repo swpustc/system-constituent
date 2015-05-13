@@ -30,9 +30,9 @@ private:
     ::std::atomic<int> m_thread_number{ 0 };
     ::std::atomic<int> m_thread_started{ 0 };
     // 线程队列
-    ::std::vector<::std::pair<::std::thread, SAFE_HANDLE_OBJECT>> m_thread_object;
+    ::std::vector<::std::tuple<::std::thread, SAFE_HANDLE_OBJECT, SAFE_HANDLE_OBJECT>> m_thread_object;
     // 已销毁分离的线程对象
-    ::std::list<::std::pair<::std::thread, SAFE_HANDLE_OBJECT>> m_thread_destroy;
+    ::std::list<::std::tuple<::std::thread, SAFE_HANDLE_OBJECT, SAFE_HANDLE_OBJECT>> m_thread_destroy;
     // 任务队列
     ::std::deque<::std::function<void()>> m_tasks;
     decltype(m_tasks) m_pause_tasks;
@@ -59,14 +59,14 @@ private:
     ::std::atomic<exit_event_t> m_exit_event{ exit_event_t::INITIALIZATION };
 
     // 线程入口函数
-    static size_t thread_entry(threadpool* object, HANDLE exit_event);
+    static size_t thread_entry(threadpool* object, HANDLE pause_event, HANDLE resume_event);
     // 线程运行前准备
-    size_t pre_run(HANDLE exit_event);
+    size_t pre_run(HANDLE pause_event, HANDLE resume_event);
     /* 线程任务调度函数
     * 返回值 >= success_code 表示正常退出，< success_code 为非正常退出
     * run函数体本身堆栈中没有对象，移动ebp/rbp寄存器安全，可以不处理异常
     **/
-    size_t run(HANDLE exit_event);
+    size_t run(HANDLE pause_event, HANDLE resume_event);
 
     // 新任务添加通知
     void notify()
