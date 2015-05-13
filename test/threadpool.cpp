@@ -58,7 +58,8 @@ int main()
     c = 'A';
     for (int i = 0; i < 32; i++)
         thpool1.push(foo, 3 + i % 3, c++, (size_t)100 + i); // spawn thread that calls foo(3+i%3, c++, 100+i)
-    thpool1.set_thread_number(2); // 设置线程数以初始化线程
+    thpool1.set_thread_number(4); // 设置线程数以初始化线程
+    thpool1.set_new_thread_number(2); // 减少线程数
 
     auto&& thread_number = thpool1.get_thread_number();
     auto&& free_thread_number = thpool1.get_free_thread_number();

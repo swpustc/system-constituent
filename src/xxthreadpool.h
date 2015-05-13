@@ -62,6 +62,7 @@ template<> inline size_t threadpool<HANDLE_EXCEPTION>::run(HANDLE pause_event, H
             default:                // 其他
                 return success_code - 2;
             }
+            break;
         case WAIT_OBJECT_0 + 1: // 正常退出事件
             switch (m_exit_event.load())
             {
@@ -182,12 +183,22 @@ template<> bool threadpool<HANDLE_EXCEPTION>::set_new_thread_number(int thread_n
         unique_lock<decltype(m_thread_lock)> lck(m_thread_lock);
         for (register int i = m_thread_started.load(); i < thread_number_new; i++)
         {
-            HANDLE thread_exit_event = CreateEventW(nullptr, FALSE, FALSE, nullptr); // 自动复位，无信号
-            HANDLE thread_resume_event = CreateEventW(nullptr, FALSE, FALSE, nullptr); // 自动复位，无信号
-            auto iter = m_thread_object.insert(m_thread_object.end(), make_tuple(
-                thread(thread_entry, this, thread_exit_event, thread_resume_event),
-                SAFE_HANDLE_OBJECT(thread_exit_event),
-                SAFE_HANDLE_OBJECT(thread_resume_event)));
+            if (m_thread_destroy.size())
+            {
+                auto iter = m_thread_destroy.begin();
+                SetEvent(get<2>(*iter));
+                m_thread_object.push_back(move(*iter));
+                m_thread_destroy.erase(iter);
+            }
+            else
+            {
+                HANDLE thread_exit_event = CreateEventW(nullptr, FALSE, FALSE, nullptr); // 自动复位，无信号
+                HANDLE thread_resume_event = CreateEventW(nullptr, FALSE, FALSE, nullptr); // 自动复位，无信号
+                m_thread_object.push_back(make_tuple(
+                    thread(thread_entry, this, thread_exit_event, thread_resume_event),
+                    SAFE_HANDLE_OBJECT(thread_exit_event),
+                    SAFE_HANDLE_OBJECT(thread_resume_event)));
+            }
             m_thread_started++;
         }
         for (register int i = m_thread_started.load(); i > thread_number_new; i--)

@@ -15,7 +15,6 @@
 #include <atomic>
 #include <future>
 #include <thread>
-#include <vector>
 #include <cassert>
 #include <typeinfo>
 #include <functional>
@@ -30,7 +29,7 @@ private:
     ::std::atomic<int> m_thread_number{ 0 };
     ::std::atomic<int> m_thread_started{ 0 };
     // 线程队列
-    ::std::vector<::std::tuple<::std::thread, SAFE_HANDLE_OBJECT, SAFE_HANDLE_OBJECT>> m_thread_object;
+    ::std::list<::std::tuple<::std::thread, SAFE_HANDLE_OBJECT, SAFE_HANDLE_OBJECT>> m_thread_object;
     // 已销毁分离的线程对象
     ::std::list<::std::tuple<::std::thread, SAFE_HANDLE_OBJECT, SAFE_HANDLE_OBJECT>> m_thread_destroy;
     // 任务队列
