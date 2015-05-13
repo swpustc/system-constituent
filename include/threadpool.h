@@ -30,9 +30,9 @@ private:
     ::std::atomic<int> m_thread_number{ 0 };
     ::std::atomic<int> m_thread_started{ 0 };
     // 线程队列
-    ::std::list<::std::pair<::std::thread, SAFE_HANDLE_OBJECT>> m_thread_object;
+    ::std::vector<::std::pair<::std::thread, SAFE_HANDLE_OBJECT>> m_thread_object;
     // 已销毁分离的线程对象
-    ::std::vector<::std::pair<::std::thread, SAFE_HANDLE_OBJECT>> m_thread_destroy;
+    ::std::list<::std::pair<::std::thread, SAFE_HANDLE_OBJECT>> m_thread_destroy;
     // 任务队列
     ::std::deque<::std::function<void()>> m_tasks;
     decltype(m_tasks) m_pause_tasks;
@@ -322,12 +322,12 @@ public:
     }
 
     // 分离所有任务，分离的线程池对象线程数不变
-    bool detach()
+    void detach()
     {
-        return detach(m_thread_started);
+        detach(m_thread_started);
     }
     // 分离所有任务，设置分离的线程池对象线程数为thread_number_new
-    SYSCONAPI bool detach(int thread_number_new);
+    SYSCONAPI void detach(int thread_number_new);
     // 分离任务，并得到分离任务执行情况的future
     ::std::future<size_t> detach_future()
     {

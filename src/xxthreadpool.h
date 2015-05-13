@@ -34,7 +34,7 @@ template<> size_t threadpool<HANDLE_EXCEPTION>::thread_entry(threadpool* object,
     size_t result = object->pre_run(exit_event);
     debug_output(_T("Thread Result: ["), (void*)result, _T("] ["), this_type().name(), _T("](0x"), object, _T(')'));
 #if _MSC_VER <= 1800 // Fix std::thread deadlock bug on VS2012,VS2013 (when call join on exit)
-    ::ExitThread((DWORD)result);
+    ExitThread((DWORD)result);
 #endif // #if _MSC_VER <= 1800
     return result;
 }
@@ -87,7 +87,7 @@ template<> inline size_t threadpool<HANDLE_EXCEPTION>::run(HANDLE exit_event)
 
 
 // 分离任务
-template<> bool threadpool<HANDLE_EXCEPTION>::detach(int thread_number_new)
+template<> void threadpool<HANDLE_EXCEPTION>::detach(int thread_number_new)
 {
     auto detach_threadpool = new threadpool(thread_number_new);
     unique_lock<decltype(m_task_lock)> lck(m_task_lock); // 当前线程池任务队列读写锁
@@ -103,7 +103,6 @@ template<> bool threadpool<HANDLE_EXCEPTION>::detach(int thread_number_new)
         debug_output(_T("Thread Result: ["), (void*)result, _T("] ["), pClass->this_type().name(), _T("](0x"), pClass, _T(')'));
         return result;
     }, detach_threadpool);
-    return true;
 }
 
 // 分离任务，并得到分离任务执行情况的future
@@ -172,7 +171,7 @@ template<> bool threadpool<HANDLE_EXCEPTION>::set_new_thread_number(int thread_n
         unique_lock<decltype(m_thread_lock)> lck(m_thread_lock);
         for (register int i = m_thread_started.load(); i < thread_number_new; i++)
         {
-            HANDLE thread_exit_event = ::CreateEventW(nullptr, FALSE, FALSE, nullptr); // 自动复位，无信号
+            HANDLE thread_exit_event = CreateEventW(nullptr, FALSE, FALSE, nullptr); // 自动复位，无信号
             auto iter = m_thread_object.insert(m_thread_object.end(), make_pair(
                 thread(thread_entry, this, thread_exit_event), SAFE_HANDLE_OBJECT(thread_exit_event)));
             m_thread_started++;
@@ -185,8 +184,8 @@ template<> bool threadpool<HANDLE_EXCEPTION>::set_new_thread_number(int thread_n
             m_thread_object.erase(iter);
             m_thread_started--;
         }
-        lck.unlock();
         assert(m_thread_started.load() == thread_number_new);
+        lck.unlock();
     }
     return true;
 }

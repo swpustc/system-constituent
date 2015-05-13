@@ -31,8 +31,8 @@ public:
     bool push_multi(size_t Count, Fn&& fn, Args&&... args);
     auto push_multi_future(size_t count, Fn&& fn, Args&&... args)->std::pair<std::vector<std::future<fn(args...)>>, bool>;
 
-    bool detach();
-    bool detach(int thread_number_new);
+    void detach();
+    void detach(int thread_number_new);
     std::future<size_t> detach_future();
     std::future<size_t> detach_future(int thread_number_new);
 
@@ -135,17 +135,17 @@ public:
     返回类型为`pair<vector<future>, bool>`，可以通过**futurn::get**获取任务函数的返回值。
     其余和**push_multi**函数相同。
 
-- ##### `bool detach()`
+- ##### `void detach()`
 
     分离所有任务，分离的线程池对象线程数和当前线程池正在运行的线程数相同。
 
-    如果任务队列为空，返回`false`，否则返回`true`。如果当前线程池线程数量为0，未完成的任务不会被执行而是立即销毁。
+    如果当前线程池线程数量为0，未完成的任务不会被执行而是立即销毁。
 
-- ##### `bool detach(int thread_number_new)`
+- ##### `void detach(int thread_number_new)`
 
     分离所有任务，设置分离的线程池对象线程数为`thread_number_new`。
 
-    如果任务队列为空，返回`false`，否则返回`true`。如果`thread_number_new==0`，未完成的任务不会被执行而是立即销毁。
+    如果`thread_number_new==0`，未完成的任务不会被执行而是立即销毁。
 
 - ##### `std::future<size_t> detach_future()`
 
