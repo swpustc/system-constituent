@@ -400,7 +400,7 @@ public:
     // 交换两列
     SYSCONAPI void swap_col(size_t col1, size_t col2);
 
-    SYSCONAPI static skip_cell_t skip_cell;
-    SYSCONAPI static sync_set_t sync_set;
-    SYSCONAPI static sync_get_t sync_get;
+    SYSCONAPI static const skip_cell_t skip_cell;
+    SYSCONAPI static const sync_set_t sync_set;
+    SYSCONAPI static const sync_get_t sync_get;
 };

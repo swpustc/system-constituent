@@ -19,9 +19,9 @@ static const string g_csv_replace_to(R"_(")_");
 static const string g_csv_replace_first_of(R"_(",)_");
 
 // 跳过变量标识
-csvstream::skip_cell_t csvstream::skip_cell;
-csvstream::sync_set_t csvstream::sync_set;
-csvstream::sync_get_t csvstream::sync_get;
+const csvstream::skip_cell_t csvstream::skip_cell;
+const csvstream::sync_set_t csvstream::sync_set;
+const csvstream::sync_get_t csvstream::sync_get;
 
 unique_lock<decltype(csvstream::m_lock)> csvstream::align_bound()
 {

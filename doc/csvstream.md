@@ -11,7 +11,9 @@
 class csvstream
 {
 public:
-    static struct skip_cell_t skip_cell;
+    static const skip_cell_t skip_cell;
+    static const sync_set_t sync_set;
+    static const sync_get_t sync_get;
 
     std::unique_lock<spin_mutex> align_bound();
 
@@ -60,9 +62,17 @@ public:
 
 ## 成员变量
 
-- ##### `static struct skip_cell_t skip_cell`
+- ##### `static const skip_cell_t skip_cell`
 
     跳过单元格标识。
+
+- ##### `static const sync_set_t sync_set`
+
+    sync开头的函数调用set功能标识。
+
+- ##### `static const sync_get_t sync_get`
+
+    sync开头的函数调用get功能标识。
 
 
 ## 成员函数
