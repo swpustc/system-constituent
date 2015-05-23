@@ -320,6 +320,14 @@ public:
         return ::std::make_pair(::std::move(future_obj), true);
     }
 
+    // 清理任务队列
+    void clear()
+    {
+        ::std::lock_guard<decltype(m_task_lock)> lck(m_task_lock);
+        m_tasks.clear();
+        m_pause_tasks.clear();
+    }
+
     // 分离所有任务，分离的线程池对象线程数不变
     void detach()
     {

@@ -30,6 +30,7 @@ public:
     auto push_future(Fn&& fn, Args&&... args)->std::pair<std::future<fn(args...)>, bool>;
     bool push_multi(size_t Count, Fn&& fn, Args&&... args);
     auto push_multi_future(size_t count, Fn&& fn, Args&&... args)->std::pair<std::vector<std::future<fn(args...)>>, bool>;
+    void clear();
 
     void detach();
     void detach(int thread_number_new);
@@ -134,6 +135,10 @@ public:
 
     返回类型为`pair<vector<future>, bool>`，可以通过**futurn::get**获取任务函数的返回值。
     其余和**push_multi**函数相同。
+
+- ##### `void clear()`
+
+    清理所有任务队列。
 
 - ##### `void detach()`
 
