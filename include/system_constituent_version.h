@@ -12,6 +12,8 @@
 #define SYSTEM_CONSTITUENT_VERSION_POINT2 1
 
 
+#define EXTERN_C  extern "C"
+
 #ifndef _CRT_STRINGIZE
 #define __CRT_STRINGIZE(_Value) #_Value
 #define _CRT_STRINGIZE(_Value) __CRT_STRINGIZE(_Value)
@@ -41,3 +43,17 @@
     _CRT_APPEND(SYSTEM_CONSTITUENT_VERSION_MAJOR,   \
     _CRT_APPEND(SYSTEM_CONSTITUENT_VERSION_MINOR,   \
                 SYSTEM_CONSTITUENT_VERSION_POINT))
+
+#ifdef _WIN32
+#  ifdef SYSCON_EXPORT
+#    define SYSCONAPI_EXTERN    extern __declspec(dllexport)
+#    define SYSCONAPI           __declspec(dllexport)
+#  else
+#    define SYSCONAPI_EXTERN    extern __declspec(dllimport)
+#    define SYSCONAPI           __declspec(dllimport)
+#  endif
+#endif
+#ifndef SYSCONAPI
+#  define SYSCONAPI_EXTERN      extern
+#  define SYSCONAPI
+#endif
