@@ -72,7 +72,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)test\;$(SolutionDir)include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_WINDOWS;WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <WarningLevel>Level3</WarningLevel>
       <BrowseInformation>true</BrowseInformation>
@@ -89,14 +89,14 @@
     </Link>
     <ResourceCompile>
       <Culture>0x0804</Culture>
-      <AdditionalIncludeDirectories>$(SolutionDir)include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)test\;$(SolutionDir)include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <NullTerminateStrings>true</NullTerminateStrings>
     </ResourceCompile>
     <Bscmake>
       <PreserveSbr>true</PreserveSbr>
     </Bscmake>
     <MASM>
-      <IncludePaths>$(SolutionDir)include\</IncludePaths>
+      <IncludePaths>$(SolutionDir)test\;$(SolutionDir)include\</IncludePaths>
       <WarningLevel>0</WarningLevel>
     </MASM>
   </ItemDefinitionGroup>
