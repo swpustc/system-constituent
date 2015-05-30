@@ -31,6 +31,7 @@
 *.pem    text eol=lf
 *.sln    text eol=crlf
 
-version.h encoding=GBK
-*.rc      encoding=GBK
-*.rc2     encoding=GBK
+Resource.h encoding=GBK
+version.h  encoding=GBK
+*.rc       encoding=GBK
+*.rc2      encoding=GBK
