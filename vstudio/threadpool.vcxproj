@@ -50,22 +50,12 @@
   <PropertyGroup>
     <TargetName>test_$(ProjectName)</TargetName>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)..\master\bin\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)..\master\tmp\$(ProjectName)\$(Configuration)\</IntDir>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)..\master\bin\$(Configuration)\$(Platform)\</OutDir>
     <IntDir>$(SolutionDir)..\master\tmp\$(ProjectName)\$(Configuration)\$(Platform)\</IntDir>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)..\master\bin\</OutDir>
-    <IntDir>$(SolutionDir)..\master\tmp\$(ProjectName)\$(Configuration)\</IntDir>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)..\master\bin\$(Platform)\</OutDir>
     <IntDir>$(SolutionDir)..\master\tmp\$(ProjectName)\$(Configuration)\$(Platform)\</IntDir>
