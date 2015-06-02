@@ -272,9 +272,11 @@ SYSCONAPI_EXTERN convert_cp_unicode_t<CP_ACP, wchar_t> convert_default_unicode;
 #endif  /* _MSC_VER */
 
 #ifdef _UNICODE
-typedef ::std::wstringstream    _tstringstream;
+typedef ::std::wstringstream    tstringstream;
+typedef ::std::wstring          tstring;
 #else  /* _UNICODE */
-typedef ::std::stringstream     _tstringstream;
+typedef ::std::stringstream     tstringstream;
+typedef ::std::string           tstring;
 #endif  /* _UNICODE */
 
 
@@ -313,19 +315,19 @@ template<class T, class Arg> inline void debug_put(::std::basic_stringstream<wch
 inline void _debug_output()
 {
     auto now = ::std::chrono::system_clock::to_time_t(::std::chrono::system_clock::now());
-    debug_put(_tstringstream(), _T(" [TID:"));
-    debug_put(_tstringstream(),
+    debug_put(tstringstream(), _T(" [TID:"));
+    debug_put(tstringstream(),
 #if defined(_WIN32) || defined(WIN32)
         ::GetCurrentThreadId()
 #else // Linux
         ::gettid()
 #endif // #if defined(_WIN32) || defined(WIN32)
         );
-    debug_put(_tstringstream(), _T("] "));
+    debug_put(tstringstream(), _T("] "));
 #ifdef _MSC_VER
 #pragma warning( push )
 #pragma warning( disable : 4996 )
-    debug_put(_tstringstream(), ::_tctime(&now));
+    debug_put(tstringstream(), ::_tctime(&now));
 #pragma warning( pop )
 #else // _MSC_VER
     debug_put(::std::stringstream(), ::std::ctime(&now));
@@ -334,7 +336,7 @@ inline void _debug_output()
 
 template<class T, class... Args> inline void _debug_output(T&& arg, Args&&... args)
 {
-    debug_put(_tstringstream(), arg);
+    debug_put(tstringstream(), arg);
     _debug_output(::std::forward<Args>(args)...);
 }
 
