@@ -55,47 +55,47 @@ private:
     // 设置选项
     SYSCONAPI bool _set_option(const DCB& dcb);
     // default templete
-    template<class Arg, class... Args> bool _set_option(DCB& dcb, const _option<Arg>& arg, const _option<Args>&... args)
+    template<class Arg, class... Args> bool _set_option(DCB& dcb, const _option<Arg>& arg, Args&&... args)
     {
         static_assert(false, "Arg must be one of _baud_rate, _byte_size, _stop_bits, _parity, _Dtr, _Rts.");
         return false;
     }
     // 波特率
-    template<class... Args> bool _set_option(DCB& dcb, const _option<_baud_rate_t>& arg, const _option<Args>&... args)
+    template<class... Args> bool _set_option(DCB& dcb, const _option<_baud_rate_t>& arg, Args&&... args)
     {
-        dcb.BaudRate = arg.elem;
-        return _set_option(dcb, args...);
+        dcb.BaudRate = (DWORD)arg.elem;
+        return _set_option(dcb, ::std::forward<Args>(args)...);
     }
     // 数据位
-    template<class... Args> bool _set_option(DCB& dcb, const _option<_byte_size>& arg, const _option<Args>&... args)
+    template<class... Args> bool _set_option(DCB& dcb, const _option<_byte_size_t>& arg, Args&&... args)
     {
-        dcb.ByteSize = arg.elem;
-        return _set_option(dcb, args...);
+        dcb.ByteSize = (BYTE)arg.elem;
+        return _set_option(dcb, ::std::forward<Args>(args)...);
     }
     // 停止位
-    template<class... Args> bool _set_option(DCB& dcb, const _option<_stop_bits>& arg, const _option<Args>&... args)
+    template<class... Args> bool _set_option(DCB& dcb, const _option<_stop_bits_t>& arg, Args&&... args)
     {
-        dcb.StopBits = arg.elem;
-        return _set_option(dcb, args...);
+        dcb.StopBits = (BYTE)arg.elem;
+        return _set_option(dcb, ::std::forward<Args>(args)...);
     }
     // 校验位
-    template<class... Args> bool _set_option(DCB& dcb, const _option<_parity>& arg, const _option<Args>&... args)
+    template<class... Args> bool _set_option(DCB& dcb, const _option<_parity_t>& arg, Args&&... args)
     {
-        dcb.fParity = arg.elem ? 0 : 1;
-        dcb.Parity = arg.elem;
-        return _set_option(dcb, args...);
+        dcb.fParity = (BYTE)arg.elem ? 0 : 1;
+        dcb.Parity = (BYTE)arg.elem;
+        return _set_option(dcb, ::std::forward<Args>(args)...);
     }
     // DTR
-    template<class... Args> bool _set_option(DCB& dcb, const _option<_Dtr>& arg, const _option<Args>&... args)
+    template<class... Args> bool _set_option(DCB& dcb, const _option<_Dtr_t>& arg, Args&&... args)
     {
-        dcb.fDtrControl = arg.elem;
-        return _set_option(dcb, args...);
+        dcb.fDtrControl = (DWORD)arg.elem;
+        return _set_option(dcb, ::std::forward<Args>(args)...);
     }
     // RTS
-    template<class... Args> bool _set_option(DCB& dcb, const _option<_Rts>& arg, const _option<Args>&... args)
+    template<class... Args> bool _set_option(DCB& dcb, const _option<_Rts_t>& arg, Args&&... args)
     {
-        dcb.fRtsControl = arg.elem;
-        return _set_option(dcb, args...);
+        dcb.fRtsControl = (DWORD)arg.elem;
+        return _set_option(dcb, ::std::forward<Args>(args)...);
     }
 
 public:
