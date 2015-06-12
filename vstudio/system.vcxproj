@@ -99,7 +99,7 @@
       <NullTerminateStrings>true</NullTerminateStrings>
     </ResourceCompile>
     <Bscmake>
-      <PreserveSbr>true</PreserveSbr>
+      <PreserveSbr>false</PreserveSbr>
       <OutputFile>$(SolutionDir)..\master\bsc\$(Configuration)\$(Platform)\$(TargetName).bsc</OutputFile>
     </Bscmake>
     <MASM>
