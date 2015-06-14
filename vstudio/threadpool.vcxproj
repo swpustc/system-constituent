@@ -63,7 +63,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)test\;$(SolutionDir)include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_WINDOWS;WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <WarningLevel>Level3</WarningLevel>
-      <BrowseInformation>true</BrowseInformation>
+      <BrowseInformation>false</BrowseInformation>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <SDLCheck>true</SDLCheck>
       <ProgramDataBaseFileName>$(SolutionDir)..\master\pdb\$(Configuration)\$(Platform)\$(TargetName).vc$(PlatformToolsetVersion).pdb</ProgramDataBaseFileName>
@@ -85,7 +85,7 @@
       <NullTerminateStrings>true</NullTerminateStrings>
     </ResourceCompile>
     <Bscmake>
-      <PreserveSbr>true</PreserveSbr>
+      <PreserveSbr>false</PreserveSbr>
       <OutputFile>$(SolutionDir)..\master\bsc\$(Configuration)\$(Platform)\$(TargetName).bsc</OutputFile>
     </Bscmake>
     <MASM>
