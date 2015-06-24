@@ -165,11 +165,11 @@ public:
 
     // 写数据到串口，返回值为已写入的长度
     SYSCONAPI size_t write(const void* data, size_t size);
-    template<class T, class A> size_t write(const ::std::basic_string<char, T, A>& data){ return write(data.c_str(), data.length()); }
-    template<class A> size_t write(const ::std::vector<unsigned char, A>& data){ return write(data.data(), data.size()); }
-    template<class A> size_t write(const ::std::vector<char, A>& data){ return write(data.data(), data.size()); }
-    template<size_t size> size_t write(const ::std::array<unsigned char, size>& data){ return write(data.data(), data.size()); }
-    template<size_t size> size_t write(const ::std::array<char, size>& data){ return write(data.data(), data.size()); }
+    template<class T, class A> size_t write(const ::std::basic_string<char, T, A>& data, size_t size = -1){ return write(data.c_str(), auto_min(data.length(), size)); }
+    template<class A> size_t write(const ::std::vector<unsigned char, A>& data, size_t size = -1){ return write(data.data(), auto_min(data.size(), size)); }
+    template<class A> size_t write(const ::std::vector<char, A>& data, size_t size = -1){ return write(data.data(), auto_min(data.size(), size)); }
+    template<size_t size> size_t write(const ::std::array<unsigned char, size>& data, size_t size = -1){ return write(data.data(), auto_min(data.size(), size)); }
+    template<size_t size> size_t write(const ::std::array<char, size>& data, size_t size = -1){ return write(data.data(), auto_min(data.size(), size)); }
 
     // 波特率选项
     SYSCONAPI static const _baud_rate baud_rate_110;
