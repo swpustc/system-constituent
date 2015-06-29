@@ -17,7 +17,9 @@ public:
 
     std::unique_lock<spin_mutex> align_bound();
 
+    void read_from_stream(::std::istream& csv);
     bool read(T&& filename);
+    void write_to_stream(::std::ostream& csv);
     bool write(T&& filename);
 
     void set_cell(size_t row, size_t col, T&& val);
@@ -81,11 +83,19 @@ public:
 
     对齐数据边界，移除空白行和空白列。获取返回值可以延长锁定对象生命周期，以继续后续操作。
 
+- ##### `void read_from_stream(::std::istream& csv)`
+
+    从流`csv`中读取CSV文件到`csvstream`对象中。
+
 - ##### `bool read(T&& filename)`
 
     filename：文件名。
 
     从文件中读取CSV文件到`csvstream`对象中。
+
+- ##### `void write_to_stream(::std::ostream& csv)`
+
+    写入CSV文件到流`csv`中。
 
 - ##### `bool write(T&& filename)`
 
