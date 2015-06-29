@@ -78,10 +78,8 @@ unique_lock<decltype(csvstream::m_lock)> csvstream::align_bound()
     return move(lck);
 }
 
-bool csvstream::_read(fstream&& svcstream)
+void csvstream::read(istream& svcstream)
 {
-    if (!svcstream.is_open())
-        return false;
     string line;
     // 捕获结果match_results
     cmatch match_result;
@@ -130,13 +128,10 @@ bool csvstream::_read(fstream&& svcstream)
     lock_guard<decltype(m_lock)> lck(m_lock);
     // 写入数据
     m_data = move(data);
-    return true;
 }
 
-bool csvstream::_write(fstream&& svcstream)
+void csvstream::write(ostream& svcstream)
 {
-    if (!svcstream.is_open())
-        return false;
     // 输出数据流
     stringstream ss;
     auto&& lck = align_bound();
@@ -166,7 +161,6 @@ bool csvstream::_write(fstream&& svcstream)
     lck.unlock();
     // 写入文件
     svcstream << ss.str();
-    return true;
 }
 
 void csvstream::_set_cell(size_t row, size_t col, const string& val)

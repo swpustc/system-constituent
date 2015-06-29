@@ -186,9 +186,6 @@ private:
     ::std::fstream _open(const ::std::wstring& filename, ::std::ios::openmode mode) const{ return ::std::fstream(convert_utf8_unicode.to_bytes(filename), mode); }
 #endif  /* _WIN32 */
 
-    SYSCONAPI bool _read(::std::fstream&& svcstream);
-    SYSCONAPI bool _write(::std::fstream&& svcstream);
-
 public:
     csvstream() = default;
     csvstream(const csvstream&) = delete;
@@ -210,10 +207,28 @@ public:
 
     SYSCONAPI ::std::unique_lock<decltype(m_lock)> align_bound();
 
+    // 读取CSV文件流
+    SYSCONAPI void read(::std::istream& svcstream);
     // 读取CSV文件
-    template<class T> bool read(T&& filename){ return _read(_open(::std::forward<T>(filename), ::std::ios::in)); }
+    template<class T> bool read(T&& filename)
+    {
+        auto&& csv = _open(::std::forward<T>(filename), ::std::ios::in);
+        if (!csv.is_open())
+            return false;
+        else
+            return read(csv);
+    }
+    // 写入CSV文件流
+    SYSCONAPI void write(::std::ostream& svcstream);
     // 写入CSV文件
-    template<class T> bool write(T&& filename){ return _write(_open(::std::forward<T>(filename), ::std::ios::out | ::std::ios::trunc)); }
+    template<class T> bool write(T&& filename)
+    {
+        auto&& csv = _open(::std::forward<T>(filename), ::std::ios::out | ::std::ios::trunc);
+        if (!csv.is_open())
+            return false;
+        else
+            return write(csv);
+    }
 
     // 写入单元格
     template<class T> void set_cell(size_t row, size_t col, T&& val)
