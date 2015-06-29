@@ -78,7 +78,7 @@ unique_lock<decltype(csvstream::m_lock)> csvstream::align_bound()
     return move(lck);
 }
 
-void csvstream::read_from_stream(istream& svcstream)
+void csvstream::read_from_stream(istream& csv)
 {
     string line;
     // 捕获结果match_results
@@ -86,7 +86,7 @@ void csvstream::read_from_stream(istream& svcstream)
     // 读入的数据
     decltype(m_data) data;
     // 读取一行
-    while (getline(svcstream, line))
+    while (getline(csv, line))
     {
         // 单行数据
         vector<string> data_line;
@@ -130,7 +130,7 @@ void csvstream::read_from_stream(istream& svcstream)
     m_data = move(data);
 }
 
-void csvstream::write_to_stream(ostream& svcstream)
+void csvstream::write_to_stream(ostream& csv)
 {
     // 输出数据流
     stringstream ss;
@@ -160,7 +160,7 @@ void csvstream::write_to_stream(ostream& svcstream)
     }
     lck.unlock();
     // 写入文件
-    svcstream << ss.str();
+    csv << ss.str();
 }
 
 void csvstream::_set_cell(size_t row, size_t col, const string& val)
