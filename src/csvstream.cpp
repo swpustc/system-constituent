@@ -78,7 +78,7 @@ unique_lock<decltype(csvstream::m_lock)> csvstream::align_bound()
     return move(lck);
 }
 
-void csvstream::read(istream& svcstream)
+void csvstream::read_from_stream(istream& svcstream)
 {
     string line;
     // 捕获结果match_results
@@ -130,7 +130,7 @@ void csvstream::read(istream& svcstream)
     m_data = move(data);
 }
 
-void csvstream::write(ostream& svcstream)
+void csvstream::write_to_stream(ostream& svcstream)
 {
     // 输出数据流
     stringstream ss;

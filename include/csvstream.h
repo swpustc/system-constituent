@@ -208,7 +208,7 @@ public:
     SYSCONAPI ::std::unique_lock<decltype(m_lock)> align_bound();
 
     // 读取CSV文件流
-    SYSCONAPI void read(::std::istream& svcstream);
+    SYSCONAPI void read_from_stream(::std::istream& svcstream);
     // 读取CSV文件
     template<class T> bool read(T&& filename)
     {
@@ -216,10 +216,10 @@ public:
         if (!csv.is_open())
             return false;
         else
-            return read(csv);
+            return read_from_stream(csv);
     }
     // 写入CSV文件流
-    SYSCONAPI void write(::std::ostream& svcstream);
+    SYSCONAPI void write_to_stream(::std::ostream& svcstream);
     // 写入CSV文件
     template<class T> bool write(T&& filename)
     {
@@ -227,7 +227,7 @@ public:
         if (!csv.is_open())
             return false;
         else
-            return write(csv);
+            return write_to_stream(csv);
     }
 
     // 写入单元格
