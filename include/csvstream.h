@@ -216,7 +216,7 @@ public:
         if (!csv.is_open())
             return false;
         else
-            return read_from_stream(csv);
+            return read_from_stream(csv), true;
     }
     // 写入CSV文件流
     SYSCONAPI void write_to_stream(::std::ostream& csv);
@@ -227,7 +227,7 @@ public:
         if (!csv.is_open())
             return false;
         else
-            return write_to_stream(csv);
+            return write_to_stream(csv), true;
     }
 
     // 写入单元格
