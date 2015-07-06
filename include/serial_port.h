@@ -171,6 +171,9 @@ public:
     template<size_t size> size_t write(const ::std::array<unsigned char, size>& data, size_t size = -1){ return write(data.data(), auto_min(data.size(), size)); }
     template<size_t size> size_t write(const ::std::array<char, size>& data, size_t size = -1){ return write(data.data(), auto_min(data.size(), size)); }
 
+    // 清空串口错误标志
+    SYSCONAPI void clear();
+
     // 波特率选项
     SYSCONAPI static const _baud_rate baud_rate_110;
     SYSCONAPI static const _baud_rate baud_rate_300;

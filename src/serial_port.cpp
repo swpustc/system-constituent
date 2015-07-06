@@ -228,6 +228,14 @@ size_t serial_port::write(const void* data, size_t size)
     return write_bytes;
 }
 
+// 清空串口错误标志
+void serial_port::clear()
+{
+    if (!is_open())
+        return;
+    PurgeComm(m_comm, PURGE_TXABORT | PURGE_RXABORT | PURGE_TXCLEAR | PURGE_RXCLEAR);
+}
+
 
 // 波特率：枚举类
 enum class serial_port::_baud_rate_t : DWORD
