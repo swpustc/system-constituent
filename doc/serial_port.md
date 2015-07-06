@@ -215,8 +215,8 @@ int main()
 支持的平台 | Windows
 编译器版本 | VS2013+
 头文件     | serial_port.h (include system_constituent.h)
-库文件     | system132.lib
-DLL        | system132.dll
+库文件     | system133.lib
+DLL        | system133.dll
 
 
 ## 参见
