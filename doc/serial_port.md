@@ -29,11 +29,13 @@ public:
     bool read(std::vector<char, A>& data);
 
     size_t write(const void* data, size_t size);
-    size_t write(const std::basic_string<char, T, A>& data);
-    size_t write(const std::vector<unsigned char, A>& data);
-    size_t write(const std::vector<char, A>& data);
-    size_t write(const std::array<unsigned char, size>& data);
-    size_t write(const std::array<char, size>& data);
+    size_t write(const std::basic_string<char, T, A>& data, size_t size = -1);
+    size_t write(const std::vector<unsigned char, A>& data, size_t size = -1);
+    size_t write(const std::vector<char, A>& data, size_t size = -1);
+    size_t write(const std::array<unsigned char, size>& data, size_t size = -1);
+    size_t write(const std::array<char, size>& data, size_t size = -1);
+
+    void clear();
 };
 ```
 
@@ -91,25 +93,29 @@ public:
 
     写入数据到串口，返回值为写入的长度。
 
-- ##### `size_t write(const std::basic_string<char, T, A>& data)`
+- ##### `size_t write(const std::basic_string<char, T, A>& data, size_t size = -1)`
 
-    写入`basic_string<char>`容器中的数据到串口，返回值为写入的长度。
+    写入`basic_string<char>`容器中的数据到串口，返回值为写入的长度。写入的长度为`size`与`data.size()`的较小的值。
 
-- ##### `size_t write(const std::vector<unsigned char, A>& data)`
+- ##### `size_t write(const std::vector<unsigned char, A>& data, size_t size = -1)`
 
-    写入`vector<unsigned char>`容器中的数据到串口，返回值为写入的长度。
+    写入`vector<unsigned char>`容器中的数据到串口，返回值为写入的长度。写入的长度为`size`与`data.size()`的较小的值。
 
-- ##### `size_t write(const std::vector<char, A>& data)`
+- ##### `size_t write(const std::vector<char, A>& data, size_t size = -1)`
 
-    写入`vector<char>`容器中的数据到串口，返回值为写入的长度。
+    写入`vector<char>`容器中的数据到串口，返回值为写入的长度。写入的长度为`size`与`data.size()`的较小的值。
 
-- ##### `size_t write(const std::array<unsigned char, size>& data)`
+- ##### `size_t write(const std::array<unsigned char, size>& data, size_t size = -1)`
 
-    写入`array<unsigned char>`容器中的数据到串口，返回值为写入的长度。
+    写入`array<unsigned char>`容器中的数据到串口，返回值为写入的长度。写入的长度为`size`与`data.size()`的较小的值。
 
-- ##### `size_t write(const std::array<char, size>& data)`
+- ##### `size_t write(const std::array<char, size>& data, size_t size = -1)`
 
-    写入`array<char>`容器中的数据到串口，返回值为写入的长度。
+    写入`array<char>`容器中的数据到串口，返回值为写入的长度。写入的长度为`size`与`data.size()`的较小的值。
+
+- ##### `void clear()`
+
+    清空串口错误标志。
 
 
 ## 备注
