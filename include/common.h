@@ -469,3 +469,16 @@ template<class Elem> inline void set_log_location(const Elem* file_name)
 #endif // #if defined(_WIN32) || defined(WIN32)
         , _T(']'));
 }
+
+// 关闭log流的文件位置
+inline void close_log_location()
+{
+    debug_output<true>(_T("Process End: [PID:"),
+#if defined(_WIN32) || defined(WIN32)
+        ::GetCurrentProcessId()
+#else // Linux
+        ::getpid()
+#endif // #if defined(_WIN32) || defined(WIN32)
+        , _T(']'));
+    g_log_ofstream.close();
+}
