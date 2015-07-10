@@ -417,7 +417,7 @@ private:
     ::std::vector<::std::shared_future<future_type>> shared_future_set;
 
 public:
-    auto_wait_future = default;
+    auto_wait_future() = default;
     auto_wait_future(const auto_wait_future&) = delete;
     auto_wait_future& operator=(const auto_wait_future&) = delete;
     ~auto_wait_future()
@@ -495,7 +495,7 @@ private:
     ::std::vector<::std::shared_future<future_type>> future_set;
 
 public:
-    auto_wait_shared_future = default;
+    auto_wait_shared_future() = default;
     auto_wait_shared_future(const auto_wait_shared_future&) = delete;
     auto_wait_shared_future& operator=(const auto_wait_shared_future&) = delete;
     ~auto_wait_shared_future()
