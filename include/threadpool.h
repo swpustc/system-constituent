@@ -483,3 +483,71 @@ public:
                 val.wait_until(abs_time);
     }
 };
+
+
+// 自动等待输入的future完成（只支持shared_future）
+template <class future_type>
+class auto_wait_shared_future
+{
+private:
+    // 等待的shared_future集合
+    ::std::vector<::std::shared_future<future_type>> future_set;
+
+public:
+    ~auto_wait_shared_future()
+    {   // 等待所有wait完成
+        wait();
+    }
+    auto_wait_shared_future(const auto_wait_shared_future&) = delete;
+    auto_wait_shared_future& operator=(const auto_wait_shared_future&) = delete;
+
+    void push(::std::future<future_type>&& fut)
+    {
+        future_set.push_back(fut.share());
+    }
+    void push(::std::pair<::std::future<future_type>, bool>&& fut)
+    {
+        if (fut.second)
+            future_set.push_back(fut.first.share());
+    }
+
+    void push(const ::std::shared_future<future_type>& fut)
+    {
+        future_set.push_back(fut);
+    }
+    void push(::std::shared_future<future_type>&& fut)
+    {
+        future_set.push_back(::std::move(fut));
+    }
+    void push(const ::std::pair<::std::shared_future<future_type>, bool>& fut)
+    {
+        if (fut.second)
+            future_set.push_back(fut.first);
+    }
+    void push(::std::pair<::std::shared_future<future_type>, bool>&& fut)
+    {
+        if (fut.second)
+            future_set.push_back(::std::move(fut.first));
+    }
+
+    void wait() const
+    {
+        for (auto& val : future_set)
+            if (val.valid())
+                val.wait();
+    }
+    template<class rep, class per>
+    void wait_for(const ::std::chrono::duration<rep, per>& rel_time) const
+    {
+        for (auto& val : future_set)
+            if (val.valid())
+                val.wait_for(rel_time);
+    }
+    template<class clock, class dur>
+    void wait_until(const ::std::chrono::time_point<clock, dur>& abs_time) const
+    {
+        for (auto& val : future_set)
+            if (val.valid())
+                val.wait_until(abs_time);
+    }
+};
