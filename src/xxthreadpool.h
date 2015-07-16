@@ -242,6 +242,7 @@ template<> void threadpool<HANDLE_EXCEPTION>::set_thread_priority(thread_priorit
         _priority = THREAD_PRIORITY_ABOVE_NORMAL;
         break;
     case thread_priority::normal:
+    case thread_priority::none:
         _priority = THREAD_PRIORITY_NORMAL;
         break;
     case thread_priority::below_normal:
@@ -253,7 +254,6 @@ template<> void threadpool<HANDLE_EXCEPTION>::set_thread_priority(thread_priorit
     case thread_priority::idle:
         _priority = THREAD_PRIORITY_IDLE;
         break;
-    case thread_priority::none:
     default:
         return;
     }
@@ -287,6 +287,10 @@ template<> void threadpool<HANDLE_EXCEPTION>::set_thread_priority(thread_priorit
         _priority = sched_get_priority_min(SCHED_RR);
         break;
     case thread_priority::none:
+        for (auto& th : m_thread_object)
+            pthread_attr_setinheritsched(get<0>(th).native_handle(), PTHREAD_INHERIT_SCHED);
+        for (auto& th : m_thread_destroy)
+            pthread_attr_setinheritsched(get<0>(th).native_handle(), PTHREAD_INHERIT_SCHED);
     default:
         return;
     }
