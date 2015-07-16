@@ -50,6 +50,8 @@ public:
     bool set_thread_number(int thread_number);
     bool set_new_thread_number(int thread_number_new);
     bool reset_thread_number();
+
+    void set_thread_priority(thread_priority priority = thread_priority::uninitialized);
 };
 ```
 
@@ -215,6 +217,12 @@ public:
 - ##### `bool reset_thread_number()`
 
     重置线程池工作线程数量为线程池初始值。
+
+- ##### `void set_thread_priority(thread_priority priority = thread_priority::uninitialized)`
+
+    设置线程优先级。所有正在运行的线程和新创建的线程将被设置线程优先级，在`priority`值为`thread_priority::none`时，将恢复线程优先级为默认值。
+
+    如果`priority`值为`thread_priority::uninitialized`，函数将不对线程作任何改变。
 
 
 ## 备注
