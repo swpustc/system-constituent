@@ -22,6 +22,7 @@
 
 enum class thread_priority : uint16_t
 {
+    uninitialized,
     none,
     time_critical,
     highest,
@@ -59,7 +60,7 @@ private:
     SAFE_HANDLE_OBJECT m_stop_thread; // 退出事件，关闭所有线程
     SAFE_HANDLE_OBJECT m_notify_task; // 通知线程有新任务
     // 线程优先级
-    thread_priority m_priority = thread_priority::none;
+    thread_priority m_priority = thread_priority::uninitialized;
 
     enum class exit_event_t {
         INITIALIZATION,
@@ -419,7 +420,7 @@ public:
     }
 
     // 设置线程优先级
-    SYSCONAPI void set_thread_priority(thread_priority priority = thread_priority::none);
+    SYSCONAPI void set_thread_priority(thread_priority priority = thread_priority::uninitialized);
 };
 
 

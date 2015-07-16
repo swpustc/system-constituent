@@ -224,7 +224,7 @@ template<> bool threadpool<HANDLE_EXCEPTION>::set_new_thread_number(int thread_n
 }
 
 // 设置线程优先级
-template<> void threadpool<HANDLE_EXCEPTION>::set_thread_priority(thread_priority priority/*=thread_priority::none*/)
+template<> void threadpool<HANDLE_EXCEPTION>::set_thread_priority(thread_priority priority/*=thread_priority::uninitialized*/)
 {
     // 线程创建、销毁事件锁
     unique_lock<decltype(m_thread_lock)> lck(m_thread_lock);
@@ -254,6 +254,7 @@ template<> void threadpool<HANDLE_EXCEPTION>::set_thread_priority(thread_priorit
     case thread_priority::idle:
         _priority = THREAD_PRIORITY_IDLE;
         break;
+    case thread_priority::uninitialized:
     default:
         return;
     }
@@ -291,6 +292,8 @@ template<> void threadpool<HANDLE_EXCEPTION>::set_thread_priority(thread_priorit
             pthread_attr_setinheritsched(get<0>(th).native_handle(), PTHREAD_INHERIT_SCHED);
         for (auto& th : m_thread_destroy)
             pthread_attr_setinheritsched(get<0>(th).native_handle(), PTHREAD_INHERIT_SCHED);
+        return;
+    case thread_priority::uninitialized:
     default:
         return;
     }
