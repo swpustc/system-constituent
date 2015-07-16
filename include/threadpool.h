@@ -20,6 +20,18 @@
 #include <functional>
 #include <Windows.h>
 
+enum class thread_priority : uint16_t
+{
+    none,
+    time_critical,
+    highest,
+    above_normal,
+    normal,
+    below_normal,
+    lowest,
+    idle,
+};
+
 
 // 线程池类; handle_exception: 是否处理捕获任务异常
 template<bool handle_exception = true> class threadpool
@@ -42,10 +54,12 @@ private:
     // 任务队列读写锁
     mutable spin_mutex m_task_lock;
     // 线程创建、销毁事件锁
-    ::std::mutex m_thread_lock;
+    ::std::recursive_mutex m_thread_lock;
     // 通知事件
     SAFE_HANDLE_OBJECT m_stop_thread; // 退出事件，关闭所有线程
     SAFE_HANDLE_OBJECT m_notify_task; // 通知线程有新任务
+    // 线程优先级
+    thread_priority m_priority = thread_priority::none;
 
     enum class exit_event_t {
         INITIALIZATION,
@@ -403,6 +417,9 @@ public:
     {
         return set_new_thread_number(get_default_thread_number());
     }
+
+    // 设置线程优先级
+    SYSCONAPI void set_thread_priority(thread_priority priority = thread_priority::none);
 };
 
 

@@ -179,6 +179,8 @@ template<> bool threadpool<HANDLE_EXCEPTION>::set_new_thread_number(int thread_n
         return false;
     if (m_thread_started.load() != thread_number_new)
     {
+        // 有创建新线程
+        bool already_create_new_thread = false;
         // 线程创建、销毁事件锁
         unique_lock<decltype(m_thread_lock)> lck(m_thread_lock);
         for (register int i = m_thread_started.load(); i < thread_number_new; i++)
@@ -193,6 +195,7 @@ template<> bool threadpool<HANDLE_EXCEPTION>::set_new_thread_number(int thread_n
             }
             else
             {
+                already_create_new_thread = true;
                 HANDLE thread_exit_event = CreateEventW(nullptr, FALSE, FALSE, nullptr); // 自动复位，无信号
                 HANDLE thread_resume_event = CreateEventW(nullptr, FALSE, FALSE, nullptr); // 自动复位，无信号
                 m_thread_object.push_back(make_tuple(
@@ -202,6 +205,9 @@ template<> bool threadpool<HANDLE_EXCEPTION>::set_new_thread_number(int thread_n
             }
             m_thread_started++;
         }
+        // 只在创建新线程时设置优先级
+        if (already_create_new_thread)
+            set_thread_priority(m_priority);
         for (register int i = m_thread_started.load(); i > thread_number_new; i--)
         {
             auto iter = m_thread_object.begin();
@@ -215,4 +221,86 @@ template<> bool threadpool<HANDLE_EXCEPTION>::set_new_thread_number(int thread_n
         lck.unlock();
     }
     return true;
+}
+
+// 设置线程优先级
+template<> void threadpool<HANDLE_EXCEPTION>::set_thread_priority(thread_priority priority/*=thread_priority::none*/)
+{
+    // 线程创建、销毁事件锁
+    unique_lock<decltype(m_thread_lock)> lck(m_thread_lock);
+#ifdef _WIN32
+    int _priority;
+    switch (m_priority = priority)
+    {
+    case thread_priority::time_critical:
+        _priority = THREAD_PRIORITY_TIME_CRITICAL;
+        break;
+    case thread_priority::highest:
+        _priority = THREAD_PRIORITY_HIGHEST;
+        break;
+    case thread_priority::above_normal:
+        _priority = THREAD_PRIORITY_ABOVE_NORMAL;
+        break;
+    case thread_priority::normal:
+        _priority = THREAD_PRIORITY_NORMAL;
+        break;
+    case thread_priority::below_normal:
+        _priority = THREAD_PRIORITY_BELOW_NORMAL;
+        break;
+    case thread_priority::lowest:
+        _priority = THREAD_PRIORITY_LOWEST;
+        break;
+    case thread_priority::idle:
+        _priority = THREAD_PRIORITY_IDLE;
+        break;
+    case thread_priority::none:
+    default:
+        return;
+    }
+    for (auto& th : m_thread_object)
+        SetThreadPriority(get<0>(th).native_handle(), _priority);
+    for (auto& th : m_thread_destroy)
+        SetThreadPriority(get<0>(th).native_handle(), _priority);
+#else  /* UNIX */
+    struct sched_param _priority;
+    switch (m_priority = priority)
+    {
+    case thread_priority::time_critical:
+        _priority = sched_get_priority_max(SCHED_RR);
+        break;
+    case thread_priority::highest:
+        _priority = sched_get_priority_min(SCHED_RR) + (sched_get_priority_max(SCHED_RR) - sched_get_priority_min(SCHED_RR)) * 5 / 6;
+        break;
+    case thread_priority::above_normal:
+        _priority = sched_get_priority_min(SCHED_RR) + (sched_get_priority_max(SCHED_RR) - sched_get_priority_min(SCHED_RR)) * 2 / 3;
+        break;
+    case thread_priority::normal:
+        _priority = (sched_get_priority_max(SCHED_RR) + sched_get_priority_min(SCHED_RR)) / 2;
+        break;
+    case thread_priority::below_normal:
+        _priority = sched_get_priority_min(SCHED_RR) + (sched_get_priority_max(SCHED_RR) - sched_get_priority_min(SCHED_RR)) / 3;
+        break;
+    case thread_priority::lowest:
+        _priority = sched_get_priority_min(SCHED_RR) + (sched_get_priority_max(SCHED_RR) - sched_get_priority_min(SCHED_RR)) / 6 ;
+        break;
+    case thread_priority::idle:
+        _priority = sched_get_priority_min(SCHED_RR);
+        break;
+    case thread_priority::none:
+    default:
+        return;
+    }
+    for (auto& th : m_thread_object)
+    {
+        pthread_attr_setschedpolicy(get<0>(th).native_handle(), SCHED_RR);
+        pthread_attr_setschedparam(get<0>(th).native_handle(), &_priority);
+        pthread_attr_setinheritsched(get<0>(th).native_handle(), PTHREAD_EXPLICIT_SCHED);
+    }
+    for (auto& th : m_thread_destroy)
+    {
+        pthread_attr_setschedpolicy(get<0>(th).native_handle(), SCHED_RR);
+        pthread_attr_setschedparam(get<0>(th).native_handle(), &_priority);
+        pthread_attr_setinheritsched(get<0>(th).native_handle(), PTHREAD_EXPLICIT_SCHED);
+    }
+#endif  /* _WIN32 */
 }
