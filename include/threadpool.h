@@ -455,23 +455,37 @@ public:
             future_set.push_back(::std::move(fut.first));
     }
 
-    void push(const ::std::shared_future<future_type>& fut)
+    ::std::shared_future<future_type> push(const ::std::shared_future<future_type>& fut)
     {
-        shared_future_set.push_back(fut);
+        ::std::shared_future<future_type> result = fut;
+        shared_future_set.push_back(result);
+        return ::std::move(result);
     }
-    void push(::std::shared_future<future_type>&& fut)
+    ::std::shared_future<future_type> push(::std::shared_future<future_type>&& fut)
     {
+        ::std::shared_future<future_type> result = fut;
         shared_future_set.push_back(::std::move(fut));
+        return ::std::move(result);
     }
-    void push(const ::std::pair<::std::shared_future<future_type>, bool>& fut)
+    ::std::shared_future<future_type> push(const ::std::pair<::std::shared_future<future_type>, bool>& fut)
     {
+        ::std::shared_future<future_type> result;
         if (fut.second)
-            shared_future_set.push_back(fut.first);
+        {
+            result = fut.first;
+            shared_future_set.push_back(result);
+        }
+        return ::std::move(result);
     }
-    void push(::std::pair<::std::shared_future<future_type>, bool>&& fut)
+    ::std::shared_future<future_type> push(::std::pair<::std::shared_future<future_type>, bool>&& fut)
     {
+        ::std::shared_future<future_type> result;
         if (fut.second)
+        {
+            result = fut.first;
             shared_future_set.push_back(::std::move(fut.first));
+        }
+        return ::std::move(result);
     }
 
     void wait() const
