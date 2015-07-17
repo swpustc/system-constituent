@@ -443,10 +443,12 @@ public:
         wait();
     }
 
+    void push(const ::std::future<future_type>& fut) = delete;
     void push(::std::future<future_type>&& fut)
     {
         future_set.push_back(::std::move(fut));
     }
+    void push(const ::std::pair<::std::future<future_type>, bool>& fut) = delete;
     void push(::std::pair<::std::future<future_type>, bool>&& fut)
     {
         if (fut.second)
@@ -521,12 +523,14 @@ public:
         wait();
     }
 
+    ::std::shared_future<future_type> push(const ::std::future<future_type>& fut) = delete;
     ::std::shared_future<future_type> push(::std::future<future_type>&& fut)
     {
         ::std::shared_future<future_type> result = fut.share();
         future_set.push_back(result);
         return ::std::move(result);
     }
+    ::std::shared_future<future_type> push(const ::std::pair<::std::future<future_type>, bool>& fut) = delete;
     ::std::shared_future<future_type> push(::std::pair<::std::future<future_type>, bool>&& fut)
     {
         ::std::shared_future<future_type> result;
