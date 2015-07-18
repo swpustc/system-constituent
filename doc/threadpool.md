@@ -53,6 +53,7 @@ public:
 
     void set_thread_priority(thread_priority priority = thread_priority::uninitialized);
     bool is_owner();
+    bool is_owner(const std::thread::id& thread_id);
 };
 ```
 
@@ -228,6 +229,10 @@ public:
 - ##### `bool is_owner()`
 
     判断本线程是否为线程池管理的线程。
+
+- ##### `bool is_owner(const std::thread::id& thread_id)`
+
+    判断指定的线程`thread_id`是否为线程池管理的线程。
 
 
 ## 备注
