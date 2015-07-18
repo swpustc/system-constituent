@@ -438,6 +438,11 @@ public:
     auto_wait_future() = default;
     auto_wait_future(const auto_wait_future&) = delete;
     auto_wait_future& operator=(const auto_wait_future&) = delete;
+    template<typename future_obj>
+    auto_wait_future(future_obj&& fut)
+    {
+        push(::std::forward<future_obj>(fut));
+    }
     ~auto_wait_future()
     {   // 等待所有wait完成
         wait();
@@ -532,6 +537,11 @@ public:
     auto_wait_shared_future() = default;
     auto_wait_shared_future(const auto_wait_shared_future&) = delete;
     auto_wait_shared_future& operator=(const auto_wait_shared_future&) = delete;
+    template<typename future_obj>
+    auto_wait_shared_future(future_obj&& fut)
+    {
+        push(::std::forward<future_obj>(fut));
+    }
     ~auto_wait_shared_future()
     {   // 等待所有wait完成
         wait();
