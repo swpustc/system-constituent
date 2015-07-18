@@ -424,15 +424,19 @@ public:
     // 检查运行的线程是否为线程池管理的线程
     bool is_owner()
     {
+        return is_owner(::std::this_thread::get_id());
+    }
+    // 检查指定的线程ID是否为线程池管理的线程
+    bool is_owner(const ::std::thread::id& thread_id)
+    {
         // 线程创建、销毁事件锁
         ::std::unique_lock<decltype(m_thread_lock)> lck(m_thread_lock);
-        auto&& this_thread_id = ::std::this_thread::get_id();
         if (::std::any_of(m_thread_object.cbegin(), m_thread_object.cend(), [&](decltype(*m_thread_object.cend()) th_obj){
-            return this_thread_id == ::std::get<0>(th_obj).get_id();
+            return thread_id == ::std::get<0>(th_obj).get_id();
         }))
             return true;
         if (::std::any_of(m_thread_destroy.cbegin(), m_thread_destroy.cend(), [&](decltype(*m_thread_destroy.cend()) th_obj){
-            return this_thread_id == ::std::get<0>(th_obj).get_id();
+            return thread_id == ::std::get<0>(th_obj).get_id();
         }))
             return true;
         return false;
