@@ -52,6 +52,7 @@ public:
     bool reset_thread_number();
 
     void set_thread_priority(thread_priority priority = thread_priority::uninitialized);
+    bool is_owner();
 };
 ```
 
@@ -223,6 +224,10 @@ public:
     设置线程优先级。所有正在运行的线程和新创建的线程将被设置线程优先级，在`priority`值为`thread_priority::none`时，将恢复线程优先级为默认值。
 
     如果`priority`值为`thread_priority::uninitialized`，函数将不对线程作任何改变。
+
+- ##### `bool is_owner()`
+
+    判断本线程是否为线程池管理的线程。
 
 
 ## 备注
