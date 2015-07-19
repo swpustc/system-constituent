@@ -15,6 +15,7 @@ public:
 
     threadpool();
     threadpool(int thread_number);
+    threadpool(int thread_number, Fn&& startup_fn, Args&&... args);
     ~threadpool();
     threadpool(const threadpool&) = delete;
     threadpool& operator=(const threadpool&) = delete;
@@ -48,7 +49,9 @@ public:
     static const type_info& this_type();
 
     bool set_thread_number(int thread_number);
+    bool set_thread_number(int thread_number, Fn&& startup_fn, Args&&... args);
     bool set_new_thread_number(int thread_number_new);
+    bool set_new_thread_number(int thread_number_new, Fn&& startup_fn, Args&&... args);
     bool reset_thread_number();
 
     void set_thread_priority(thread_priority priority = thread_priority::uninitialized);
@@ -80,9 +83,13 @@ public:
 
     未初始化的线程池可以添加、分离任务。
 
-- ##### `threadpool(size_t thread_number)`
+- ##### `threadpool(int thread_number)`
 
     指定线程数的构造函数。
+
+- ##### `threadpool(int thread_number, Fn&& startup_fn, Args&&... args)`
+
+    指定线程数的构造函数，线程启动时先执行一次启动函数`startup_fn`。
 
 - ##### `~threadpool()`
 
@@ -208,6 +215,10 @@ public:
 
     已初始化的线程池调用此函数将返回`false`。
 
+- ##### `bool set_thread_number(int thread_number, Fn&& startup_fn, Args&&... args)`
+
+    线程启动时先执行一次启动函数`startup_fn`，其余和`set_thread_number`相同。
+
 - ##### `bool set_new_thread_number(int thread_number_new)`
 
     重新设置线程池中线程的数量。
@@ -215,6 +226,10 @@ public:
     如果线程池已进入退出流程，或者新的线程数`thread_num_set<0`，返回`false`，否则返回`true`。
 
     未初始化的线程池调用此函数将返回`false`。
+
+- ##### `bool set_new_thread_number(int thread_number_new, Fn&& startup_fn, Args&&... args)`
+
+    线程启动时先执行一次启动函数`startup_fn`，其余和`set_new_thread_number`相同。
 
 - ##### `bool reset_thread_number()`
 
