@@ -74,6 +74,8 @@ private:
 
     // 线程入口函数
     static size_t thread_entry(threadpool* object, HANDLE pause_event, HANDLE resume_event);
+    // 线程入口函数，线程启动时先执行一次启动函数
+    static size_t thread_entry_startup(threadpool* object, HANDLE pause_event, HANDLE resume_event, ::std::function<void()>& startup_fn);
     // 线程运行前准备
     size_t pre_run(HANDLE pause_event, HANDLE resume_event);
     /* 线程任务调度函数
@@ -122,6 +124,11 @@ public:
 
     threadpool(){}
     threadpool(int thread_number){ set_thread_number(thread_number); }
+    // 线程启动时先执行一次启动函数
+    template<class Fn, class... Args> threadpool(int thread_number, Fn&& startup_fn, Args&&... args)
+    {
+        set_thread_number(thread_number, ::std::forward<Fn>(startup_fn), ::std::forward<Args>(args)...);
+    }
     SYSCONAPI ~threadpool();
     // 复制构造函数
     threadpool(const threadpool&) = delete;
@@ -411,8 +418,94 @@ public:
 
     // 初始化线程池，设置处理线程数，已初始化则失败
     SYSCONAPI bool set_thread_number(int thread_number);
+    // 初始化线程池，设置处理线程数，已初始化则失败，线程启动时先执行一次启动函数
+    template<class Fn, class... Args> bool set_thread_number(int thread_number, Fn&& startup_fn, Args&&... args)
+    {
+        assert(thread_number >= 0 && thread_number < 255); // Thread number must greater than or equal 0 and less than 255
+        switch (m_exit_event.load())
+        {
+        case exit_event_t::INITIALIZATION: // 未初始化的线程池
+            m_exit_event = exit_event_t::NORMAL;
+            m_stop_thread = CreateEventW(nullptr, TRUE, FALSE, nullptr);  // 手动复位，无信号
+            m_notify_task = CreateEventW(nullptr, FALSE, FALSE, nullptr); // 自动复位，无信号
+            break;
+        default: // 已初始化的线程池将失败
+            return false;
+        }
+        if (thread_number < 0)
+            return false;
+        m_thread_number = thread_number;
+        return set_new_thread_number(thread_number, ::std::forward<Fn>(startup_fn), ::std::forward<Args>(args)...);
+    }
     // 设置新的处理线程数，退出流程和未初始化的线程池则失败
     SYSCONAPI bool set_new_thread_number(int thread_number_new);
+    // 设置新的处理线程数，退出流程和未初始化的线程池则失败，线程启动时先执行一次启动函数
+    template<class Fn, class... Args> bool set_new_thread_number(int thread_number_new, Fn&& startup_fn, Args&&... args)
+    {
+        assert(thread_number_new >= 0 && thread_number_new < 255); // Thread number must greater than or equal 0 and less than 255
+        switch (m_exit_event.load())
+        {
+        case exit_event_t::INITIALIZATION: // 未初始化的线程池将失败
+            return false;
+        case exit_event_t::NORMAL:
+        case exit_event_t::PAUSE:
+            break;
+        default: // 退出流程中禁止操作线程控制事件
+            return false;
+        }
+        if (thread_number_new < 0) // 线程数小于0则失败
+            return false;
+        if (m_thread_started.load() != thread_number_new)
+        {
+            // 有创建新线程
+            bool already_create_new_thread = false;
+            // 线程创建、销毁事件锁
+            ::std::unique_lock<decltype(m_thread_lock)> lck(m_thread_lock);
+            for (register int i = m_thread_started.load(); i < thread_number_new; i++)
+            {
+                if (m_thread_destroy.size())
+                {
+                    auto iter = m_thread_destroy.begin();
+                    ::ResetEvent(get<1>(*iter));    // 取消线程暂停事件
+                    ::SetEvent(get<2>(*iter));      // 如果线程已暂停则恢复
+                    m_thread_object.push_back(move(*iter));
+                    m_thread_destroy.erase(iter);
+                }
+                else
+                {
+                    already_create_new_thread = true;
+                    HANDLE thread_exit_event = CreateEventW(nullptr, FALSE, FALSE, nullptr); // 自动复位，无信号
+                    HANDLE thread_resume_event = CreateEventW(nullptr, FALSE, FALSE, nullptr); // 自动复位，无信号
+                    // 绑定函数
+                    auto task_obj = ::std::make_shared<decltype(::std::bind(::std::forward<Fn>(startup_fn), ::std::forward<Args>(args)...))>(
+                        ::std::bind(::std::forward<Fn>(startup_fn), ::std::forward<Args>(args)...));
+                    // 生成任务（仿函数）
+                    ::std::function<void()> bind_function(::std::bind(function_wapper(), ::std::move(task_obj)));
+                    m_thread_object.push_back(make_tuple(
+                        thread(thread_entry_startup, this, thread_exit_event, thread_resume_event, ::std::move(bind_function)),
+                        SAFE_HANDLE_OBJECT(thread_exit_event),
+                        SAFE_HANDLE_OBJECT(thread_resume_event)));
+                }
+                m_thread_started++;
+            }
+            // 只在创建新线程时设置优先级
+            if (already_create_new_thread)
+                set_thread_priority(m_priority);
+            for (register int i = m_thread_started.load(); i > thread_number_new; i--)
+            {
+                auto iter = m_thread_object.begin();
+                ::ResetEvent(get<2>(*iter));    // 取消线程恢复事件
+                ::SetEvent(get<1>(*iter));      // 如果线程在运行则暂停
+                m_thread_destroy.push_back(move(*iter));
+                m_thread_object.erase(iter);
+                m_thread_started--;
+            }
+            assert(m_thread_started.load() == thread_number_new);
+            lck.unlock();
+        }
+        return true;
+    }
+
     // 重置线程池数量为初始数量
     bool reset_thread_number()
     {

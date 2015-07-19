@@ -39,6 +39,19 @@ template<> size_t threadpool<HANDLE_EXCEPTION>::thread_entry(threadpool* object,
     return result;
 }
 
+// 线程入口函数，线程启动时先执行一次启动函数
+template<> size_t threadpool<HANDLE_EXCEPTION>::thread_entry_startup(threadpool* object, HANDLE pause_event, HANDLE resume_event, function<void()>& startup_fn)
+{
+    debug_output(_T("Startup Thread Start: ["), this_type().name(), _T("](0x"), object, _T(')'));
+    object->run_task(make_pair(move(startup_fn), 1));
+    size_t result = object->pre_run(pause_event, resume_event);
+    debug_output(_T("Startup Thread Result: ["), (void*)result, _T("] ["), this_type().name(), _T("](0x"), object, _T(')'));
+#if _MSC_VER <= 1800 // Fix std::thread deadlock bug on VS2012,VS2013 (when call join on exit)
+    ExitThread((DWORD)result);
+#endif // #if _MSC_VER <= 1800
+    return result;
+}
+
 // 任务运行主体函数
 template<> inline size_t threadpool<HANDLE_EXCEPTION>::run(HANDLE pause_event, HANDLE resume_event)
 {
