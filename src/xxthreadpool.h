@@ -275,7 +275,7 @@ template<> bool threadpool<HANDLE_EXCEPTION>::_set_new_thread_number(int thread_
                 HANDLE thread_exit_event = CreateEventW(nullptr, FALSE, FALSE, nullptr); // 自动复位，无信号
                 HANDLE thread_resume_event = CreateEventW(nullptr, FALSE, FALSE, nullptr); // 自动复位，无信号
                 m_thread_object.push_back(make_tuple(
-                    thread(thread_entry_startup, this, thread_exit_event, thread_resume_event, move(startup_fn)),
+                    thread(thread_entry_startup, this, thread_exit_event, thread_resume_event, startup_fn),
                     SAFE_HANDLE_OBJECT(thread_exit_event),
                     SAFE_HANDLE_OBJECT(thread_resume_event)));
             }
