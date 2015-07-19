@@ -175,6 +175,7 @@ template<> bool threadpool<HANDLE_EXCEPTION>::set_thread_number(int thread_numbe
     return set_new_thread_number(thread_number);
 }
 
+// 设置新的处理线程数，退出流程和未初始化的线程池则失败
 template<> bool threadpool<HANDLE_EXCEPTION>::set_new_thread_number(int thread_number_new)
 {
     assert(thread_number_new >= 0 && thread_number_new < 255); // Thread number must greater than or equal 0 and less than 255
@@ -213,6 +214,68 @@ template<> bool threadpool<HANDLE_EXCEPTION>::set_new_thread_number(int thread_n
                 HANDLE thread_resume_event = CreateEventW(nullptr, FALSE, FALSE, nullptr); // 自动复位，无信号
                 m_thread_object.push_back(make_tuple(
                     thread(thread_entry, this, thread_exit_event, thread_resume_event),
+                    SAFE_HANDLE_OBJECT(thread_exit_event),
+                    SAFE_HANDLE_OBJECT(thread_resume_event)));
+            }
+            m_thread_started++;
+        }
+        // 只在创建新线程时设置优先级
+        if (already_create_new_thread)
+            set_thread_priority(m_priority);
+        for (register int i = m_thread_started.load(); i > thread_number_new; i--)
+        {
+            auto iter = m_thread_object.begin();
+            ResetEvent(get<2>(*iter));  // 取消线程恢复事件
+            SetEvent(get<1>(*iter));    // 如果线程在运行则暂停
+            m_thread_destroy.push_back(move(*iter));
+            m_thread_object.erase(iter);
+            m_thread_started--;
+        }
+        assert(m_thread_started.load() == thread_number_new);
+        lck.unlock();
+    }
+    return true;
+}
+
+// 设置新的处理线程数，退出流程和未初始化的线程池则失败，线程启动时先执行一次启动函数
+template<> bool threadpool<HANDLE_EXCEPTION>::_set_new_thread_number(int thread_number_new, function<void()>&& startup_fn)
+{
+    assert(thread_number_new >= 0 && thread_number_new < 255); // Thread number must greater than or equal 0 and less than 255
+    switch (m_exit_event.load())
+    {
+    case exit_event_t::INITIALIZATION: // 未初始化的线程池将失败
+        return false;
+    case exit_event_t::NORMAL:
+    case exit_event_t::PAUSE:
+        break;
+    default: // 退出流程中禁止操作线程控制事件
+        return false;
+    }
+    if (thread_number_new < 0) // 线程数小于0则失败
+        return false;
+    if (m_thread_started.load() != thread_number_new)
+    {
+        // 有创建新线程
+        bool already_create_new_thread = false;
+        // 线程创建、销毁事件锁
+        unique_lock<decltype(m_thread_lock)> lck(m_thread_lock);
+        for (register int i = m_thread_started.load(); i < thread_number_new; i++)
+        {
+            if (m_thread_destroy.size())
+            {
+                auto iter = m_thread_destroy.begin();
+                ResetEvent(get<1>(*iter));  // 取消线程暂停事件
+                SetEvent(get<2>(*iter));    // 如果线程已暂停则恢复
+                m_thread_object.push_back(move(*iter));
+                m_thread_destroy.erase(iter);
+            }
+            else
+            {
+                already_create_new_thread = true;
+                HANDLE thread_exit_event = CreateEventW(nullptr, FALSE, FALSE, nullptr); // 自动复位，无信号
+                HANDLE thread_resume_event = CreateEventW(nullptr, FALSE, FALSE, nullptr); // 自动复位，无信号
+                m_thread_object.push_back(make_tuple(
+                    thread(thread_entry_startup, this, thread_exit_event, thread_resume_event, move(startup_fn)),
                     SAFE_HANDLE_OBJECT(thread_exit_event),
                     SAFE_HANDLE_OBJECT(thread_resume_event)));
             }
