@@ -38,6 +38,8 @@ enum class thread_priority : uint16_t
 template<bool handle_exception = true> class threadpool
 {
 private:
+    // 线程是否已启动
+    bool m_is_start = false;
     // 线程数
     ::std::atomic<int> m_thread_number{ 0 };
     ::std::atomic<int> m_thread_started{ 0 };
@@ -480,6 +482,10 @@ public:
         }))
             return true;
         return false;
+    }
+    bool is_start() const
+    {
+        return m_is_start;
     }
 };
 

@@ -234,6 +234,7 @@ template<> bool threadpool<HANDLE_EXCEPTION>::set_new_thread_number(int thread_n
         assert(m_thread_started.load() == thread_number_new);
         lck.unlock();
     }
+    m_is_start = !!m_thread_started.load();
     return true;
 }
 
@@ -296,6 +297,7 @@ template<> bool threadpool<HANDLE_EXCEPTION>::_set_new_thread_number(int thread_
         assert(m_thread_started.load() == thread_number_new);
         lck.unlock();
     }
+    m_is_start = !!m_thread_started.load();
     return true;
 }
 
