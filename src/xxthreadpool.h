@@ -155,6 +155,19 @@ template<> future<size_t> threadpool<HANDLE_EXCEPTION>::detach_future(int thread
     return move(future_obj);;
 }
 
+// 销毁线程池。WARNING: 线程会被直接分离，可能会造成资源泄露!!!
+template<> void threadpool<HANDLE_EXCEPTION>::destroy()
+{
+    stop();
+    for (auto& handle_obj : m_thread_object)
+        get<0>(handle_obj).detach();    // 直接分离线程
+    m_thread_object.clear();
+    for (auto& handle_obj : m_thread_destroy)
+        get<0>(handle_obj).detach();    // 直接分离线程
+    m_thread_destroy.clear();
+}
+
+
 // 设置线程数
 template<> bool threadpool<HANDLE_EXCEPTION>::set_thread_number(int thread_number)
 {
@@ -300,6 +313,7 @@ template<> bool threadpool<HANDLE_EXCEPTION>::_set_new_thread_number(int thread_
     m_is_start = !!m_thread_started.load();
     return true;
 }
+
 
 // 设置线程优先级
 template<> void threadpool<HANDLE_EXCEPTION>::set_thread_priority(thread_priority priority/*=thread_priority::uninitialized*/)

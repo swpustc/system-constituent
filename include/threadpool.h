@@ -369,6 +369,8 @@ public:
     }
     // 分离任务，设置分离的线程池对象线程数为thread_number_new，并得到分离任务执行情况的future
     SYSCONAPI ::std::future<size_t> detach_future(int thread_number_new);
+    // 销毁线程池。WARNING: 线程会被直接分离，可能会造成资源泄露!!!
+    SYSCONAPI void destroy();
 
     // 获取线程数量
     int get_thread_number() const
