@@ -159,6 +159,13 @@ template<> future<size_t> threadpool<HANDLE_EXCEPTION>::detach_future(int thread
 template<> void threadpool<HANDLE_EXCEPTION>::destroy()
 {
     stop();
+    switch (m_exit_event.load())
+    {
+    case exit_event_t::STOP_IMMEDIATELY:
+        return;
+    default:
+        break;
+    }
     for (auto& handle_obj : m_thread_object)
         get<0>(handle_obj).detach();    // 直接分离线程
     m_thread_object.clear();
