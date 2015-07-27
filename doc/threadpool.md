@@ -37,6 +37,7 @@ public:
     void detach(int thread_number_new);
     std::future<size_t> detach_future();
     std::future<size_t> detach_future(int thread_number_new);
+    void destroy();
 
     int get_thread_number() const;
     int get_free_thread_number() const;
@@ -176,6 +177,10 @@ public:
 
     返回值为分离的线程池返回情况。如果`thread_number_new==0`，未完成的任务不会被执行而是立即销毁。
 
+- ##### `void destroy()`
+
+    销毁线程池，所有的线程将被直接分离。
+
 - ##### `int get_thread_number()`
 
     获取当前线程池中线程的数量。
@@ -257,7 +262,7 @@ public:
 
 ## 备注
 
-线程池未使用虚函数，异常安全。默认的线程数为2，实际运用时的线程数应少于CPU核心数。
+线程池未使用虚函数，异常安全。
 
 线程退出代码基址为`success_code=0x00001000`，正常退出时，返回值大于等于`success_code`；
 非正常退出时，返回值小于`success_code`。
@@ -265,6 +270,8 @@ public:
 如果线程池未准备好，线程返回值为`success_code-0xff`。
 
 分离`detach`的线程池控制函数返回值为`success_code+0xff`。
+
+**警告！**使用`destroy`函数销毁线程池后，所有的线程会被直接分离，可能会造成资源泄露。
 
 使用C++11模板类编写，需链接`system.lib`。
 `class threadpool`不允许通过复制构造对象，不允许复制另一个`threadpool`对象。
