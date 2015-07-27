@@ -158,12 +158,16 @@ template<> future<size_t> threadpool<HANDLE_EXCEPTION>::detach_future(int thread
 // 销毁线程池。WARNING: 线程会被直接分离，可能会造成资源泄露!!!
 template<> void threadpool<HANDLE_EXCEPTION>::destroy()
 {
+    // 停止线程池的运行
     stop();
+    // 线程创建、销毁事件锁
+    unique_lock<decltype(m_thread_lock)> lck(m_thread_lock);
     switch (m_exit_event.load())
     {
-    case exit_event_t::STOP_IMMEDIATELY:
+    case exit_event_t::INITIALIZATION:
         return;
     default:
+        m_exit_event = exit_event_t::INITIALIZATION;
         break;
     }
     for (auto& handle_obj : m_thread_object)
@@ -172,6 +176,7 @@ template<> void threadpool<HANDLE_EXCEPTION>::destroy()
     for (auto& handle_obj : m_thread_destroy)
         get<0>(handle_obj).detach();    // 直接分离线程
     m_thread_destroy.clear();
+    m_thread_started = 0;
 }
 
 
