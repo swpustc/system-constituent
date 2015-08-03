@@ -7,7 +7,7 @@ call "%VS120COMNTOOLS%..\..\VC\vcvarsall.bat" amd64
 
 if /i not "%VisualStudioVersion%" == "12.0" goto :explain
 
-set "SLN_DIR=system.sln"
+set "SLN_DIR=%~dp0\system.sln"
 set "VS_VERSION=2013"
 
 devenv.com "%SLN_DIR%" /Build "Release|x64"
