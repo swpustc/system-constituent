@@ -1,4 +1,4 @@
-﻿@echo off
+@echo off
 setlocal
 
 if not defined VS120COMNTOOLS goto :explain
