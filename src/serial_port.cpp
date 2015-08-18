@@ -63,7 +63,7 @@ bool serial_port::_open(int port_number)
     if (port_number <= 0 || port_number > 32)
         return false;
     wchar_t name[10];
-    wsprintfW(name, L"\\\\.\\COM%d", port_number);
+    swprintf_s(name, L"\\\\.\\COM%d", port_number);
     return __open(name);
 }
 
