@@ -42,6 +42,7 @@ public:
     int get_thread_number() const;
     int get_free_thread_number() const;
     size_t get_tasks_number() const;
+    size_t get_tasks_exception_number() const;
     size_t get_tasks_completed_number() const;
     size_t get_tasks_total_number() const;
 
@@ -192,6 +193,10 @@ public:
 - ##### `size_t get_tasks_number()`
 
     获取当前任务队列中未处理的任务数。
+
+- ##### `size_t get_tasks_exception_number()`
+
+    获取发生异常的任务数，可通过`get_exception_tasks`获取异常的任务包。
 
 - ##### `size_t get_tasks_completed_number()`
 
