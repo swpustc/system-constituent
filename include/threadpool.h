@@ -52,6 +52,7 @@ private:
     decltype(m_tasks) m_pause_tasks;
     decltype(m_tasks)* m_push_tasks{ &m_tasks };
     decltype(m_tasks) m_exception_tasks;
+    ::std::atomic<size_t> m_task_exception{ 0 };
     ::std::atomic<size_t> m_task_completed{ 0 };
     ::std::atomic<size_t> m_task_all{ 0 };
     // 任务队列读写锁
@@ -397,6 +398,11 @@ public:
     {
         ::std::lock_guard<decltype(m_task_lock)> lck(m_task_lock); // 任务队列读写锁
         return m_push_tasks->size();
+    }
+    // 获取异常任务数
+    size_t get_tasks_exception_number() const
+    {
+        return m_task_exception.load();
     }
     // 获取已完成任务数
     size_t get_tasks_completed_number() const

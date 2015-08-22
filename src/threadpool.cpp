@@ -21,6 +21,7 @@ template<> inline size_t threadpool<true>::pre_run(HANDLE pause_event, HANDLE re
         {
             debug_output<true>(_T(__FILE__), _T('('), __LINE__, _T("): "), function_object.target_type().name());
             m_exception_tasks.push_back(move(function_object));
+            m_task_exception++;
         }
     }
 }
@@ -47,7 +48,8 @@ template<> inline bool threadpool<true>::run_task(pair<function<void()>, size_t>
         catch (exception& e)
         {
             debug_output<true>(_T(__FILE__), _T('('), __LINE__, _T("): "), e.what(), " | ", task_val.first.target_type().name());
-            m_exception_tasks.push_back(move(task_val.first));
+            throw move(task_val.first);
+            return false;
         }
         catch (...)
         {
