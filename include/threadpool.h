@@ -351,6 +351,9 @@ public:
     void clear()
     {
         ::std::lock_guard<decltype(m_task_lock)> lck(m_task_lock);
+        // 清理的任务从添加的任务总数中减去
+        m_task_all -= m_tasks.size();
+        m_task_all -= m_pause_tasks.size();
         m_tasks.clear();
         m_pause_tasks.clear();
     }
