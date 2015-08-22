@@ -748,6 +748,16 @@ public:
         else
             return 0;
     }
+    // 获取异常任务数
+    size_t get_tasks_exception_number() const
+    {
+        if (m_thpool_true)
+            return m_thpool_true->get_tasks_exception_number();
+        else if (m_thpool_false)
+            return m_thpool_false->get_tasks_exception_number();
+        else
+            return 0;
+    }
     // 获取已完成任务数
     size_t get_tasks_completed_number() const
     {
@@ -765,16 +775,6 @@ public:
             return m_thpool_true->get_tasks_total_number();
         else if (m_thpool_false)
             return m_thpool_false->get_tasks_total_number();
-        else
-            return 0;
-    }
-    // 获取异常任务队列
-    size_t get_exception_tasks()
-    {
-        if (m_thpool_true)
-            return m_thpool_true->get_exception_tasks().size();
-        else if (m_thpool_false)
-            return m_thpool_false->get_exception_tasks().size();
         else
             return 0;
     }
