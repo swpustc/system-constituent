@@ -12,10 +12,12 @@
 #define SYSTEM_CONSTITUENT_VERSION_POINT2 0
 
 
+#ifndef EXTERN_C
 #ifdef __cplusplus
-#  define EXTERN_C  extern "C"
+#define EXTERN_C    extern "C"
 #else
-#  define EXTERN_C
+#define EXTERN_C    extern
+#endif
 #endif
 
 #ifndef _CRT_STRINGIZE
