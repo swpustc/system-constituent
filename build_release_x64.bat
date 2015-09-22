@@ -21,8 +21,8 @@ echo awareness of the VS%VS_VERSION% installation.  To run this file in the corr
 echo environment, click "Microsoft Visual Studio %VS_VERSION%" then "Visual Studio Tools"
 echo then "Visual Studio Command Prompt (%VS_VERSION%)" and run this .bat file from the
 echo resulting command window.
+pause
 echo;
 
 :end
-pause
 goto :eof
