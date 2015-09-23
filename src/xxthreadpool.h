@@ -33,9 +33,6 @@ template<> size_t threadpool<HANDLE_EXCEPTION>::thread_entry(threadpool* object,
     debug_output(_T("Thread Start: ["), this_type().name(), _T("](0x"), object, _T(')'));
     size_t result = object->pre_run(pause_event, resume_event);
     debug_output(_T("Thread Result: ["), (void*)result, _T("] ["), this_type().name(), _T("](0x"), object, _T(')'));
-#if _MSC_VER <= 1800 // Fix std::thread deadlock bug on VS2012,VS2013 (when call join on exit)
-    ExitThread((DWORD)result);
-#endif // #if _MSC_VER <= 1800
     return result;
 }
 
@@ -46,9 +43,6 @@ template<> size_t threadpool<HANDLE_EXCEPTION>::thread_entry_startup(threadpool*
     object->run_task(make_pair(move(startup_fn), 1));
     size_t result = object->pre_run(pause_event, resume_event);
     debug_output(_T("Startup Thread Result: ["), (void*)result, _T("] ["), this_type().name(), _T("](0x"), object, _T(')'));
-#if _MSC_VER <= 1800 // Fix std::thread deadlock bug on VS2012,VS2013 (when call join on exit)
-    ExitThread((DWORD)result);
-#endif // #if _MSC_VER <= 1800
     return result;
 }
 
