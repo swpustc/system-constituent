@@ -21,10 +21,12 @@ void foo(int length, char c, size_t ms)
     }
 }
 
+
 int main()
 {
     set_log_location("threadpool.log"); // 设置日志文件存储路径为当前目录
 
+    static threadpool<true> thpool_deadlock = { 1 }; // 测试是否死锁的线程池
     threadpool<true> thpool1; // 未初始化的线程池，处理异常
     threadpool<false> thpool2(4); // 创建同时初始化线程池，不处理异常
 
