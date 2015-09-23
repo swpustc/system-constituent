@@ -164,11 +164,19 @@ template<> void threadpool<HANDLE_EXCEPTION>::destroy()
         m_exit_event = exit_event_t::INITIALIZATION;
         break;
     }
+    // 预计关闭时间点
+    auto&& timepoint = chrono::system_clock::now() + chrono::milliseconds(100);
     for (auto& handle_obj : m_thread_object)
+    {
+        this_thread::sleep_until(timepoint);
         get<0>(handle_obj).detach();    // 直接分离线程
+    }
     m_thread_object.clear();
     for (auto& handle_obj : m_thread_destroy)
+    {
+        this_thread::sleep_until(timepoint);
         get<0>(handle_obj).detach();    // 直接分离线程
+    }
     m_thread_destroy.clear();
     m_thread_started = 0;
 }
