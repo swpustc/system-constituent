@@ -85,5 +85,8 @@ int main()
     // 同步线程池分离的任务
     debug_output<true>(_T("detach thread result: "), fut_res.get());
 
+    // 关闭日志流
+    close_log_location();
+
     return 0;
 }

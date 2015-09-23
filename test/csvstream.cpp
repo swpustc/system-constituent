@@ -74,5 +74,9 @@ int main()
     csv.set_cell(99, 99, "100:100");
 
     csv.write("csvstream.csv");
+
+    // 关闭日志流
+    close_log_location();
+
     return 0;
 }
