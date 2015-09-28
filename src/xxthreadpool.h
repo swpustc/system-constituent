@@ -262,6 +262,7 @@ template<> bool threadpool<HANDLE_EXCEPTION>::set_new_thread_number(int thread_n
         lck.unlock();
     }
     m_is_start = !!m_thread_started.load();
+    notify(m_tasks.size());
     return true;
 }
 
