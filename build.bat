@@ -12,10 +12,10 @@ for /F %%i in ('dir /s /b "%~dp0\*.sln"') DO (
 )
 set "VS_VERSION=2013"
 
-devenv.com "%SLN_DIR%" /Build "Release|x64"
-devenv.com "%SLN_DIR%" /Build "Debug|x64"
-devenv.com "%SLN_DIR%" /Build "Release|Win32"
-devenv.com "%SLN_DIR%" /Build "Debug|Win32"
+CALL devenv.com "%SLN_DIR%" /Build "Release|x64"
+CALL devenv.com "%SLN_DIR%" /Build "Debug|x64"
+CALL devenv.com "%SLN_DIR%" /Build "Release|Win32"
+CALL devenv.com "%SLN_DIR%" /Build "Debug|Win32"
 goto :end
 
 :explain
