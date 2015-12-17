@@ -710,6 +710,14 @@ private:
 public:
     // 设置线程池指针
     template<bool handle_exception> void set_pointer(threadpool<handle_exception>* pointer);
+    // 获取管理的线程池指针
+    const void* get_pointer()
+    {
+        if (m_thpool_true)
+            return m_thpool_true;
+        else
+            return m_thpool_false;
+    }
     // 清理任务队列
     void clear()
     {
