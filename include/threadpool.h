@@ -708,8 +708,19 @@ private:
     threadpool<false>* m_thpool_false = nullptr;
 
 public:
+    threadpool_view() = default;
+    template<bool handle_exception> threadpool_view(threadpool<handle_exception>* pointer)
+    {
+        set_pointer(pointer);
+    }
     // 设置线程池指针
     template<bool handle_exception> void set_pointer(threadpool<handle_exception>* pointer);
+    // 清空管理的指针
+    void clear_pointer()
+    {
+        m_thpool_true = nullptr;
+        m_thpool_false = nullptr;
+    }
     // 获取管理的线程池指针
     const void* get_pointer()
     {
@@ -811,3 +822,100 @@ template<> inline void threadpool_view::set_pointer(threadpool<false>* pointer)
     m_thpool_true = nullptr;
     m_thpool_false = pointer;
 }
+
+
+
+// 多个线程池展示
+class threadpool_multi_view
+{
+private:
+    ::std::vector<threadpool_view> m_thpool;
+
+public:
+    threadpool_multi_view() = default;
+    template<bool handle_exception> threadpool_multi_view(threadpool<handle_exception>* pointer)
+    {
+        set_pointer(pointer);
+    }
+    // 添加线程池指针
+    template<bool handle_exception> void set_pointer(threadpool<handle_exception>* pointer)
+    {
+        if (pointer)
+            m_thpool.push_back(threadpool_view(pointer));
+    }
+    // 获取管理的线程池指针
+    const void* get_pointer()
+    {
+        if (m_thpool.size())
+            return m_thpool.at(0).get_pointer();
+        else
+            return nullptr;
+    }
+    // 清空管理的指针
+    void clear_pointer()
+    {
+        m_thpool.clear();
+    }
+    // 清理任务队列
+    void clear()
+    {
+        for (auto& th : m_thpool)
+            th.clear();
+    }
+    // 获取线程数量
+    int get_thread_number() const
+    {
+        int result = 0;
+        for (auto& th : m_thpool)
+            result += th.get_thread_number();
+        return result;
+    }
+    // 获取空闲线程数
+    int get_free_thread_number() const
+    {
+        int result = 0;
+        for (auto& th : m_thpool)
+            result += th.get_free_thread_number();
+        return result;
+    }
+    // 获取任务队列数量
+    size_t get_tasks_number() const
+    {
+        size_t result = 0;
+        for (auto& th : m_thpool)
+            result += th.get_tasks_number();
+        return result;
+    }
+    // 获取异常任务数
+    size_t get_tasks_exception_number() const
+    {
+        size_t result = 0;
+        for (auto& th : m_thpool)
+            result += th.get_tasks_exception_number();
+        return result;
+    }
+    // 获取已完成任务数
+    size_t get_tasks_completed_number() const
+    {
+        size_t result = 0;
+        for (auto& th : m_thpool)
+            result += th.get_tasks_completed_number();
+        return result;
+    }
+    // 获取已添加任务总数
+    size_t get_tasks_total_number() const
+    {
+        size_t result = 0;
+        for (auto& th : m_thpool)
+            result += th.get_tasks_total_number();
+        return result;
+    }
+    // 获取初始化线程数
+    int get_default_thread_number() const
+    {
+        int result = 0;
+        for (auto& th : m_thpool)
+            result += th.get_default_thread_number();
+        return result;
+    }
+};
