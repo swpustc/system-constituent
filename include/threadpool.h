@@ -721,13 +721,10 @@ public:
         m_thpool_true = nullptr;
         m_thpool_false = nullptr;
     }
-    // 获取管理的线程池指针
-    const void* get_pointer()
+    // 是否有效
+    bool valid()
     {
-        if (m_thpool_true)
-            return m_thpool_true;
-        else
-            return m_thpool_false;
+        return m_thpool_true || m_thpool_false;
     }
     // 清理任务队列
     void clear()
@@ -843,13 +840,10 @@ public:
         if (pointer)
             m_thpool.push_back(threadpool_view(pointer));
     }
-    // 获取管理的线程池指针
-    const void* get_pointer()
+    // 是否有效
+    bool valid()
     {
-        if (m_thpool.size())
-            return m_thpool.at(0).get_pointer();
-        else
-            return nullptr;
+        return !m_thpool.empty();
     }
     // 清空管理的指针
     void clear_pointer()
