@@ -722,7 +722,7 @@ public:
         m_thpool_false = nullptr;
     }
     // 是否有效
-    bool valid()
+    bool valid() const
     {
         return m_thpool_true || m_thpool_false;
     }
@@ -841,7 +841,7 @@ public:
             m_thpool.push_back(threadpool_view(pointer));
     }
     // 是否有效
-    bool valid()
+    bool valid() const
     {
         return !m_thpool.empty();
     }
