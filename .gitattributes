@@ -12,9 +12,11 @@
 *.jpg    binary
 *.lib    binary
 *.pdf    binary
+*.pdw    binary
 *.png    binary
 *.ppt    binary
 *.pptx   binary
+*.qm     binary
 *.tar    binary
 *.tar.gz binary
 *.tar.xz binary
@@ -27,11 +29,20 @@
 *.bat    text eol=crlf
 *.crt    text eol=lf
 *.gpg    text eol=lf
+*.hdev   text eol=lf
+*.hdvp   text eol=lf
 *.key    text eol=lf
 *.pem    text eol=lf
+*.qrc    text eol=lf
 *.sln    text eol=crlf
+*.ts     text eol=lf
+*.ui     text eol=lf
 
 Resource.h encoding=GBK
 version.h  encoding=GBK
+*.csv      encoding=GBK
 *.rc       encoding=GBK
 *.rc2      encoding=GBK
+
+*.hdev     merge=ours
+*.ts       merge=ours
