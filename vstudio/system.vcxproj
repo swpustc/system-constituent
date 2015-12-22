@@ -75,7 +75,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)src\;$(SolutionDir)include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)src\;$(SolutionDir)include\;$(SolutionDir)..\master\tmp\$(ProjectName)\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>PROJECT_NAME=$(TargetName);SYSCON_EXPORT;_WINDOWS;WIN32;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <WarningLevel>Level3</WarningLevel>
       <BrowseInformation>false</BrowseInformation>
@@ -97,7 +97,7 @@
     </Link>
     <ResourceCompile>
       <Culture>0x0804</Culture>
-      <AdditionalIncludeDirectories>$(SolutionDir)src\;$(SolutionDir)include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)src\;$(SolutionDir)include\;$(SolutionDir)..\master\tmp\$(ProjectName)\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <NullTerminateStrings>true</NullTerminateStrings>
     </ResourceCompile>
     <Bscmake>
@@ -105,12 +105,12 @@
       <OutputFile>$(SolutionDir)..\master\bsc\$(Configuration)\$(Platform)\$(TargetName).bsc</OutputFile>
     </Bscmake>
     <MASM>
-      <IncludePaths>$(SolutionDir)src\;$(SolutionDir)include\</IncludePaths>
+      <IncludePaths>$(SolutionDir)src\;$(SolutionDir)include\;$(SolutionDir)..\master\tmp\$(ProjectName)\</IncludePaths>
       <WarningLevel>0</WarningLevel>
     </MASM>
     <CustomBuildStep>
-      <Command>ECHO #define GIT_HEAD_MASTER \&gt;"$(SolutionDir)src\GIT_HEAD_MASTER"
-type "$(SolutionDir).git\refs\heads\master"&gt;&gt;"$(SolutionDir)src\GIT_HEAD_MASTER"
+      <Command>ECHO #define GIT_HEAD_MASTER \&gt;"$(SolutionDir)..\master\tmp\$(ProjectName)\GIT_HEAD_MASTER"
+type "$(SolutionDir).git\refs\heads\master"&gt;&gt;"$(SolutionDir)..\master\tmp\$(ProjectName)\GIT_HEAD_MASTER"
       </Command>
       <Message>GIT HEAD MASTER</Message>
       <Outputs>$(SolutionDir)src\GIT_HEAD_MASTER;%(Outputs)</Outputs>
