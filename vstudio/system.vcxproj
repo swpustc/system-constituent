@@ -65,6 +65,7 @@
     <TargetName>$(ProjectName)136</TargetName>
     <OutDir>$(SolutionDir)..\master\bin\$(Configuration)\$(Platform)\</OutDir>
     <IntDir>$(SolutionDir)..\master\tmp\$(ProjectName)\$(Configuration)\$(Platform)\</IntDir>
+    <CustomBuildBeforeTargets>PreBuildEvent</CustomBuildBeforeTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <LinkIncremental>true</LinkIncremental>
@@ -107,6 +108,14 @@
       <IncludePaths>$(SolutionDir)src\;$(SolutionDir)include\</IncludePaths>
       <WarningLevel>0</WarningLevel>
     </MASM>
+    <CustomBuildStep>
+      <Command>ECHO #define GIT_HEAD_MASTER \&gt;"$(SolutionDir)src\GIT_HEAD_MASTER"
+type "$(SolutionDir).git\refs\heads\master"&gt;&gt;"$(SolutionDir)src\GIT_HEAD_MASTER"
+      </Command>
+      <Message>GIT HEAD</Message>
+      <Outputs>$(SolutionDir)src\GIT_HEAD_MASTER;%(Outputs)</Outputs>
+      <Inputs>$(SolutionDir).git\refs\heads\master;%(Inputs)</Inputs>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Platform)'=='Win32'">
     <ClCompile>
