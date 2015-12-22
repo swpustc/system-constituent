@@ -113,7 +113,7 @@
 type "$(SolutionDir).git\refs\heads\master"&gt;&gt;"$(SolutionDir)..\master\tmp\$(ProjectName)\GIT_HEAD_MASTER"
       </Command>
       <Message>GIT HEAD MASTER</Message>
-      <Outputs>$(SolutionDir)src\GIT_HEAD_MASTER;%(Outputs)</Outputs>
+      <Outputs>$(SolutionDir)..\master\tmp\$(ProjectName)\GIT_HEAD_MASTER;%(Outputs)</Outputs>
       <Inputs>$(SolutionDir).git\refs\heads\master;%(Inputs)</Inputs>
     </CustomBuildStep>
   </ItemDefinitionGroup>
