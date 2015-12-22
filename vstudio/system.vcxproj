@@ -112,7 +112,7 @@
       <Command>ECHO #define GIT_HEAD_MASTER \&gt;"$(SolutionDir)src\GIT_HEAD_MASTER"
 type "$(SolutionDir).git\refs\heads\master"&gt;&gt;"$(SolutionDir)src\GIT_HEAD_MASTER"
       </Command>
-      <Message>GIT HEAD</Message>
+      <Message>GIT HEAD MASTER</Message>
       <Outputs>$(SolutionDir)src\GIT_HEAD_MASTER;%(Outputs)</Outputs>
       <Inputs>$(SolutionDir).git\refs\heads\master;%(Inputs)</Inputs>
     </CustomBuildStep>

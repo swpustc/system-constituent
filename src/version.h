@@ -5,6 +5,7 @@
 ***********************************************************/
 
 #include "system_constituent_version.h"
+#include "GIT_HEAD_MASTER"
 
 #define FILE_VERSION_MAJOR  SYSTEM_CONSTITUENT_VERSION_MAJOR
 #define FILE_VERSION_MINOR  SYSTEM_CONSTITUENT_VERSION_MINOR
@@ -13,7 +14,7 @@
 
 
 #define INTERAL_NAME        _T("system") _T(_CRT_STRINGIZE(SYSTEM_CONSTITUENT_VERSION))
-#define PRODUCT_NAME        _T("System Constituent")
+#define PRODUCT_NAME        _T("System Constituent ") _T(_CRT_STRINGIZE(GIT_HEAD_MASTER))
 #define SUPPORT_AUTHOR      _T("宋万鹏")
 #define EMAIL_ADDRESS       _T("swpustc@mail.ustc.edu.cn")
 #define COMPANY_NAME        _T("杭州赤霄科技有限公司")
