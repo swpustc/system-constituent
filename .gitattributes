@@ -45,4 +45,3 @@ version.h  encoding=GBK
 *.rc2      encoding=GBK
 
 *.hdev     merge=ours
-*.ts       merge=ours
