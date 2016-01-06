@@ -41,6 +41,7 @@ template<> size_t threadpool<HANDLE_EXCEPTION>::thread_entry_startup(threadpool*
 {
     debug_output(_T("Startup Thread Start: ["), this_type().name(), _T("](0x"), object, _T(')'));
     object->run_task(make_pair(move(startup_fn), 1));
+    object->m_task_all++;
     size_t result = object->pre_run(pause_event, resume_event);
     debug_output(_T("Startup Thread Result: ["), (void*)result, _T("] ["), this_type().name(), _T("](0x"), object, _T(')'));
     return result;
