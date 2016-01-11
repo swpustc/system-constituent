@@ -212,15 +212,16 @@ public:
     }
     wide_string from_bytes(const char *first, const char *last)
     {
-        size_t length, result;
+        size_t length, result, n;
         length = (size_t)::MultiByteToWideChar(codepage, 0, first, (int)(last - first), nullptr, 0);
         wide_string wstr;
         wstr.resize(length);
         result = (size_t)::MultiByteToWideChar(codepage, 0, first, (int)(last - first), (LPWSTR)const_cast<Elem*>(wstr.c_str()), (int)(length + 1));
         const Elem *wptr = wstr.c_str(), *next = wptr;
         for (; *next++;);
-        wstr.resize(nconv = next - wptr - 1);
-        assert(length >= nconv);
+        wstr.resize(n = next - wptr - 1);
+        assert(length >= n);
+        nconv += n;
         return ::std::move(wstr);
     }
     byte_string to_bytes(Elem _Char)
@@ -240,19 +241,20 @@ public:
     }
     byte_string to_bytes(const Elem *first, const Elem *last)
     {
-        size_t length, result;
+        size_t length, result, n;
         if (codepage == CP_UTF7 || codepage == CP_UTF8)
-            length = (size_t)::WideCharToMultiByte(codepage, 0, (LPCWCH)first, (int)(last - first) * sizeof(Elem), nullptr, 0, nullptr, nullptr);
+            length = (size_t)::WideCharToMultiByte(codepage, 0, (LPCWCH)first, (int)(last - first), nullptr, 0, nullptr, nullptr);
         else
-            length = (size_t)::WideCharToMultiByte(codepage, 0, (LPCWCH)first, (int)(last - first) * sizeof(Elem), nullptr, 0, (LPCCH)&State, nullptr);
+            length = (size_t)::WideCharToMultiByte(codepage, 0, (LPCWCH)first, (int)(last - first), nullptr, 0, (LPCCH)&State, nullptr);
         byte_string str;
         str.resize(length);
         if (codepage == CP_UTF7 || codepage == CP_UTF8)
-            result = (size_t)::WideCharToMultiByte(codepage, 0, (LPCWCH)first, (int)(last - first) * sizeof(Elem), const_cast<char*>(str.c_str()), (int)(length + 1), nullptr, nullptr);
+            result = (size_t)::WideCharToMultiByte(codepage, 0, (LPCWCH)first, (int)(last - first), const_cast<char*>(str.c_str()), (int)(length + 1), nullptr, nullptr);
         else
-            result = (size_t)::WideCharToMultiByte(codepage, 0, (LPCWCH)first, (int)(last - first) * sizeof(Elem), const_cast<char*>(str.c_str()), (int)(length + 1), (LPCCH)&State, nullptr);
-        str.resize(nconv = ::strlen(str.c_str()));
-        assert(length >= nconv);
+            result = (size_t)::WideCharToMultiByte(codepage, 0, (LPCWCH)first, (int)(last - first), const_cast<char*>(str.c_str()), (int)(length + 1), (LPCCH)&State, nullptr);
+        str.resize(n = ::strlen(str.c_str()));
+        assert(length >= n);
+        nconv += n;
         return ::std::move(str);
     }
     convert_cp_unicode_t(const convert_cp_unicode_t&) = delete;
