@@ -1,0 +1,9 @@
+stages:
+  - build
+
+build:
+  stage: build
+  script:
+    - script/gitlab-ci.bat
+  only:
+    - master

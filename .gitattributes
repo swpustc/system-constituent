@@ -37,6 +37,7 @@
 *.sln    text eol=crlf
 *.ts     text eol=lf
 *.ui     text eol=lf
+*.yml    text eol=lf
 
 Resource.h encoding=GBK
 version.h  encoding=GBK
