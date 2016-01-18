@@ -15,6 +15,6 @@ REM Build
 IF EXIST "E:\project\runner\%NAME%\install.bat" CALL "E:\project\runner\%NAME%\install.bat"
 CALL "E:\project\runner\%NAME%\build_release_x64.bat"
 REM Test
-IF EXIST "E:\project\runner\master\bin\Release\x64\%NAME%.exe" EXIT /B 0
-IF EXIST "E:\project\runner\master\bin\Release\x64\%NAME%.dll" EXIT /B 0
+IF EXIST "E:\project\runner\master\bin\Release\x64\%NAME%*.exe" EXIT /B 0
+IF EXIST "E:\project\runner\master\bin\Release\x64\%NAME%*.dll" EXIT /B 0
 EXIT /B 1
