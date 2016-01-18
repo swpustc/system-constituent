@@ -1,5 +1,7 @@
 #!/bin/bash
 
+git reset --hard origin/master
+
 GIT_DIR="$2/.git"
 GIT_WORK_TREE="$2"
 
