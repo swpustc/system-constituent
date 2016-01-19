@@ -8,5 +8,3 @@ cd $2
 
 commit=$(git show | awk 'NR==1,NR==2'| grep commit | awk 'NR==1' | awk '{print $2}')
 echo commit: $commit
-touch-git "$2" >/dev/null 2>&1
-git status     >/dev/null 2>&1
