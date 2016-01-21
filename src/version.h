@@ -13,8 +13,9 @@
 #define FILE_VERSION_POINT2 SYSTEM_CONSTITUENT_VERSION_POINT2
 
 
-#define INTERAL_NAME        _T("system") _T(_CRT_STRINGIZE(SYSTEM_CONSTITUENT_VERSION))
-#define PRODUCT_NAME        _T("System Constituent ") _T(_CRT_STRINGIZE(GIT_HEAD_MASTER))
+#define INTERAL_NAME        _T(_CRT_STRINGIZE(PROJECT_NAME))
+#define FILE_DESCRIPTION    _T("System Constituent")
+#define PRODUCT_NAME        FILE_DESCRIPTION _T(" ") _T(_CRT_STRINGIZE(GIT_HEAD_MASTER))
 #define SUPPORT_AUTHOR      _T("宋万鹏")
 #define EMAIL_ADDRESS       _T("swpustc@mail.ustc.edu.cn")
 #define COMPANY_NAME        _T("杭州赤霄科技有限公司")

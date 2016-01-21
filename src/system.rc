@@ -30,7 +30,7 @@ BEGIN
         BEGIN
             VALUE "Comments",         _T("DLL support by ") SUPPORT_AUTHOR _T("<") EMAIL_ADDRESS _T("> & ") COMPANY_NAME _T(".")
             VALUE "CompanyName",      COMPANY_NAME
-            VALUE "FileDescription",  PRODUCT_NAME
+            VALUE "FileDescription",  FILE_DESCRIPTION
             VALUE "FileVersion",      FILE_VERSION
             VALUE "InternalName",     INTERAL_NAME
             VALUE "LegalCopyright",   LEGAL_COPYRIGHT
