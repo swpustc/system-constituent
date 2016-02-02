@@ -24,8 +24,8 @@
     <CustomBuild Include="$(SolutionDir).git\refs\heads\master">
       <Message>GIT HEAD MASTER</Message>
       <Outputs>$(SolutionDir)..\master\tmp\$(ProjectName)\GIT_HEAD_MASTER;%(Outputs)</Outputs>
-      <Command>ECHO #define GIT_HEAD_MASTER \>"$(SolutionDir)..\master\tmp\$(ProjectName)\GIT_HEAD_MASTER"
-type "$(SolutionDir).git\refs\heads\master">>"$(SolutionDir)..\master\tmp\$(ProjectName)\GIT_HEAD_MASTER"
+      <Command>ECHO #define GIT_HEAD_MASTER \&gt;"$(SolutionDir)..\master\tmp\$(ProjectName)\GIT_HEAD_MASTER"
+IF EXIST "$(SolutionDir).git\refs\heads\master" (TYPE "$(SolutionDir).git\refs\heads\master"&gt;&gt;"$(SolutionDir)..\master\tmp\$(ProjectName)\GIT_HEAD_MASTER") ELSE (ECHO 0000000&gt;&gt;"$(SolutionDir)..\master\tmp\$(ProjectName)\GIT_HEAD_MASTER")
       </Command>
     </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\master\tmp\$(ProjectName)\GIT_HEAD_MASTER" />
