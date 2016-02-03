@@ -93,9 +93,9 @@ private:
         ::SetEvent(m_notify_task);
     }
     void notify(size_t attach_tasks_number)
-    { // 通知一个线程
-        int i = auto_min(3, m_thread_started.load());
-        while (attach_tasks_number-- && i--)
+    { // 最多通知3个线程
+        auto&& i = auto_min(3UL, (size_t)m_thread_started.load(), attach_tasks_number);
+        while (i--)
             notify();
     }
 
