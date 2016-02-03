@@ -19,7 +19,7 @@
 #define SUPPORT_AUTHOR      _T("宋万鹏")
 #define EMAIL_ADDRESS       _T("swpustc@mail.ustc.edu.cn")
 #define COMPANY_NAME        _T("杭州赤霄科技有限公司")
-#define LEGAL_COPYRIGHT     _T("Copyright (C) 2015-2015 ") COMPANY_NAME
+#define LEGAL_COPYRIGHT     _T("Copyright (C) 2015-2016 ") COMPANY_NAME
 
 #define FILE_VERSION        _T(_CRT_STRINGIZE(FILE_VERSION_MAJOR)) _T(".")    \
                             _T(_CRT_STRINGIZE(FILE_VERSION_MINOR)) _T(".")    \
