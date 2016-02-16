@@ -34,7 +34,8 @@ ver=$ver_maj.$ver_min.$ver_pt1.$ver_pt2
 
 date=$(GIT_DIR="$in_path/.git" GIT_WORK_TREE="$in_path" git show -s --pretty=format:%ci | awk 'NR==1' | awk '{printf $1}')
 
-cat "$in_path/install/package.xml" | \
-  sed "s/\$(Version)/$ver/g"       | \
-  sed "s/\$(ReleaseDate)/$date/g"  | \
+cat "$in_path/install/package.xml"   | \
+  sed "s/\$(DisplayName)/$project/g" | \
+  sed "s/\$(Version)/$ver/g"         | \
+  sed "s/\$(ReleaseDate)/$date/g"    | \
   tee "$meta_path/package.xml"
