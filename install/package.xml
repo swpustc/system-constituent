@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Package>
+    <DisplayName>system</DisplayName>
+    <Description>跨平台、系统级别功能核心组件DLL。</Description>
+    <Version>$(Version)</Version>
+    <ReleaseDate>$(ReleaseDate)</ReleaseDate>
+    <ForcedInstallation>true</ForcedInstallation>
+    <SortingPriority>100</SortingPriority>
+</Package>
