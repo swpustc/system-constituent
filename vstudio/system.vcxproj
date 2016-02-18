@@ -24,7 +24,7 @@
     <CustomBuild Include="$(SolutionDir).git\index">
       <Message>GIT HEAD MASTER</Message>
       <Outputs>$(SolutionDir)..\master\tmp\$(ProjectName)\GIT_HEAD_MASTER;%(Outputs)</Outputs>
-      <Command>git show -s --pretty=format:"#define GIT_HEAD_MASTER %%H"&gt;"$(SolutionDir)..\master\tmp\$(ProjectName)\GIT_HEAD_MASTER"</Command>
+      <Command>git show -s --pretty=format:"#define GIT_HEAD_MASTER %%H%%n"&gt;"$(SolutionDir)..\master\tmp\$(ProjectName)\GIT_HEAD_MASTER"</Command>
     </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\master\tmp\$(ProjectName)\GIT_HEAD_MASTER" />
   </ItemGroup>
