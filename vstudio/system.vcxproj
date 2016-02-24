@@ -114,7 +114,7 @@
       <WarningLevel>0</WarningLevel>
     </MASM>
     <PreBuildEvent>
-      <Command>CALL "$(SolutionDir)install\run_bash.cmd" "$(SolutionDir)install\install.sh" "$(SolutionName)" "$(SolutionDir)\" "$(OutDir)\" "$(SolutionDir)include\system_constituent_version.h"</Command>
+      <Command>CALL "$(SolutionDir)install\run_bash.cmd" "$(SolutionDir)install\install.sh" "$(SolutionName)" "$(SolutionDir)\" "$(OutDir)\" "$(SolutionDir)include\system_constituent_version.h" "$(SolutionDir)..\settings.props"</Command>
     </PreBuildEvent>
     <PostBuildEvent>
       <Command>CALL "$(SolutionDir)install\run_bash_echo.cmd" "$(SolutionDir)install\add.sh" "$(SolutionName)" "$(TargetPath)" "$(OutDir)\"</Command>
