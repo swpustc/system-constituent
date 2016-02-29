@@ -109,8 +109,8 @@
       <WarningLevel>0</WarningLevel>
     </MASM>
     <PreBuildEvent>
-      <Command>CALL "$(SolutionDir)install\run_bash.cmd" "$(SolutionDir)install\install.sh" "$(SolutionName)" "$(SolutionDir)\" "$(OutDir)\" "$(SolutionDir)include\system_constituent_version.h" "$(SolutionDir)..\settings.props"
-git show -s --pretty=format:"#define GIT_HEAD_MASTER %%h%%n"&gt;"$(SolutionDir)include\GIT_HEAD_MASTER"
+      <Command>CALL "$(SolutionDir)install\run_bash_echo.cmd" "$(SolutionDir)git_head.sh" "$(SolutionDir)\"
+CALL "$(SolutionDir)install\run_bash.cmd" "$(SolutionDir)install\install.sh" "$(SolutionName)" "$(SolutionDir)\" "$(OutDir)\" "$(SolutionDir)include\system_constituent_version.h" "$(SolutionDir)..\settings.props"
       </Command>
     </PreBuildEvent>
     <PostBuildEvent>
