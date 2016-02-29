@@ -21,11 +21,6 @@
     <ClInclude Include="$(SolutionDir)include\system_constituent_version.h" />
     <ClInclude Include="$(SolutionDir)include\threadpool.h" />
     <ResourceCompile Include="$(SolutionDir)src\system.rc" />
-    <CustomBuild Include="$(SolutionDir).git\index">
-      <Message>GIT HEAD MASTER</Message>
-      <Outputs>$(SolutionDir)..\master\tmp\$(ProjectName)\GIT_HEAD_MASTER;%(Outputs)</Outputs>
-      <Command>git show -s --pretty=format:"#define GIT_HEAD_MASTER %%H%%n"&gt;"$(SolutionDir)..\master\tmp\$(ProjectName)\GIT_HEAD_MASTER"</Command>
-    </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\master\tmp\$(ProjectName)\GIT_HEAD_MASTER" />
   </ItemGroup>
   <ItemGroup Label="ProjectConfigurations">
@@ -114,7 +109,9 @@
       <WarningLevel>0</WarningLevel>
     </MASM>
     <PreBuildEvent>
-      <Command>CALL "$(SolutionDir)install\run_bash.cmd" "$(SolutionDir)install\install.sh" "$(SolutionName)" "$(SolutionDir)\" "$(OutDir)\" "$(SolutionDir)include\system_constituent_version.h" "$(SolutionDir)..\settings.props"</Command>
+      <Command>CALL "$(SolutionDir)install\run_bash.cmd" "$(SolutionDir)install\install.sh" "$(SolutionName)" "$(SolutionDir)\" "$(OutDir)\" "$(SolutionDir)include\system_constituent_version.h" "$(SolutionDir)..\settings.props"
+git show -s --pretty=format:"#define GIT_HEAD_MASTER %%h%%n"&gt;"$(SolutionDir)..\master\tmp\$(ProjectName)\GIT_HEAD_MASTER"
+      </Command>
     </PreBuildEvent>
     <PostBuildEvent>
       <Command>CALL "$(SolutionDir)install\run_bash_echo.cmd" "$(SolutionDir)install\add.sh" "$(SolutionName)" "$(TargetPath)" "$(OutDir)\"</Command>

@@ -64,9 +64,6 @@
     <ResourceCompile Include="$(SolutionDir)src\system.rc">
       <Filter>resource</Filter>
     </ResourceCompile>
-    <CustomBuild Include="$(SolutionDir).git\index">
-      <Filter>resource</Filter>
-    </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\master\tmp\$(ProjectName)\GIT_HEAD_MASTER">
       <Filter>resource</Filter>
     </ClInclude>
