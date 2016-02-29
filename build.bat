@@ -12,6 +12,7 @@ for /F %%i in ('DIR /B "%~dp0*.sln"') DO (
 )
 set "VS_VERSION=2013"
 
+CALL "%~dp0install\run_bash_echo.cmd" "%~dp0git_head.sh" "%~dp0\"
 CALL devenv.com "%SLN_DIR%" /Build "Release|x64"
 CALL devenv.com "%SLN_DIR%" /Build "Debug|x64"
 CALL devenv.com "%SLN_DIR%" /Build "Release|Win32"
