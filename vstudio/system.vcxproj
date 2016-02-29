@@ -114,7 +114,7 @@ git show -s --pretty=format:"#define GIT_HEAD_MASTER %%h%%n"&gt;"$(SolutionDir).
       </Command>
     </PreBuildEvent>
     <PostBuildEvent>
-      <Command>CALL "$(SolutionDir)install\run_bash_echo.cmd" "$(SolutionDir)install\add.sh" "$(SolutionName)" "$(TargetPath)" "$(OutDir)\"</Command>
+      <Command>CALL "$(SolutionDir)install\run_bash_echo.cmd" "$(SolutionDir)install\add.sh" "$(SolutionName)" "$(OutDir)\" "$(TargetPath)" "$(SolutionDir)..\master\pdb\$(Configuration)\$(Platform)\$(TargetName).pdb"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Platform)'=='Win32'">
