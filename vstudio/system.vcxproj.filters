@@ -61,11 +61,11 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="$(SolutionDir)include\GIT_HEAD_MASTER">
+      <Filter>resource</Filter>
+    </ClInclude>
     <ResourceCompile Include="$(SolutionDir)src\system.rc">
       <Filter>resource</Filter>
     </ResourceCompile>
-    <ClInclude Include="$(SolutionDir)..\master\tmp\$(ProjectName)\GIT_HEAD_MASTER">
-      <Filter>resource</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>

@@ -20,8 +20,8 @@
     <ClInclude Include="$(SolutionDir)include\system_constituent.h" />
     <ClInclude Include="$(SolutionDir)include\system_constituent_version.h" />
     <ClInclude Include="$(SolutionDir)include\threadpool.h" />
+    <ClInclude Include="$(SolutionDir)include\GIT_HEAD_MASTER" />
     <ResourceCompile Include="$(SolutionDir)src\system.rc" />
-    <ClInclude Include="$(SolutionDir)..\master\tmp\$(ProjectName)\GIT_HEAD_MASTER" />
   </ItemGroup>
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -75,7 +75,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)src\;$(SolutionDir)include\;$(SolutionDir)..\master\tmp\$(ProjectName)\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)src\;$(SolutionDir)include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>PROJECT_NAME=$(TargetName);SYSCON_EXPORT;_WINDOWS;WIN32;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <WarningLevel>Level3</WarningLevel>
       <BrowseInformation>false</BrowseInformation>
@@ -97,7 +97,7 @@
     </Link>
     <ResourceCompile>
       <Culture>0x0804</Culture>
-      <AdditionalIncludeDirectories>$(SolutionDir)src\;$(SolutionDir)include\;$(SolutionDir)..\master\tmp\$(ProjectName)\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)src\;$(SolutionDir)include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <NullTerminateStrings>true</NullTerminateStrings>
     </ResourceCompile>
     <Bscmake>
@@ -105,12 +105,12 @@
       <OutputFile>$(SolutionDir)..\master\bsc\$(Configuration)\$(Platform)\$(TargetName).bsc</OutputFile>
     </Bscmake>
     <MASM>
-      <IncludePaths>$(SolutionDir)src\;$(SolutionDir)include\;$(SolutionDir)..\master\tmp\$(ProjectName)\</IncludePaths>
+      <IncludePaths>$(SolutionDir)src\;$(SolutionDir)include\</IncludePaths>
       <WarningLevel>0</WarningLevel>
     </MASM>
     <PreBuildEvent>
       <Command>CALL "$(SolutionDir)install\run_bash.cmd" "$(SolutionDir)install\install.sh" "$(SolutionName)" "$(SolutionDir)\" "$(OutDir)\" "$(SolutionDir)include\system_constituent_version.h" "$(SolutionDir)..\settings.props"
-git show -s --pretty=format:"#define GIT_HEAD_MASTER %%h%%n"&gt;"$(SolutionDir)..\master\tmp\$(ProjectName)\GIT_HEAD_MASTER"
+git show -s --pretty=format:"#define GIT_HEAD_MASTER %%h%%n"&gt;"$(SolutionDir)include\GIT_HEAD_MASTER"
       </Command>
     </PreBuildEvent>
     <PostBuildEvent>
