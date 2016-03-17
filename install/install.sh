@@ -45,7 +45,7 @@ else
 fi
 
 date=$(GIT_DIR="$in_path/.git" GIT_WORK_TREE="$in_path" git show -s --pretty=format:%ci | awk 'NR==1' | awk '{printf $1}')
-commit==$(GIT_DIR="$in_path/.git" GIT_WORK_TREE="$in_path" git show -s --pretty=format:%s | awk 'NR==1' | sed 's/</\&lt;/g' | sed 's/>/\&gt;/g')
+commit=$(GIT_DIR="$in_path/.git" GIT_WORK_TREE="$in_path" git show -s --pretty=format:%s | awk 'NR==1' | sed 's/</\&lt;/g' | sed 's/>/\&gt;/g')
 
 cat "$in_path/install/package.xml"   | \
   sed "s/\$(DisplayName)/$project/g" | \
