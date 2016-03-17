@@ -6,4 +6,5 @@
     <ReleaseDate>$(ReleaseDate)</ReleaseDate>
     <ForcedInstallation>true</ForcedInstallation>
     <SortingPriority>100</SortingPriority>
+    <UpdateText>$(Commit)</UpdateText>
 </Package>
