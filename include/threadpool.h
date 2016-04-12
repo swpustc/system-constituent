@@ -599,6 +599,17 @@ public:
             if (val.valid())
                 val.wait_until(abs_time);
     }
+
+    void clear()
+    {
+        future_set.clear();
+        shared_future_set.clear();
+    }
+    void clear_on_complete()
+    {
+        wait();
+        clear();
+    }
 };
 
 
@@ -695,6 +706,16 @@ public:
         for (auto& val : future_set)
             if (val.valid())
                 val.wait_until(abs_time);
+    }
+
+    void clear()
+    {
+        future_set.clear();
+    }
+    void clear_on_complete()
+    {
+        wait();
+        clear();
     }
 };
 
