@@ -33,15 +33,12 @@ ver_min=$(cat "$verfile" | grep 'VERSION_MINOR ' | awk 'NR==1' | awk '{printf $(
 ver_pt1=$(cat "$verfile" | grep 'VERSION_POINT ' | awk 'NR==1' | awk '{printf $(NF)}')
 ver_pt2=$(cat "$verfile" | grep 'VERSION_POINT2' | awk 'NR==1' | awk '{printf $(NF)}')
 ver_tmp=$(GIT_DIR="$in_path/.git" GIT_WORK_TREE="$in_path" git show -s --pretty=format:%ct | awk 'NR==1' | sed 's/</\&lt;/g' | sed 's/>/\&gt;/g' | sed 's#/#\\/#g')
+ver=$ver_maj.$ver_min.$ver_pt1.$ver_pt2.$ver_tmp
 if [ -f "$props_f" ] ; then
   ver_who=$(cat "$props_f" | grep 'QtBuildVersion' | awk 'NR==1' | awk -F\> '{printf $2}' | awk -F\< '{printf $1}' | sed 's/</\&lt;/g' | sed 's/>/\&gt;/g' | sed 's#/#\\/#g')
   if [ "$ver_who"x != ""x ] ; then
-    ver=$ver_maj.$ver_min.$ver_pt1.$ver_pt2-$ver_tmp-$ver_who
-  else
-    ver=$ver_maj.$ver_min.$ver_pt1.$ver_pt2-$ver_tmp
+    ver=$ver.$ver_who
   fi
-else
-  ver=$ver_maj.$ver_min.$ver_pt1.$ver_pt2-$ver_tmp
 fi
 
 date=$(GIT_DIR="$in_path/.git" GIT_WORK_TREE="$in_path" git show -s --pretty=format:%ci | awk 'NR==1' | awk '{printf $1}' | sed 's/</\&lt;/g' | sed 's/>/\&gt;/g' | sed 's#/#\\/#g')
