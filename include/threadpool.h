@@ -484,13 +484,9 @@ public:
     {
         // 线程创建、销毁事件锁
         ::std::unique_lock<decltype(m_thread_lock)> lck(m_thread_lock);
-        if (::std::any_of(m_thread_object.cbegin(), m_thread_object.cend(), [&](decltype(*m_thread_object.cend()) th_obj){
-            return thread_id == ::std::get<0>(th_obj).get_id();
-        }))
+        if (::std::any_of(m_thread_object.cbegin(), m_thread_object.cend(), [&](decltype(*m_thread_object.cend()) th_obj){ return thread_id == ::std::get<0>(th_obj).get_id(); }))
             return true;
-        if (::std::any_of(m_thread_destroy.cbegin(), m_thread_destroy.cend(), [&](decltype(*m_thread_destroy.cend()) th_obj){
-            return thread_id == ::std::get<0>(th_obj).get_id();
-        }))
+        if (::std::any_of(m_thread_destroy.cbegin(), m_thread_destroy.cend(), [&](decltype(*m_thread_destroy.cend()) th_obj){ return thread_id == ::std::get<0>(th_obj).get_id(); }))
             return true;
         return false;
     }
