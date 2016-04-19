@@ -96,6 +96,7 @@
       <MapFileName>$(SolutionDir)..\master\map\$(Configuration)\$(Platform)\$(TargetName).map</MapFileName>
     </Link>
     <ResourceCompile>
+      <PreprocessorDefinitions>PROJECT_NAME=$(TargetName);%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <Culture>0x0804</Culture>
       <AdditionalIncludeDirectories>$(SolutionDir)src\;$(SolutionDir)include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <NullTerminateStrings>true</NullTerminateStrings>
