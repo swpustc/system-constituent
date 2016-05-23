@@ -15,4 +15,4 @@ REM Git fetch
 IF     EXIST "X:\r\%NAME%" CALL "%~dp0\run_bash" "%~dp0\git_fetch.sh" "%~dp0.." "X:\r\%NAME%"
 REM Build
 IF EXIST "X:\r\%NAME%\install.bat" CALL "X:\r\%NAME%\install.bat"
-CALL "X:\r\%NAME%\build_release_x64.bat"
+CALL "X:\r\%NAME%\build_release_x64.bat" "INLINE"
