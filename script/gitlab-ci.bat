@@ -2,7 +2,6 @@
 CHCP 65001
 REM Find project name
 SET "NAME=%~dp0"
-SET "OUT=system"
 FOR /F "tokens=*" %%I IN ('CALL "%~dp0\run_bash" "%~dp0\base_name.sh" "%NAME:~0,-8%"') DO (
   SET "NAME=%%I"
 )
