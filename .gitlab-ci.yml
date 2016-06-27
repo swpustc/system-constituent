@@ -7,3 +7,4 @@ build:
     - script/gitlab-ci.bat
   only:
     - master
+    - tags
