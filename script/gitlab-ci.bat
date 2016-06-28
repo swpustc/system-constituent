@@ -6,8 +6,7 @@ FOR /F "tokens=*" %%I IN ('CALL "%~dp0\run_bash" "%~dp0\base_name.sh" "%NAME:~0,
   SET "NAME=%%I"
 )
 
-REM Create device
-IF NOT EXIST "X:\" NET USE X: \\localhost\project /PERSISTENT:YES
+IF NOT EXIST "X:\r" MKDIR "X:\r"
 REM Git clone
 IF NOT EXIST "X:\r\%NAME%" CALL "%~dp0\run_bash" "%~dp0\git_clone.sh" master "X:\r\%NAME%"
 REM Git fetch
