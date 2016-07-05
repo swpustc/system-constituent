@@ -410,6 +410,18 @@ public:
         m_tasks.clear();
         m_pause_tasks.clear();
     }
+    // 获取任务队列中的所有任务pair<tasks, pause_tasks>
+    ::std::pair<decltype(m_tasks), decltype(m_pause_tasks)> get_tasks()
+    {
+        decltype(m_tasks) tasks;
+        decltype(m_tasks) pause_tasks;
+        ::std::lock_guard<decltype(m_task_lock)> lck(m_task_lock); // 任务队列读写锁
+        m_task_all -= m_tasks.size();
+        m_tasks.swap(m_tasks);
+        m_task_all -= m_pause_tasks.size();
+        m_pause_tasks.swap(pause_tasks);
+        return ::std::make_pair(::std::move(tasks), ::std::move(pause_tasks));
+    }
 
     // 分离所有任务，分离的线程池对象线程数不变
     void detach()
