@@ -418,7 +418,8 @@ public:
     // 获取异常任务队列
     decltype(m_tasks) get_exception_tasks()
     {
-        decltype(m_tasks) exception_tasks = ::std::move(m_exception_tasks);
+        decltype(m_tasks) exception_tasks;
+        m_exception_tasks.swap(exception_tasks);
         return ::std::move(exception_tasks);
     }
     // 获取初始化线程数
