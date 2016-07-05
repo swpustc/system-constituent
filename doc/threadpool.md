@@ -35,7 +35,7 @@ public:
     size_t push_tasks(std::deque<std::function<void()>>&& tasks);
 
     void clear();
-    std::pair<std::deque<std::function<void()>>, std::deque<std::function<void()>>> get_tasks();
+    std::deque<std::function<void()>> get_tasks();
 
     void detach();
     void detach(int thread_number_new);
@@ -166,12 +166,11 @@ public:
 
 - ##### `void clear()`
 
-    清理所有任务队列。
+    删除队列中的所有任务。
 
-- ##### `std::pair<std::deque<std::function<void()>>, std::deque<std::function<void()>>> get_tasks()`
+- ##### `std::deque<std::function<void()>> get_tasks()`
 
-    返回任务队列中的任务，第一个参数为将要运行的任务，第二个参数为暂停的任务。
-    线程池中的任务队列将被清空。
+    返回任务队列中将要运行的的任务，线程池中将要运行的任务队列将被清空。
 
 - ##### `void detach()`
 
