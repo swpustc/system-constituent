@@ -372,7 +372,7 @@ public:
         return count;
     }
     // 添加一个任务集合
-    size_t push_tasks(decltype(m_tasks) && tasks)
+    size_t push_tasks(decltype(m_tasks)&& tasks)
     {
         switch (m_exit_event.load())
         {
@@ -390,8 +390,8 @@ public:
             ::std::unique_lock<decltype(m_task_lock)> lck(m_task_lock);
             while (!tasks.empty())
             {
-                m_push_tasks->push_back(::std::move(tasks.back()));
-                tasks.pop_back();
+                m_push_tasks->push_back(::std::move(tasks.front()));
+                tasks.pop_front();
             }
             lck.unlock();
             m_task_all += count;
