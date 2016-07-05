@@ -348,7 +348,31 @@ public:
         return ::std::make_pair(::std::move(future_obj), true);
     }
     // 添加一个任务集合
-    size_t push_tasks(decltype(m_tasks)&& tasks)
+    size_t push_tasks(const decltype(m_tasks)& tasks)
+    {
+        switch (m_exit_event.load())
+        {
+        case exit_event_t::NORMAL:
+        case exit_event_t::PAUSE:
+        case exit_event_t::INITIALIZATION: // 未初始化的线程池仍然可以添加任务
+            break;
+        default: // 退出流程中禁止操作线程控制事件
+            return false;
+        }
+        auto&& count = tasks.size();
+        if (count)
+        {
+            // 任务队列读写锁
+            ::std::unique_lock<decltype(m_task_lock)> lck(m_task_lock);
+            m_push_tasks->insert(m_push_tasks->end(), tasks.cbegin(), tasks.cend());
+            lck.unlock();
+            m_task_all += count;
+            notify(count);
+        }
+        return count;
+    }
+    // 添加一个任务集合
+    size_t push_tasks(decltype(m_tasks) && tasks)
     {
         switch (m_exit_event.load())
         {
