@@ -357,7 +357,7 @@ public:
         case exit_event_t::INITIALIZATION: // 未初始化的线程池仍然可以添加任务
             break;
         default: // 退出流程中禁止操作线程控制事件
-            return false;
+            return 0;
         }
         auto&& count = tasks.size();
         if (count)
@@ -381,7 +381,7 @@ public:
         case exit_event_t::INITIALIZATION: // 未初始化的线程池仍然可以添加任务
             break;
         default: // 退出流程中禁止操作线程控制事件
-            return false;
+            return 0;
         }
         auto&& count = tasks.size();
         if (count)

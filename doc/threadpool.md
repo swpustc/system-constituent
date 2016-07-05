@@ -31,7 +31,11 @@ public:
     auto push_future(Fn&& fn, Args&&... args)->std::pair<std::future<fn(args...)>, bool>;
     bool push_multi(size_t Count, Fn&& fn, Args&&... args);
     auto push_multi_future(size_t count, Fn&& fn, Args&&... args)->std::pair<std::vector<std::future<fn(args...)>>, bool>;
+    size_t push_tasks(const std::deque<std::function<void()>>& tasks);
+    size_t push_tasks(std::deque<std::function<void()>>&& tasks);
+
     void clear();
+    std::pair<std::deque<std::function<void()>>, std::deque<std::function<void()>>> get_tasks();
 
     void detach();
     void detach(int thread_number_new);
@@ -150,9 +154,24 @@ public:
     返回类型为`pair<vector<future>, bool>`，可以通过**futurn::get**获取任务函数的返回值。
     其余和**push_multi**函数相同。
 
+- ##### `size_t push_tasks(const std::deque<std::function<void()>>& tasks)`
+
+    添加任务集合，类型为`decltype(m_tasks)`，返回添加进任务队列的数量。如果线程池未初始化返回0。
+    添加的任务`tasks`不会被删除。
+
+- ##### `size_t push_tasks(std::deque<std::function<void()>>&& tasks)`
+
+    添加任务集合，类型为`decltype(m_tasks)`，返回添加进任务队列的数量。如果线程池未初始化返回0。
+    添加的任务`tasks`将被删除。
+
 - ##### `void clear()`
 
     清理所有任务队列。
+
+- ##### `std::pair<std::deque<std::function<void()>>, std::deque<std::function<void()>>> get_tasks()`
+
+    返回任务队列中的任务，第一个参数为将要运行的任务，第二个参数为暂停的任务。
+    线程池中的任务队列将被清空。
 
 - ##### `void detach()`
 
