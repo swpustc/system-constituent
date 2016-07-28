@@ -11,7 +11,7 @@ SET "VS_VERSION=2013"
 SET /A ERR=0
 SET /A CUR_ERR=0
 
-CALL "%~dp0install\run_bash_echo.cmd" "%~dp0git_head.sh" "%~dp0\"
+CALL "%~dp0install\run_bash_echo.cmd" "%~dp0git_head.sh" "%~dp0\" || (ECHO Unmodified. && EXIT /B 0)
 CALL devenv.com "%SLN_DIR%" /Build "Release|Win32"
 SET /A CUR_ERR=%ERRORLEVEL%
 SET /A ERR=ERR+CUR_ERR
