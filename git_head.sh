@@ -1,11 +1,7 @@
 #!/bin/bash
 
 in_path=$1
-platform=$2
-if [ "$platform"x != x ] ; then
-  platform=.$platform
-fi
-f_build="$in_path/../master/tmp/GIT_HEAD_MASTER$platform.rebuild"
+f_build="$in_path/../master/tmp/GIT_HEAD_MASTER.rebuild"
 
 
 NEW_COMMIT=$(GIT_DIR="$in_path/.git" GIT_WORK_TREE="$in_path" git show -s --pretty=format:%h | awk 'NR==1' | awk '{printf $1}')
