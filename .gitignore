@@ -29,7 +29,7 @@
 /tmp/
 _UpgradeReport_Files/
 ipch/
-GIT_HEAD_MASTER
+GIT_HEAD_MASTER*
 csvstream.csv
 csvstream.log
 threadpool.log

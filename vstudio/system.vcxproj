@@ -110,9 +110,7 @@
       <WarningLevel>0</WarningLevel>
     </MASM>
     <PreBuildEvent>
-      <Command>CALL "$(SolutionDir)install\run_bash_echo.cmd" "$(SolutionDir)git_head.sh" "$(SolutionDir)\"
-CALL "$(SolutionDir)install\run_bash.cmd" "$(SolutionDir)install\install.sh" "$(SolutionName)" "$(SolutionDir)\" "$(OutDir)\" "$(SolutionDir)include\system_constituent_version.h" "$(SolutionDir)..\settings.props"
-      </Command>
+      <Command>CALL "$(SolutionDir)install\run_bash.cmd" "$(SolutionDir)install\install.sh" "$(SolutionName)" "$(SolutionDir)\" "$(OutDir)\" "$(SolutionDir)include\system_constituent_version.h" "$(SolutionDir)..\settings.props"</Command>
     </PreBuildEvent>
     <PostBuildEvent>
       <Command>CALL "$(SolutionDir)install\run_bash_echo.cmd" "$(SolutionDir)install\add.sh" "$(SolutionName)" "$(OutDir)\" "$(TargetPath)" "$(SolutionDir)..\master\pdb\$(Configuration)\$(Platform)\$(TargetName)_pub.pdb"</Command>

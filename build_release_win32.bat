@@ -11,6 +11,7 @@ SET "VS_VERSION=2013"
 SET /A ERR=0
 SET /A CUR_ERR=0
 
+IF EXIST "%~dp0\GIT_HEAD_MASTER.skip" (ECHO Unmodified. && EXIT /B 0)
 CALL devenv.com "%SLN_DIR%" /Build "Release|Win32"
 SET /A CUR_ERR=%ERRORLEVEL%
 SET /A ERR=ERR+CUR_ERR
